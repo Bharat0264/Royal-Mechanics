@@ -1,2 +1,5 @@
-// Add Drizzle tables here when the site needs a database.
-export {};
+import { index, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+
+export const appUsers = sqliteTable('app_users', { id: text('id').primaryKey(), googleSubject: text('google_subject').notNull().unique(), email: text('email').notNull().unique(), displayName: text('display_name'), role: text('role', { enum: ['ADMIN', 'MECHANIC', 'CUSTOMER'] }).notNull().default('CUSTOMER'), isAllowed: integer('is_allowed', { mode: 'boolean' }).notNull().default(true), createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(), updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull() }, (t) => [index('idx_app_users_role').on(t.role)]);
+export const localSessions = sqliteTable('local_sessions', { id: text('id').primaryKey(), sessionHash: text('session_hash').notNull().unique(), userId: text('user_id').notNull().references(() => appUsers.id, { onDelete: 'cascade' }), expiresAt: integer('expires_at', { mode: 'timestamp_ms' }).notNull(), createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull() }, (t) => [index('idx_local_sessions_user_id').on(t.userId), index('idx_local_sessions_expires_at').on(t.expiresAt)]);
+export const mechanicInvites = sqliteTable('mechanic_invites', { id: text('id').primaryKey(), email: text('email').notNull().unique(), invitedBy: text('invited_by').notNull().references(() => appUsers.id), createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(), acceptedAt: integer('accepted_at', { mode: 'timestamp_ms' }) });
