@@ -1,0 +1,7 @@
+import { NextResponse } from 'next/server';
+import { getViewer } from '@/lib/auth';
+import { connectMongo } from '@/lib/mongodb';
+import { Invoice } from '@/lib/models';
+
+const reply=(body:unknown,status=200)=>NextResponse.json(body,{status});
+export async function POST(request:Request){const viewer=await getViewer();if(viewer?.role!=='ADMIN')return reply({error:'Admin access required.'},403);const {invoiceId}=await request.json().catch(()=>({}));const keyId=process.env.RAZORPAY_KEY_ID,keySecret=process.env.RAZORPAY_KEY_SECRET;if(!keyId||!keySecret)return reply({error:'Razorpay is not configured.'},503);await connectMongo();const invoice=await Invoice.findById(invoiceId);if(!invoice)return reply({error:'Invoice not found.'},404);if(invoice.paymentStatus==='PAID')return reply({error:'This invoice is already paid.'},400);const response=await fetch('https://api.razorpay.com/v1/orders',{method:'POST',headers:{Authorization:`Basic ${Buffer.from(`${keyId}:${keySecret}`).toString('base64')}`,'content-type':'application/json'},body:JSON.stringify({amount:Math.round(invoice.total*100),currency:'INR',receipt:invoice.invoiceNumber,notes:{invoiceNumber:invoice.invoiceNumber}})});const order=await response.json();if(!response.ok)return reply({error:order?.error?.description??'Razorpay could not create the order.'},502);invoice.razorpayOrderId=order.id;await invoice.save();return reply({keyId,orderId:order.id,amount:order.amount,currency:order.currency,invoiceNumber:invoice.invoiceNumber,customerName:invoice.customerName});}
