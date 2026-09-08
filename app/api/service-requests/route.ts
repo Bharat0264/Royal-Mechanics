@@ -26,8 +26,9 @@ export async function POST(request:Request){
 
 export async function GET(){
   const viewer=await getViewer();
-  if(!viewer||viewer.role!=='ADMIN')return reply({error:'Admin access required.'},403);
+  if(!viewer||!['ADMIN','MECHANIC'].includes(viewer.role))return reply({error:'Workshop access required.'},403);
   await connectMongo();
-  const requests=await ServiceRequest.find().sort({createdAt:-1}).limit(50).lean();
-  return reply({requests:requests.map(item=>({id:String(item._id),requestNumber:item.requestNumber,vehicleName:item.vehicleName,serviceCategory:item.serviceCategory,serviceMode:item.serviceMode,status:item.status,preferredSlot:item.preferredSlot,createdAt:item.createdAt,pickupLocation:item.pickupLocation}))});
+  const query=viewer.role==='ADMIN'?{}:{mechanicEmail:viewer.email};
+  const requests=await ServiceRequest.find(query).sort({createdAt:-1}).limit(50).lean();
+  return reply({requests:requests.map(item=>({id:String(item._id),requestNumber:item.requestNumber,vehicleName:item.vehicleName,serviceCategory:item.serviceCategory,serviceMode:item.serviceMode,status:item.status,preferredSlot:item.preferredSlot,mechanicEmail:item.mechanicEmail??null,notes:item.notes,createdAt:item.createdAt,pickupLocation:item.pickupLocation}))});
 }
