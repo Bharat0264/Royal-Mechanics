@@ -1,18 +1,48 @@
 'use client';
 
+
 import { ArrowRight, Bell, Bike, CalendarDays, Check, ChevronRight, ClipboardCheck, Copy, Crosshair, Gauge, MapPin, Menu, Navigation, Package, Plus, ShieldCheck, Timer, Wrench, X } from 'lucide-react';
+
+import { jsPDF } from 'jspdf';
+
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+
 const services = [['General Service','Full inspection, fluids & tune-up','From Rs. 899',Wrench],['Brakes & Safety','Pads, discs, fluid & alignment','From Rs. 499',ShieldCheck],['Tyres & Battery','Fitment, balancing & health check','From Rs. 399',Gauge]] as const;
+
 type Role = 'customer'|'mechanic'|'admin';
 
-type Viewer={id:string;email:string;displayName:string|null;role:'ADMIN'|'MECHANIC'|'CUSTOMER'};
+
+type Viewer={id:string;
+email:string;
+displayName:string|null;
+role:'ADMIN'|'MECHANIC'|'CUSTOMER'};
+
 export default function Home(){
-  const [role,setRole]=useState<Role>('customer'); const [viewer,setViewer]=useState<Viewer|null>(null); const [booking,setBooking]=useState(false); const [signin,setSignin]=useState(false); const [message,setMessage]=useState('');
-  const complete=useCallback((text:string)=>{setBooking(false);setMessage(text);window.setTimeout(()=>setMessage(''),3500)},[]);
-  const enter=useCallback((next:Viewer)=>{setViewer(next);setRole(next.role.toLowerCase() as Role);setSignin(false);document.getElementById('workshop')?.scrollIntoView({behavior:'smooth'});},[]);
+  const [role,setRole]=useState<Role>('customer');
+ const [viewer,setViewer]=useState<Viewer|null>(null);
+ const [booking,setBooking]=useState(false);
+ const [signin,setSignin]=useState(false);
+ const [message,setMessage]=useState('');
+
+  const complete=useCallback((text:string)=>{setBooking(false);
+setMessage(text);
+window.setTimeout(()=>setMessage(''),3500)},[]);
+
+  const enter=useCallback((next:Viewer)=>{setViewer(next);
+setRole(next.role.toLowerCase() as Role);
+setSignin(false);
+document.getElementById('workshop')?.scrollIntoView({behavior:'smooth'});
+},[]);
+
   useEffect(()=>{fetch('/api/auth/me').then(response=>response.ok?response.json():{viewer:null}).then(data=>{if(data.viewer)enter(data.viewer)}).catch(()=>undefined)},[enter]);
-  const signOut=async()=>{await fetch('/api/auth/signout',{method:'POST'});setViewer(null);setRole('customer');setMessage('Signed out.');};
+
+  const signOut=async()=>{await fetch('/api/auth/signout',{method:'POST'});
+setViewer(null);
+setRole('customer');
+setMessage('Signed out.');
+};
+
   return <main><header><a className="brand" href="#top"><span className="mark"><Wrench size={16}/><b>RM</b></span><span><b>ROYAL</b><i>MECHANICS</i></span></a><nav><a href="#services">Services</a><a href="#how">How it works</a><a href="#workshop">Workshop</a><a href="#contact">Contact</a></nav><div className="actions"><button className="menu" aria-label="Menu"><Menu/></button>{viewer?<button className="outline" onClick={signOut}>Sign out</button>:<button className="outline" onClick={()=>setSignin(true)}>Sign in</button>}<button className="gold" onClick={()=>setBooking(true)}>Book service <ArrowRight size={16}/></button></div></header>
   <section className="hero" id="top"><div className="copy"><p className="eyebrow"><span/>Two-wheeler service & repair</p><h1>Your bike.<br/><em>Our craft.</em></h1><p>Transparent servicing, trusted mechanics and complete vehicle care - all in one place.</p><div className="cta"><button className="gold large" onClick={()=>setBooking(true)}>Book a service <ArrowRight size={18}/></button><a href="#services">Check service cost <ChevronRight size={17}/></a></div><small><ShieldCheck size={17}/>Digital inspection - Clear approvals - Genuine parts</small></div><div className="art"><div className="halo"/><div className="gear">*</div><div className="bike"><Bike size={175}/><span>CRAFTED CARE</span></div><div className="float"><i/> Live job tracking <ArrowRight size={14}/></div></div></section>
   <section className="workspace" id="workshop"><div className="section-head"><div><p className="eyebrow">Service command centre</p><h2>Everything your bike needs,<br/>at a glance.</h2></div>{viewer?.role==='ADMIN'&&<div className="roles"><button onClick={()=>setRole('admin')} className={role==='admin'?'on':''}>admin</button><button onClick={()=>setRole('customer')} className={role==='customer'?'on':''}>customer view</button></div>}</div>{role==='customer'?<Customer openBooking={()=>setBooking(true)}/>:role==='mechanic'?<MechanicWorkflow/>:<AdminSuite openBooking={()=>setBooking(true)}/>}</section>
@@ -20,31 +50,358 @@ export default function Home(){
   <section className="process" id="how"><p className="eyebrow">How it works</p><div>{[['01','Book your slot','Pick a service, time and service mode.'],['02','We inspect with proof','Tap-based checks, photos and a clear estimate.'],['03','You approve with confidence','No extra work starts without your say-so.'],['04','Ride out renewed','QC checked, invoiced and saved to your Bike Passport.']].map(x=><article key={x[0]}><span>{x[0]}</span><h3>{x[1]}</h3><p>{x[2]}</p></article>)}</div></section>
   <footer id="contact"><a className="brand" href="#top"><span className="mark"><Wrench size={16}/><b>RM</b></span><span><b>ROYAL</b><i>MECHANICS</i></span></a><p>Traditional mechanical craftsmanship, powered by a modern service experience.</p><small>Copyright 2026 Royal Mechanics</small></footer>
   {booking&&<BookingNew viewer={viewer} close={()=>setBooking(false)} done={complete} requestSignIn={()=>setSignin(true)}/>} {signin&&<SignIn close={()=>setSignin(false)} enter={enter}/>} {message&&<output className="toast"><Check size={16}/>{message}</output>}</main>;
+
 }
 
-function Customer({openBooking}:{openBooking:()=>void}){const[tab,setTab]=useState('Overview');const nav=(name:string,Icon:typeof Gauge)=><button className={tab===name?'active':''} onClick={()=>setTab(name)}><Icon size={16}/>{name}</button>;return <div className="dashboard customer"><aside><b>Good afternoon, Arjun</b><div>{nav('Overview',Gauge)}{nav('My garage',Bike)}{nav('Service history',ClipboardCheck)}{nav('Appointments',CalendarDays)}</div><button className="help" onClick={openBooking}>Request roadside help</button></aside><section className="empty-garage"><span><Bike size={44}/></span><p className="eyebrow">{tab==='Overview'?'Your digital bike passport':tab}</p><h3>{tab==='My garage'?'No vehicles in your garage.':'Your garage is ready.'}</h3><p>{tab==='Service history'?'Your completed services will appear here once a vehicle has been serviced.':'Add your first two-wheeler to unlock bookings, service history, inspection reports, and a vehicle health score.'}</p><button className="gold" onClick={openBooking}><Plus size={16}/> Add your vehicle</button></section><section className="side"><div className="health"><label>BIKE HEALTH</label><h3>-<small>/100</small></h3><p>Your health score appears after your first workshop inspection.</p></div><div className="approval"><label>NO PENDING APPROVALS</label><h3>All clear for now.</h3><p>When a mechanic recommends a repair, you will see the evidence, price and decision here.</p></div></section></div>}
-function ServiceCards({openBooking}:{openBooking:()=>void}){const[data,setData]=useState<Array<{name:string;description:string;price:number}>>(services.map(([name,description,price])=>({name,description,price:Number(price.replace(/[^0-9]/g,''))})));useEffect(()=>{fetch('/api/services').then(response=>response.json()).then(result=>result.services&&setData(result.services)).catch(()=>undefined)},[]);const icons=[Wrench,ShieldCheck,Gauge];return <section className="services" id="services"><div><p className="eyebrow">Workshop services</p><h2>Precision where it<br/>matters most.</h2></div><div className="service-grid">{data.map((service,index)=>{const Icon=icons[index%icons.length];return <article key={service.name}><span className="service-icon"><Icon size={22}/></span><h3>{service.name}</h3><p>{service.description}</p><footer><b>From Rs. {service.price}</b><button onClick={openBooking} aria-label={`Book ${service.name}`}><ArrowRight size={16}/></button></footer></article>})}</div></section>}
+function Customer({openBooking}:{openBooking:()=>void}){const[tab,setTab]=useState('Overview');
+const nav=(name:string,Icon:typeof Gauge)=><button className={tab===name?'active':''} onClick={()=>setTab(name)}><Icon size={16}/>{name}</button>;
+return <div className="dashboard customer"><aside><b>Good afternoon, Arjun</b><div>{nav('Overview',Gauge)}{nav('My garage',Bike)}{nav('Service history',ClipboardCheck)}{nav('Appointments',CalendarDays)}</div><button className="help" onClick={openBooking}>Request roadside help</button></aside><section className="empty-garage"><span><Bike size={44}/></span><p className="eyebrow">{tab==='Overview'?'Your digital bike passport':tab}</p><h3>{tab==='My garage'?'No vehicles in your garage.':'Your garage is ready.'}</h3><p>{tab==='Service history'?'Your completed services will appear here once a vehicle has been serviced.':'Add your first two-wheeler to unlock bookings, service history, inspection reports, and a vehicle health score.'}</p><button className="gold" onClick={openBooking}><Plus size={16}/> Add your vehicle</button></section><section className="side"><div className="health"><label>BIKE HEALTH</label><h3>-<small>/100</small></h3><p>Your health score appears after your first workshop inspection.</p></div><div className="approval"><label>NO PENDING APPROVALS</label><h3>All clear for now.</h3><p>When a mechanic recommends a repair, you will see the evidence, price and decision here.</p></div></section></div>}
+function ServiceCards({openBooking}:{openBooking:()=>void}){const[data,setData]=useState<Array<{name:string;
+description:string;
+price:number}>>(services.map(([name,description,price])=>({name,description,price:Number(price.replace(/[^0-9]/g,''))})));
+useEffect(()=>{fetch('/api/services').then(response=>response.json()).then(result=>result.services&&setData(result.services)).catch(()=>undefined)},[]);
+const icons=[Wrench,ShieldCheck,Gauge];
+return <section className="services" id="services"><div><p className="eyebrow">Workshop services</p><h2>Precision where it<br/>matters most.</h2></div><div className="service-grid">{data.map((service,index)=>{const Icon=icons[index%icons.length];
+return <article key={service.name}><span className="service-icon"><Icon size={22}/></span><h3>{service.name}</h3><p>{service.description}</p><footer><b>From Rs. {service.price}</b><button onClick={openBooking} aria-label={`Book ${service.name}`}><ArrowRight size={16}/></button></footer></article>})}</div></section>}
 
-type Job={id:string;requestNumber:string;vehicleName:string;serviceCategory:string;status:string;notes?:string;preferredSlot:string};
-function CameraCapture(){const video=useRef<HTMLVideoElement>(null);const stream=useRef<MediaStream|null>(null);const[open,setOpen]=useState(false);const[photo,setPhoto]=useState('');const[error,setError]=useState('');const start=async()=>{try{stream.current=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});if(video.current)video.current.srcObject=stream.current;setOpen(true);setError('')}catch{setError('Camera permission was denied or no camera is available. Allow camera access in the browser and try again.')}};const stop=()=>{stream.current?.getTracks().forEach(track=>track.stop());stream.current=null;setOpen(false)};const capture=()=>{if(!video.current)return;const canvas=document.createElement('canvas');canvas.width=video.current.videoWidth;canvas.height=video.current.videoHeight;canvas.getContext('2d')?.drawImage(video.current,0,0);setPhoto(canvas.toDataURL('image/jpeg',.85));stop()};useEffect(()=>()=>stop(),[]);return <div className="camera"><button className="quick-camera" type="button" onClick={open?stop:start}>{open?'Close camera':'Take photo'}</button>{open&&<><video ref={video} autoPlay playsInline muted/><button className="gold" type="button" onClick={capture}>Capture photo</button></>}{photo&&<img src={photo} alt="Captured inspection"/>}{error&&<p className="validation">{error}</p>}</div>}
-function MechanicWorkflow(){const[jobs,setJobs]=useState<Job[]>([]);const[error,setError]=useState('');useEffect(()=>{fetch('/api/service-requests').then(async response=>{const data=await response.json();if(!response.ok)throw new Error(data.error);setJobs(data.requests)}).catch(reason=>setError(reason instanceof Error?reason.message:'Could not load assigned jobs.'))},[]);const current=jobs[0];return <div className="dashboard mechanic"><section><p className="eyebrow">Mechanic mode</p><h3>Assigned work</h3><p>{jobs.length?`${jobs.length} job${jobs.length===1?'':'s'} assigned to you.`:'No jobs are assigned to you.'}</p></section><section className="work">{error?<p className="validation">{error}</p>:current?<><div className="job-top"><div><label>{current.requestNumber}</label><h3>{current.vehicleName}</h3></div><em>{current.status.replace('_',' ')}</em></div><p className="complaint">{current.serviceCategory}{current.notes?` — ${current.notes}`:''}</p><div className="quick"><button><ClipboardCheck size={20}/><span>Start inspection</span></button><button><Plus size={20}/><span>Add issue</span></button><button><Package size={20}/><span>Add part</span></button><CameraCapture/><button><Bell size={20}/><span>Voice note</span></button><button><Timer size={20}/><span>Update status</span></button></div></>:<p>Bookings assigned by the admin will appear here automatically.</p>}</section></div>}
-function AdminWorkflow({openBooking}:{openBooking:()=>void}){const[requests,setRequests]=useState<Array<Job&{mechanicEmail?:string|null}>>([]);const[mechanics,setMechanics]=useState<Array<{id:string;email:string;acceptedAt:string|null}>>([]);const[email,setEmail]=useState('');const[error,setError]=useState('');const load=useCallback(()=>{Promise.all([fetch('/api/service-requests'),fetch('/api/mechanics')]).then(async([requestResponse,mechanicResponse])=>{const requestData=await requestResponse.json(),mechanicData=await mechanicResponse.json();if(!requestResponse.ok)throw new Error(requestData.error);if(!mechanicResponse.ok)throw new Error(mechanicData.error);setRequests(requestData.requests);setMechanics(mechanicData.mechanics)}).catch(reason=>setError(reason instanceof Error?reason.message:'Could not load workshop data.'))},[]);useEffect(()=>{load()},[load]);const add=async(e:React.FormEvent)=>{e.preventDefault();const response=await fetch('/api/mechanics',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({email})});const data=await response.json();if(!response.ok){setError(data.error);return;}setEmail('');load()};const assign=async(id:string,email:string)=>{if(!email)return;const response=await fetch(`/api/service-requests/${id}/assign`,{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify({email})});const data=await response.json();if(!response.ok){setError(data.error);return;}load()};return <div className="dashboard admin"><section><p className="eyebrow">Workshop overview</p><h3>Live booking queue</h3><button className="gold" onClick={openBooking}>Create booking <Plus size={16}/></button><form className="action-form" onSubmit={add}><label>Add mechanic email<input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="mechanic@email.com" required/></label><button className="outline">Add mechanic</button></form></section><section className="board"><div><h3>Assign bookings</h3><button onClick={load}>Refresh</button></div>{error?<p className="validation">{error}</p>:requests.length?requests.map(item=><article key={item.id}><span>{item.requestNumber}</span><b>{item.vehicleName}</b><small>{item.serviceCategory} · {item.status.replace('_',' ')}</small><select aria-label={`Assign ${item.requestNumber}`} value={item.mechanicEmail??''} onChange={e=>assign(item.id,e.target.value)}><option value="">Assign mechanic</option>{mechanics.map(mechanic=><option key={mechanic.id} value={mechanic.email}>{mechanic.email}</option>)}</select></article>):<p>No saved bookings yet.</p>}</section><section className="stock"><label>MECHANICS</label><h3>{mechanics.length} added</h3>{mechanics.map(mechanic=><p key={mechanic.id}>{mechanic.email}</p>)}</section></div>}
-function AdminSuite({openBooking}:{openBooking:()=>void}){return <><AdminWorkflow openBooking={openBooking}/><AdminFinance/><InvoicePayments/></>}
-function InvoicePayments(){const[invoices,setInvoices]=useState<Array<{id:string;invoiceNumber:string;customerName:string;vehicleName:string;total:number;paymentStatus?:string}>>([]);const[message,setMessage]=useState('');const load=useCallback(()=>{fetch('/api/invoices').then(response=>response.json()).then(data=>setInvoices(data.invoices??[])).catch(()=>setMessage('Could not load invoices.'))},[]);useEffect(()=>{load()},[load]);const pay=async(invoice:{id:string;invoiceNumber:string;customerName:string;total:number})=>{const response=await fetch('/api/payments/razorpay/order',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({invoiceId:invoice.id})});const order=await response.json();if(!response.ok){setMessage(order.error);return;}const Checkout=(window as Window & {Razorpay?:any}).Razorpay;if(!Checkout){const script=document.createElement('script');script.src='https://checkout.razorpay.com/v1/checkout.js';script.onload=()=>pay(invoice);document.body.appendChild(script);return;}new Checkout({key:order.keyId,amount:order.amount,currency:order.currency,name:'Royal Mechanics',description:`Invoice ${order.invoiceNumber} · Includes Rs. 10 platform fee + 2.36% handling`,order_id:order.orderId,prefill:{name:order.customerName},theme:{color:'#c4ae79'},handler:async(result:{razorpay_payment_id:string;razorpay_order_id:string;razorpay_signature:string})=>{const verify=await fetch('/api/payments/razorpay/verify',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({invoiceId:invoice.id,...result})});const data=await verify.json();setMessage(verify.ok?`Payment verified for ${data.invoiceNumber}.`:data.error);load()}}).open()};return <div className="dashboard admin"><section><p className="eyebrow">Razorpay payments</p><h3>Collect invoice payment</h3><p>Every checkout includes a Rs. 10 platform fee and 2.36% payment-handling charge.</p></section><section className="board"><div><h3>Invoices</h3><button onClick={load}>Refresh</button></div>{invoices.map(invoice=><article key={invoice.id}><span>{invoice.invoiceNumber}</span><b>{invoice.customerName||invoice.vehicleName||'Walk-in customer'}</b><small>Invoice Rs. {invoice.total} · checkout adds Rs. 10 + 2.36%</small><button className="gold" onClick={()=>pay(invoice)}>Pay with Razorpay</button></article>)}{message&&<p className="validation">{message}</p>}</section></div>}
-function AdminFinance(){const[services,setServices]=useState<Array<{name:string;description:string;price:number}>>([]);const[items,setItems]=useState([{name:'',quantity:1,unitPrice:0}]);const[customerName,setCustomerName]=useState('');const[vehicleName,setVehicleName]=useState('');const[message,setMessage]=useState('');const load=useCallback(()=>{fetch('/api/services').then(response=>response.json()).then(data=>setServices(data.services??[])).catch(()=>setMessage('Could not load service prices.'))},[]);useEffect(()=>{load()},[load]);const savePrice=async(service:{name:string;description:string;price:number})=>{const response=await fetch('/api/services',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(service)});const data=await response.json();if(!response.ok){setMessage(data.error);return;}setMessage(`${service.name} price updated.`);load()};const total=items.reduce((sum,item)=>sum+Number(item.quantity||0)*Number(item.unitPrice||0),0);const createInvoice=async()=>{const response=await fetch('/api/invoices',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({customerName,vehicleName,items})});const data=await response.json();if(!response.ok){setMessage(data.error);return;}setMessage(`Invoice ${data.invoice.invoiceNumber} saved — Rs. ${data.invoice.total}.`);setItems([{name:'',quantity:1,unitPrice:0}])};const updateItem=(index:number,field:'name'|'quantity'|'unitPrice',value:string)=>setItems(current=>current.map((item,itemIndex)=>itemIndex===index?{...item,[field]:field==='name'?value:Number(value)}:item));return <div className="dashboard admin finance"><section><p className="eyebrow">Service pricing</p><h3>Change published prices</h3>{services.map((service,index)=><div className="price-row" key={service.name}><span>{service.name}</span><input aria-label={`${service.name} price`} type="number" min="0" value={service.price} onChange={e=>setServices(current=>current.map((item,itemIndex)=>itemIndex===index?{...item,price:Number(e.target.value)}:item))}/><button className="outline" onClick={()=>savePrice(service)}>Save</button></div>)}</section><section className="invoice-template"><div className="invoice-brand"><span className="mark"><Wrench size={16}/><b>RM</b></span><strong>ROYAL MECHANICS<small>Two-Wheeler Service &amp; Repair</small></strong><em>INVOICE</em></div><label>Customer name<input value={customerName} onChange={e=>setCustomerName(e.target.value)} placeholder="Customer name"/></label><label>Vehicle / registration<input value={vehicleName} onChange={e=>setVehicleName(e.target.value)} placeholder="Vehicle or registration"/></label><div className="invoice-items">{items.map((item,index)=><div key={index}><input value={item.name} onChange={e=>updateItem(index,'name',e.target.value)} placeholder="Item or part"/><input type="number" min="1" value={item.quantity} onChange={e=>updateItem(index,'quantity',e.target.value)} aria-label="Quantity"/><input type="number" min="0" value={item.unitPrice} onChange={e=>updateItem(index,'unitPrice',e.target.value)} aria-label="Unit price"/><b>Rs. {item.quantity*item.unitPrice}</b></div>)}</div><button className="outline" onClick={()=>setItems(current=>[...current,{name:'',quantity:1,unitPrice:0}])}>Add item</button><h3>Total: Rs. {total}</h3><button className="gold" onClick={createInvoice}>Create bill <ArrowRight size={16}/></button>{message&&<p className="validation">{message}</p>}</section></div>}
-function Mechanic({complete}:{complete:(x:string)=>void}){const[action,setAction]=useState('');const actions=['Start inspection','Add issue','Add part','Take photo','Voice note','Update status'];return <div className="dashboard mechanic"><section><p className="eyebrow">Mechanic mode</p><h3>Hello, Rajesh.</h3><p>4 jobs today - 1 waiting for you</p><button className="gold" onClick={()=>setAction('Scan a job QR or enter a job ID below.')}>Scan job QR</button></section><section className="work"><div className="job-top"><div><label>CURRENT JOB</label><h3>Hunter 350 <small>TN 38 BX 2041</small></h3></div><em>IN PROGRESS</em></div><p className="complaint">Chain noise and weak front brake.</p><div className="quick">{actions.map((name,i)=>{const Icon=[ClipboardCheck,Plus,Package,Bike,Bell,Timer][i];return <button onClick={()=>setAction(name)} key={name}><Icon size={20}/><span>{name}</span></button>})}</div>{action&&<form className="action-form" onSubmit={e=>{e.preventDefault();complete(`${action} saved to job RM-2041.`);setAction('')}}><b>{action}</b><input aria-label="Job note" placeholder={action==='Scan a job QR'?'Enter job ID, e.g. RM-2041':'Add a short note'} required/><button className="gold" type="submit">Save <Check size={15}/></button><button className="outline" type="button" onClick={()=>setAction('')}>Cancel</button></form>}<button className="complete" onClick={()=>complete('RM-2041 moved to Quality Check.')}>Send to quality check <ArrowRight size={16}/></button></section></div>}
+type Job={id:string;
+requestNumber:string;
+vehicleName:string;
+serviceCategory:string;
+status:string;
+notes?:string;
+preferredSlot:string};
 
-function Admin({openBooking,complete}:{openBooking:()=>void;complete:(x:string)=>void}){const[view,setView]=useState('board');return <div className="dashboard admin"><section><p className="eyebrow">Workshop overview</p><h3>Monday, 8 September</h3><button className="gold" onClick={openBooking}>Create booking <Plus size={16}/></button><div className="metrics">{[['12','Today bookings'],['07','In workshop'],['02','Waiting approval'],['Rs. 18.4k','Today revenue']].map(x=><div key={x[1]}><b>{x[0]}</b><span>{x[1]}</span></div>)}</div></section><section className="board"><div><h3>{view==='board'?'Workshop board':'Inventory requests'}</h3><button onClick={()=>setView(view==='board'?'inventory':'board')}>{view==='board'?'View inventory':'View board'}</button></div>{view==='board'?[['Bay 01','Hunter 350','Rajesh','Service in progress'],['Bay 02','Activa 6G','Suresh','Inspection'],['Bay 03','Available','-','Ready for assignment']].map(x=><article key={x[0]}><span>{x[0]}</span><b>{x[1]}</b><small>{x[2]}</small><em>{x[3]}</em></article>):<form className="action-form" onSubmit={e=>{e.preventDefault();complete('Part request sent to the supplier queue.')}}><label>Part name<input required placeholder="e.g. Front brake pads"/></label><label>Quantity<input required type="number" min="1" defaultValue="1"/></label><button className="gold">Request stock <ArrowRight size={15}/></button></form>}</section><section className="stock"><label>INVENTORY ATTENTION</label><h3>Low stock</h3><div><span>Front brake pads</span><b>3 left</b></div><div><span>10W-40 engine oil</span><b>5 left</b></div><button onClick={()=>setView('inventory')}>Review inventory <ArrowRight size={15}/></button></section></div>}
-function AdminNew({openBooking}:{openBooking:()=>void}){const[requests,setRequests]=useState<Array<{id:string;requestNumber:string;vehicleName:string;serviceCategory:string;serviceMode:string;status:string;preferredSlot:string}>>([]);const[error,setError]=useState('');const load=useCallback(()=>{fetch('/api/service-requests').then(async response=>{const data=await response.json();if(!response.ok)throw new Error(data.error);setRequests(data.requests)}).catch(reason=>setError(reason instanceof Error?reason.message:'Could not load bookings.'))},[]);useEffect(()=>{load()},[load]);return <div className="dashboard admin"><section><p className="eyebrow">Workshop overview</p><h3>Live booking queue</h3><button className="gold" onClick={openBooking}>Create booking <Plus size={16}/></button><div className="metrics"><div><b>{requests.length}</b><span>Saved requests</span></div><div><b>{requests.filter(item=>item.status==='BOOKED').length}</b><span>Awaiting assignment</span></div></div></section><section className="board"><div><h3>New bookings</h3><button onClick={load}>Refresh</button></div>{error?<p className="validation">{error}</p>:requests.length?requests.map(item=><article key={item.id}><span>{item.requestNumber}</span><b>{item.vehicleName}</b><small>{item.serviceCategory} · {item.serviceMode==='PICKUP_DROP'?'Pickup & drop':'Self drop'}</small><em>{item.status.replace('_',' ')}</em></article>):<p>No saved bookings yet.</p>}</section><section className="stock"><label>ADMIN ONLY</label><h3>Booking data</h3><p>Every confirmed booking is stored in MongoDB and loaded here.</p><button onClick={load}>Refresh queue <ArrowRight size={15}/></button></section></div>}
+function CameraCapture(){const video=useRef<HTMLVideoElement>(null);
+const stream=useRef<MediaStream|null>(null);
+const[open,setOpen]=useState(false);
+const[photo,setPhoto]=useState('');
+const[error,setError]=useState('');
+const start=async()=>{try{stream.current=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});
+if(video.current)video.current.srcObject=stream.current;
+setOpen(true);
+setError('')}catch{setError('Camera permission was denied or no camera is available. Allow camera access in the browser and try again.')}};
+const stop=()=>{stream.current?.getTracks().forEach(track=>track.stop());
+stream.current=null;
+setOpen(false)};
+const capture=()=>{if(!video.current)return;
+const canvas=document.createElement('canvas');
+canvas.width=video.current.videoWidth;
+canvas.height=video.current.videoHeight;
+canvas.getContext('2d')?.drawImage(video.current,0,0);
+setPhoto(canvas.toDataURL('image/jpeg',.85));
+stop()};
+useEffect(()=>()=>stop(),[]);
+return <div className="camera"><button className="quick-camera" type="button" onClick={open?stop:start}>{open?'Close camera':'Take photo'}</button>{open&&<><video ref={video} autoPlay playsInline muted/><button className="gold" type="button" onClick={capture}>Capture photo</button></>}{photo&&<img src={photo} alt="Captured inspection"/>}{error&&<p className="validation">{error}</p>}</div>}
+function MechanicWorkflow(){const[jobs,setJobs]=useState<Job[]>([]);
+const[error,setError]=useState('');
+useEffect(()=>{fetch('/api/service-requests').then(async response=>{const data=await response.json();
+if(!response.ok)throw new Error(data.error);
+setJobs(data.requests)}).catch(reason=>setError(reason instanceof Error?reason.message:'Could not load assigned jobs.'))},[]);
+const current=jobs[0];
+return <div className="dashboard mechanic"><section><p className="eyebrow">Mechanic mode</p><h3>Assigned work</h3><p>{jobs.length?`${jobs.length} job${jobs.length===1?'':'s'} assigned to you.`:'No jobs are assigned to you.'}</p></section><section className="work">{error?<p className="validation">{error}</p>:current?<><div className="job-top"><div><label>{current.requestNumber}</label><h3>{current.vehicleName}</h3></div><em>{current.status.replace('_',' ')}</em></div><p className="complaint">{current.serviceCategory}{current.notes?` â€” ${current.notes}`:''}</p><div className="quick"><button><ClipboardCheck size={20}/><span>Start inspection</span></button><button><Plus size={20}/><span>Add issue</span></button><button><Package size={20}/><span>Add part</span></button><CameraCapture/><button><Bell size={20}/><span>Voice note</span></button><button><Timer size={20}/><span>Update status</span></button></div></>:<p>Bookings assigned by the admin will appear here automatically.</p>}</section></div>}
+function AdminWorkflow({openBooking}:{openBooking:()=>void}){const[requests,setRequests]=useState<Array<Job&{mechanicEmail?:string|null}>>([]);
+const[mechanics,setMechanics]=useState<Array<{id:string;
+email:string;
+acceptedAt:string|null}>>([]);
+const[email,setEmail]=useState('');
+const[error,setError]=useState('');
+const load=useCallback(()=>{Promise.all([fetch('/api/service-requests'),fetch('/api/mechanics')]).then(async([requestResponse,mechanicResponse])=>{const requestData=await requestResponse.json(),mechanicData=await mechanicResponse.json();
+if(!requestResponse.ok)throw new Error(requestData.error);
+if(!mechanicResponse.ok)throw new Error(mechanicData.error);
+setRequests(requestData.requests);
+setMechanics(mechanicData.mechanics)}).catch(reason=>setError(reason instanceof Error?reason.message:'Could not load workshop data.'))},[]);
+useEffect(()=>{load()},[load]);
+const add=async(e:React.FormEvent)=>{e.preventDefault();
+const response=await fetch('/api/mechanics',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({email})});
+const data=await response.json();
+if(!response.ok){setError(data.error);
+return;
+}setEmail('');
+load()};
+const assign=async(id:string,email:string)=>{if(!email)return;
+const response=await fetch(`/api/service-requests/${id}/assign`,{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify({email})});
+const data=await response.json();
+if(!response.ok){setError(data.error);
+return;
+}load()};
+return <div className="dashboard admin"><section><p className="eyebrow">Workshop overview</p><h3>Live booking queue</h3><button className="gold" onClick={openBooking}>Create booking <Plus size={16}/></button><form className="action-form" onSubmit={add}><label>Add mechanic email<input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="mechanic@email.com" required/></label><button className="outline">Add mechanic</button></form></section><section className="board"><div><h3>Assign bookings</h3><button onClick={load}>Refresh</button></div>{error?<p className="validation">{error}</p>:requests.length?requests.map(item=><article key={item.id}><span>{item.requestNumber}</span><b>{item.vehicleName}</b><small>{item.serviceCategory} Â· {item.status.replace('_',' ')}</small><select aria-label={`Assign ${item.requestNumber}`} value={item.mechanicEmail??''} onChange={e=>assign(item.id,e.target.value)}><option value="">Assign mechanic</option>{mechanics.map(mechanic=><option key={mechanic.id} value={mechanic.email}>{mechanic.email}</option>)}</select></article>):<p>No saved bookings yet.</p>}</section><section className="stock"><label>MECHANICS</label><h3>{mechanics.length} added</h3>{mechanics.map(mechanic=><p key={mechanic.id}>{mechanic.email}</p>)}</section></div>}
+function AdminSuite({openBooking}:{openBooking:()=>void}){return <><AdminWorkflow openBooking={openBooking}/><AdminFinance/><InvoicePaymentsNew/></>}
+type InvoiceView={id:string;
+invoiceNumber:string;
+customerName:string;
+vehicleName:string;
+items:Array<{name:string;
+quantity:number;
+unitPrice:number;
+amount:number}>;
+total:number;
+platformFee:number;
+paymentHandlingFee:number;
+payableTotal:number;
+paymentStatus:string;
+createdAt:string};
 
-type Coordinates={latitude:number;longitude:number;accuracy:number;capturedAt:string};
-function BookingNew({close,done,viewer,requestSignIn}:{close:()=>void;done:(message:string)=>void;viewer:Viewer|null;requestSignIn:()=>void}){
+function downloadInvoicePdf(invoice:InvoiceView){const doc=new jsPDF({orientation:'p',unit:'mm',format:'a4'});
+const width=210;
+doc.setFillColor(24,19,15);
+doc.rect(0,0,width,42,'F');
+doc.setTextColor(242,232,207);
+doc.setFont('helvetica','bold');
+doc.setFontSize(19);
+doc.text('ROYAL MECHANICS',18,18);
+doc.setFont('helvetica','normal');
+doc.setFontSize(8);
+doc.text('Two-Wheeler Service & Repair',18,25);
+doc.setTextColor(196,174,121);
+doc.setFontSize(10);
+doc.text('TAX INVOICE',164,18);
+doc.setTextColor(242,232,207);
+doc.setFontSize(8);
+doc.text(invoice.invoiceNumber,164,25);
+doc.setTextColor(34,29,24);
+doc.setFontSize(10);
+doc.text(`Customer: ${invoice.customerName||'Walk-in customer'}`,18,54);
+doc.text(`Vehicle: ${invoice.vehicleName||'-'}`,18,61);
+doc.text(`Date: ${new Date(invoice.createdAt).toLocaleDateString('en-IN')}`,145,54);
+let y=76;
+doc.setFillColor(196,174,121);
+doc.rect(18,y,width-36,9,'F');
+doc.setTextColor(28,22,16);
+doc.setFont('helvetica','bold');
+doc.setFontSize(8);
+doc.text('S.NO.',21,y+6);
+doc.text('ITEM / SERVICE NAME',38,y+6);
+doc.text('QTY',126,y+6);
+doc.text('PRICE',143,y+6);
+doc.text('AMOUNT',171,y+6);
+y+=9;
+doc.setFont('helvetica','normal');
+invoice.items.forEach((item,index)=>{doc.setTextColor(38,32,26);
+doc.setDrawColor(215,207,190);
+doc.line(18,y,width-18,y);
+doc.text(String(index+1),22,y+7);
+doc.text(item.name.slice(0,42),38,y+7);
+doc.text(String(item.quantity),128,y+7);
+doc.text(`Rs. ${item.unitPrice.toFixed(2)}`,143,y+7);
+doc.text(`Rs. ${item.amount.toFixed(2)}`,171,y+7);
+y+=9});
+doc.line(18,y,width-18,y);
+y+=12;
+const right=192;
+doc.setFont('helvetica','normal');
+doc.text('Invoice subtotal',128,y);
+doc.text(`Rs. ${invoice.total.toFixed(2)}`,right,y,{align:'right'});
+y+=8;
+doc.text('Platform fee',128,y);
+doc.text(`Rs. ${invoice.platformFee.toFixed(2)}`,right,y,{align:'right'});
+y+=8;
+doc.text('Payment gateway charges (2.36%)',105,y);
+doc.text(`Rs. ${invoice.paymentHandlingFee.toFixed(2)}`,right,y,{align:'right'});
+y+=10;
+doc.setDrawColor(196,174,121);
+doc.line(105,y-5,right,y-5);
+doc.setFont('helvetica','bold');
+doc.setFontSize(12);
+doc.text('TOTAL PAYABLE',128,y+2);
+doc.text(`Rs. ${invoice.payableTotal.toFixed(2)}`,right,y+2,{align:'right'});
+doc.setFontSize(8);
+doc.setTextColor(105,93,77);
+doc.setFont('helvetica','normal');
+doc.text('This is a system generated bill and does not require a signature.',18,278);
+doc.text('Royal Mechanics - Service with craft and clarity.',18,284);
+doc.save(`${invoice.invoiceNumber}.pdf`)}
+function InvoicePaymentsNew(){const[invoices,setInvoices]=useState<InvoiceView[]>([]);
+const[message,setMessage]=useState('');
+const load=useCallback(()=>{fetch('/api/invoices').then(response=>response.json()).then(data=>setInvoices(data.invoices??[])).catch(()=>setMessage('Could not load invoices.'))},[]);
+useEffect(()=>{load()},[load]);
+const pay=async(invoice:InvoiceView)=>{const response=await fetch('/api/payments/razorpay/order',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({invoiceId:invoice.id})});
+const order=await response.json();
+if(!response.ok){setMessage(order.error);
+return;
+}const Checkout=(window as Window & {Razorpay?:any}).Razorpay;
+if(!Checkout){const script=document.createElement('script');
+script.src='https://checkout.razorpay.com/v1/checkout.js';
+script.onload=()=>pay(invoice);
+document.body.appendChild(script);
+return;
+}const options:any={};
+options.key=order.keyId;
+options.amount=order.amount;
+options.currency=order.currency;
+options.name='Royal Mechanics';
+options.description='Invoice '+order.invoiceNumber;
+options.order_id=order.orderId;
+options.handler=async(result:{razorpay_payment_id:string;
+razorpay_order_id:string;
+razorpay_signature:string})=>{const verify=await fetch('/api/payments/razorpay/verify',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({invoiceId:invoice.id,...result})});
+const data=await verify.json();
+setMessage(verify.ok?`Payment verified for ${data.invoiceNumber}.`:data.error);
+load()};
+new Checkout(options).open()};
+return <section className="invoice-hub"><header><div><p className="eyebrow">Invoices & payments</p><h2>Generated bills</h2></div><button className="outline" onClick={load}>Refresh</button></header>{invoices.length?invoices.map(invoice=><article className="invoice-card" key={invoice.id}><div className="invoice-card-head"><div><span className="invoice-number">{invoice.invoiceNumber}</span><h3>{invoice.customerName||'Walk-in customer'}</h3><small>{invoice.vehicleName||'Vehicle not specified'} Â· {new Date(invoice.createdAt).toLocaleDateString('en-IN')}</small></div><div className="invoice-card-actions"><button className="outline" onClick={()=>downloadInvoicePdf(invoice)}>Download PDF</button>{invoice.paymentStatus==='PAID'?<em>Paid</em>:<button className="gold" onClick={()=>pay(invoice)}>Pay Rs. {invoice.payableTotal.toFixed(2)}</button>}</div></div><div className="invoice-table"><div className="invoice-table-head"><span>S.No.</span><span>Item / Service name</span><span>Quantity</span><span>Price</span><span>Amount</span></div>{invoice.items.map((item,index)=><div className="invoice-table-row" key={`${item.name}-${index}`}><span>{index+1}</span><span>{item.name}</span><span>{item.quantity}</span><span>Rs. {item.unitPrice.toFixed(2)}</span><span>Rs. {item.amount.toFixed(2)}</span></div>)}</div><div className="invoice-totals"><span>Invoice subtotal</span><b>Rs. {invoice.total.toFixed(2)}</b><span>Platform fee</span><b>Rs. {invoice.platformFee.toFixed(2)}</b><span>Payment gateway charges (2.36%)</span><b>Rs. {invoice.paymentHandlingFee.toFixed(2)}</b><strong>Total payable</strong><strong>Rs. {invoice.payableTotal.toFixed(2)}</strong></div><footer>This is a system generated bill and does not require a signature.</footer></article>):<p className="invoice-empty">No invoices have been generated yet.</p>}{message&&<p className="validation">{message}</p>}</section>}
+function InvoicePayments(){return null}
+function AdminFinance(){const[services,setServices]=useState<Array<{name:string;
+description:string;
+price:number}>>([]);
+const[items,setItems]=useState([{name:'',quantity:1,unitPrice:0}]);
+const[customerName,setCustomerName]=useState('');
+const[vehicleName,setVehicleName]=useState('');
+const[message,setMessage]=useState('');
+const load=useCallback(()=>{fetch('/api/services').then(response=>response.json()).then(data=>setServices(data.services??[])).catch(()=>setMessage('Could not load service prices.'))},[]);
+useEffect(()=>{load()},[load]);
+const savePrice=async(service:{name:string;
+description:string;
+price:number})=>{const response=await fetch('/api/services',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(service)});
+const data=await response.json();
+if(!response.ok){setMessage(data.error);
+return;
+}setMessage(`${service.name} price updated.`);
+load()};
+const total=items.reduce((sum,item)=>sum+Number(item.quantity||0)*Number(item.unitPrice||0),0);
+const createInvoice=async()=>{const response=await fetch('/api/invoices',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({customerName,vehicleName,items})});
+const data=await response.json();
+if(!response.ok){setMessage(data.error);
+return;
+}setMessage(`Invoice ${data.invoice.invoiceNumber} saved â€” Rs. ${data.invoice.total}.`);
+setItems([{name:'',quantity:1,unitPrice:0}])};
+const updateItem=(index:number,field:'name'|'quantity'|'unitPrice',value:string)=>setItems(current=>current.map((item,itemIndex)=>itemIndex===index?{...item,[field]:field==='name'?value:Number(value)}:item));
+return <div className="dashboard admin finance"><section><p className="eyebrow">Service pricing</p><h3>Change published prices</h3>{services.map((service,index)=><div className="price-row" key={service.name}><span>{service.name}</span><input aria-label={`${service.name} price`} type="number" min="0" value={service.price} onChange={e=>setServices(current=>current.map((item,itemIndex)=>itemIndex===index?{...item,price:Number(e.target.value)}:item))}/><button className="outline" onClick={()=>savePrice(service)}>Save</button></div>)}</section><section className="invoice-template"><div className="invoice-brand"><span className="mark"><Wrench size={16}/><b>RM</b></span><strong>ROYAL MECHANICS<small>Two-Wheeler Service &amp;
+ Repair</small></strong><em>INVOICE</em></div><label>Customer name<input value={customerName} onChange={e=>setCustomerName(e.target.value)} placeholder="Customer name"/></label><label>Vehicle / registration<input value={vehicleName} onChange={e=>setVehicleName(e.target.value)} placeholder="Vehicle or registration"/></label><div className="invoice-items">{items.map((item,index)=><div key={index}><input value={item.name} onChange={e=>updateItem(index,'name',e.target.value)} placeholder="Item or part"/><input type="number" min="1" value={item.quantity} onChange={e=>updateItem(index,'quantity',e.target.value)} aria-label="Quantity"/><input type="number" min="0" value={item.unitPrice} onChange={e=>updateItem(index,'unitPrice',e.target.value)} aria-label="Unit price"/><b>Rs. {item.quantity*item.unitPrice}</b></div>)}</div><button className="outline" onClick={()=>setItems(current=>[...current,{name:'',quantity:1,unitPrice:0}])}>Add item</button><h3>Total: Rs. {total}</h3><button className="gold" onClick={createInvoice}>Create bill <ArrowRight size={16}/></button>{message&&<p className="validation">{message}</p>}</section></div>}
+function Mechanic({complete}:{complete:(x:string)=>void}){const[action,setAction]=useState('');
+const actions=['Start inspection','Add issue','Add part','Take photo','Voice note','Update status'];
+return <div className="dashboard mechanic"><section><p className="eyebrow">Mechanic mode</p><h3>Hello, Rajesh.</h3><p>4 jobs today - 1 waiting for you</p><button className="gold" onClick={()=>setAction('Scan a job QR or enter a job ID below.')}>Scan job QR</button></section><section className="work"><div className="job-top"><div><label>CURRENT JOB</label><h3>Hunter 350 <small>TN 38 BX 2041</small></h3></div><em>IN PROGRESS</em></div><p className="complaint">Chain noise and weak front brake.</p><div className="quick">{actions.map((name,i)=>{const Icon=[ClipboardCheck,Plus,Package,Bike,Bell,Timer][i];
+return <button onClick={()=>setAction(name)} key={name}><Icon size={20}/><span>{name}</span></button>})}</div>{action&&<form className="action-form" onSubmit={e=>{e.preventDefault();
+complete(`${action} saved to job RM-2041.`);
+setAction('')}}><b>{action}</b><input aria-label="Job note" placeholder={action==='Scan a job QR'?'Enter job ID, e.g. RM-2041':'Add a short note'} required/><button className="gold" type="submit">Save <Check size={15}/></button><button className="outline" type="button" onClick={()=>setAction('')}>Cancel</button></form>}<button className="complete" onClick={()=>complete('RM-2041 moved to Quality Check.')}>Send to quality check <ArrowRight size={16}/></button></section></div>}
+
+function Admin({openBooking,complete}:{openBooking:()=>void;
+complete:(x:string)=>void}){const[view,setView]=useState('board');
+return <div className="dashboard admin"><section><p className="eyebrow">Workshop overview</p><h3>Monday, 8 September</h3><button className="gold" onClick={openBooking}>Create booking <Plus size={16}/></button><div className="metrics">{[['12','Today bookings'],['07','In workshop'],['02','Waiting approval'],['Rs. 18.4k','Today revenue']].map(x=><div key={x[1]}><b>{x[0]}</b><span>{x[1]}</span></div>)}</div></section><section className="board"><div><h3>{view==='board'?'Workshop board':'Inventory requests'}</h3><button onClick={()=>setView(view==='board'?'inventory':'board')}>{view==='board'?'View inventory':'View board'}</button></div>{view==='board'?[['Bay 01','Hunter 350','Rajesh','Service in progress'],['Bay 02','Activa 6G','Suresh','Inspection'],['Bay 03','Available','-','Ready for assignment']].map(x=><article key={x[0]}><span>{x[0]}</span><b>{x[1]}</b><small>{x[2]}</small><em>{x[3]}</em></article>):<form className="action-form" onSubmit={e=>{e.preventDefault();
+complete('Part request sent to the supplier queue.')}}><label>Part name<input required placeholder="e.g. Front brake pads"/></label><label>Quantity<input required type="number" min="1" defaultValue="1"/></label><button className="gold">Request stock <ArrowRight size={15}/></button></form>}</section><section className="stock"><label>INVENTORY ATTENTION</label><h3>Low stock</h3><div><span>Front brake pads</span><b>3 left</b></div><div><span>10W-40 engine oil</span><b>5 left</b></div><button onClick={()=>setView('inventory')}>Review inventory <ArrowRight size={15}/></button></section></div>}
+function AdminNew({openBooking}:{openBooking:()=>void}){const[requests,setRequests]=useState<Array<{id:string;
+requestNumber:string;
+vehicleName:string;
+serviceCategory:string;
+serviceMode:string;
+status:string;
+preferredSlot:string}>>([]);
+const[error,setError]=useState('');
+const load=useCallback(()=>{fetch('/api/service-requests').then(async response=>{const data=await response.json();
+if(!response.ok)throw new Error(data.error);
+setRequests(data.requests)}).catch(reason=>setError(reason instanceof Error?reason.message:'Could not load bookings.'))},[]);
+useEffect(()=>{load()},[load]);
+return <div className="dashboard admin"><section><p className="eyebrow">Workshop overview</p><h3>Live booking queue</h3><button className="gold" onClick={openBooking}>Create booking <Plus size={16}/></button><div className="metrics"><div><b>{requests.length}</b><span>Saved requests</span></div><div><b>{requests.filter(item=>item.status==='BOOKED').length}</b><span>Awaiting assignment</span></div></div></section><section className="board"><div><h3>New bookings</h3><button onClick={load}>Refresh</button></div>{error?<p className="validation">{error}</p>:requests.length?requests.map(item=><article key={item.id}><span>{item.requestNumber}</span><b>{item.vehicleName}</b><small>{item.serviceCategory} Â· {item.serviceMode==='PICKUP_DROP'?'Pickup & drop':'Self drop'}</small><em>{item.status.replace('_',' ')}</em></article>):<p>No saved bookings yet.</p>}</section><section className="stock"><label>ADMIN ONLY</label><h3>Booking data</h3><p>Every confirmed booking is stored in MongoDB and loaded here.</p><button onClick={load}>Refresh queue <ArrowRight size={15}/></button></section></div>}
+
+type Coordinates={latitude:number;
+longitude:number;
+accuracy:number;
+capturedAt:string};
+
+function BookingNew({close,done,viewer,requestSignIn}:{close:()=>void;
+done:(message:string)=>void;
+viewer:Viewer|null;
+requestSignIn:()=>void}){
   const [step,setStep]=useState(1),[vehicle,setVehicle]=useState(''),[service,setService]=useState(''),[mode,setMode]=useState<'SELF_DROP'|'PICKUP_DROP'>('SELF_DROP'),[notes,setNotes]=useState(''),[slot,setSlot]=useState('Tomorrow, 10:00 AM'),[location,setLocation]=useState<Coordinates|null>(null),[address,setAddress]=useState({line:'',area:'',city:'',state:'',pin:''}),[error,setError]=useState(''),[saving,setSaving]=useState(false);
-  const labels=['Vehicle','Service','Mode','Details','Slot','Confirm']; const hasAddress=Object.values(address).some(Boolean);
-  const capture=()=>{if(!navigator.geolocation){setError('Location is unavailable in this browser. Enter the address below.');return;}setError('');navigator.geolocation.getCurrentPosition(p=>setLocation({latitude:p.coords.latitude,longitude:p.coords.longitude,accuracy:p.coords.accuracy,capturedAt:new Date().toISOString()}),()=>setError('We could not get your location. Enter the address below.'),{enableHighAccuracy:true,timeout:12000,maximumAge:0});};
-  const next=async()=>{if(step===1&&!vehicle.trim())return setError('Enter a vehicle name or registration.');if(step===2&&!service)return setError('Choose a service category.');if(step===3&&mode==='PICKUP_DROP'&&!location&&!hasAddress)return setError('Capture a location or enter a pickup address.');if(step<6){setError('');setStep(step+1);return;}if(!viewer){setError('Sign in is required to save this booking.');requestSignIn();return;}setSaving(true);setError('');try{const response=await fetch('/api/service-requests',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({vehicleName:vehicle,serviceCategory:service,serviceMode:mode,notes,preferredSlot:slot,pickupLocation:{...location,address}})});const data=await response.json();if(!response.ok){setError(data.error??'Could not save the booking.');return;}done(`Booking ${data.request.requestNumber} is now in the workshop queue.`);}catch{setError('Could not save the booking. Check your connection and try again.')}finally{setSaving(false)}};
-  return <div className="backdrop"><div className="modal" role="dialog" aria-modal="true" aria-label="Book a service"><button className="close" onClick={close} aria-label="Close booking"><X/></button><p className="eyebrow">Book a service</p><h2>Lets get your bike workshop-ready.</h2><div className="book-steps">{labels.map((label,index)=><span className={index<step?'on':''} key={label}>{index+1}<small>{label}</small></span>)}</div><div className="form">{step===1&&<label>Your vehicle<input autoFocus value={vehicle} onChange={e=>setVehicle(e.target.value)} placeholder="Vehicle model or registration"/></label>}{step===2&&<><label>Choose a service category</label><div className="choices">{[...services.map(([name])=>name),'Custom problem'].map(name=><button type="button" key={name} className={service===name?'selected':''} onClick={()=>{setService(name);setError('');setStep(3)}}>{name}</button>)}</div></>}{step===3&&<><label>Preferred service mode<select value={mode} onChange={e=>setMode(e.target.value as typeof mode)}><option value="SELF_DROP">Self drop &amp; pickup</option><option value="PICKUP_DROP">Store pickup &amp; drop</option></select></label>{mode==='PICKUP_DROP'&&<section className="pickup-location"><p><MapPin size={15}/>Pickup location is required.</p><button type="button" className="outline location-button" onClick={capture}><Crosshair size={15}/>Use my current location</button>{location&&<div className="location-captured"><Check size={15}/><span>Location captured <small>{location.latitude.toFixed(6)}, {location.longitude.toFixed(6)}</small></span><a href={`https://www.google.com/maps/dir/?api=1&destination=${location.latitude},${location.longitude}`} target="_blank" rel="noreferrer"><Navigation size={14}/>Open</a><button type="button" onClick={()=>navigator.clipboard?.writeText(`${location.latitude},${location.longitude}`)}><Copy size={14}/></button></div>}<p className="manual-label">Or enter a pickup address</p><div className="address-grid">{(['line','area','city','state','pin'] as const).map(field=><input key={field} value={address[field]} onChange={e=>setAddress(value=>({...value,[field]:e.target.value}))} placeholder={field==='line'?'Address line':field==='pin'?'PIN code':field[0].toUpperCase()+field.slice(1)}/>)}</div></section>}</>}{step===4&&<label>Tell us what you notice<textarea value={notes} onChange={e=>setNotes(e.target.value)} placeholder="For example: brake feels soft, chain makes noise..."/></label>}{step===5&&<label>Choose a preferred time<select value={slot} onChange={e=>setSlot(e.target.value)}><option>Tomorrow, 10:00 AM</option><option>Tomorrow, 2:00 PM</option><option>Saturday, 10:00 AM</option></select></label>}{step===6&&<div className="confirm"><Check size={28}/><h3>Ready to confirm</h3><p>{vehicle} — {service}. This will be saved to the admin booking queue.</p></div>}{error&&<p className="validation">{error}</p>}</div><div className="form-foot"><button className="outline" type="button" onClick={()=>step===1?close():setStep(step-1)}>{step===1?'Cancel':'Back'}</button><button className="gold" type="button" onClick={next} disabled={saving}>{saving?'Saving…':step===6?'Confirm booking':'Continue'} <ArrowRight size={16}/></button></div></div></div>
-}
-function Booking({close,done}:{close:()=>void;done:()=>void}){const[step,setStep]=useState(1);const[vehicle,setVehicle]=useState('');const[service,setService]=useState('');const[mode,setMode]=useState('SELF_DROP');const[location,setLocation]=useState<Coordinates|null>(null);const[locationState,setLocationState]=useState<'idle'|'loading'|'error'>('idle');const[locationError,setLocationError]=useState('');const[address,setAddress]=useState({line:'',area:'',city:'',state:'',pin:''});const[next,setNext]=useState('');const labels=['Vehicle','Service','Mode','Details','Slot','Confirm'];const hasAddress=Object.values(address).some(Boolean);const captureLocation=()=>{if(!navigator.geolocation){setLocationState('error');setLocationError('Location is not supported by this browser. Please enter your address manually.');return;}setLocationState('loading');setLocationError('');navigator.geolocation.getCurrentPosition(position=>{setLocation({latitude:position.coords.latitude,longitude:position.coords.longitude,accuracy:position.coords.accuracy,capturedAt:new Date().toISOString()});setLocationState('idle');},error=>{setLocationState('error');setLocationError(error.code===1?'Location permission was denied. Enter your pickup address below.':error.code===3?'Location request timed out. Try again or enter your address below.':'Location is unavailable right now. Enter your pickup address below.');},{enableHighAccuracy:true,timeout:12000,maximumAge:0});};const updateAddress=(field:keyof typeof address,value:string)=>setAddress(current=>({...current,[field]:value}));const advance=()=>{if(step===1&&!vehicle.trim()){setNext('Enter a vehicle name or registration to continue.');return;}if(step===2&&!service){setNext('Choose a service category to continue.');return;}if(step===3&&mode==='PICKUP_DROP'&&!location&&!hasAddress){setNext('Capture your current location or enter a pickup address to continue.');return;}setNext('');if(step<6)setStep(step+1);else done();};const selectService=(value:string)=>{setService(value);setNext('');setStep(3)};const mapsUrl=location?`https://www.google.com/maps/dir/?api=1&destination=${location.latitude},${location.longitude}`:'';return <div className="backdrop"><div className="modal" role="dialog" aria-modal="true" aria-label="Book a service"><button className="close" onClick={close} aria-label="Close booking"><X/></button><p className="eyebrow">Book a service</p><h2>Lets get your bike workshop-ready.</h2><div className="book-steps">{labels.map((x,i)=><span className={i<step?'on':''} key={x}>{i+1}<small>{x}</small></span>)}</div><div className="form">{step===1&&<label>Your vehicle<input value={vehicle} onChange={e=>setVehicle(e.target.value)} placeholder="Vehicle model or registration" autoFocus/></label>}{step===2&&<><label>Choose a service category</label><div className="choices">{services.map(([name])=><button type="button" onClick={()=>selectService(name)} className={service===name?'selected':''} key={name}>{name}</button>)}<button type="button" onClick={()=>selectService('Custom problem')} className={service==='Custom problem'?'selected':''}>Custom problem</button></div></>}{step===3&&<><label>Preferred service mode<select value={mode} onChange={e=>{setMode(e.target.value);setNext('')}}><option value="SELF_DROP">Self drop &amp; pickup</option><option value="PICKUP_DROP">Store pickup &amp; drop</option></select></label>{mode==='PICKUP_DROP'&&<section className="pickup-location"><p><MapPin size={15}/>Pickup location is required for store pickup &amp; drop.</p><button type="button" className="outline location-button" onClick={captureLocation} disabled={locationState==='loading'}><Crosshair size={15}/>{locationState==='loading'?'Getting location…':'Use my current location'}</button>{location&&<div className="location-captured"><Check size={15}/><span>Location captured <small>{location.latitude.toFixed(6)}, {location.longitude.toFixed(6)} · ±{Math.round(location.accuracy)}m</small></span><a href={mapsUrl} target="_blank" rel="noreferrer"><Navigation size={14}/>Open location</a><button type="button" onClick={()=>navigator.clipboard?.writeText(`${location.latitude},${location.longitude}`)} aria-label="Copy coordinates"><Copy size={14}/></button></div>}{locationState==='error'&&<p className="validation">{locationError}</p>}<p className="manual-label">Or enter the pickup address manually</p><div className="address-grid"><input value={address.line} onChange={e=>updateAddress('line',e.target.value)} placeholder="Address line"/><input value={address.area} onChange={e=>updateAddress('area',e.target.value)} placeholder="Area"/><input value={address.city} onChange={e=>updateAddress('city',e.target.value)} placeholder="City"/><input value={address.state} onChange={e=>updateAddress('state',e.target.value)} placeholder="State"/><input value={address.pin} onChange={e=>updateAddress('pin',e.target.value)} inputMode="numeric" placeholder="PIN code"/></div></section>}</>}{step===4&&<label>Tell us what you notice<textarea placeholder="For example: brake feels soft, chain makes noise..."/></label>}{step===5&&<label>Choose a preferred time<select defaultValue="Tomorrow, 10:00 AM"><option>Tomorrow, 10:00 AM</option><option>Tomorrow, 2:00 PM</option><option>Saturday, 10:00 AM</option></select></label>}{step===6&&<div className="confirm"><Check size={28}/><h3>Ready to confirm</h3><p>{vehicle} - {service}. You can reschedule before the vehicle is received.</p>{mode==='PICKUP_DROP'&&<p><MapPin size={15}/>{location?'Pickup location is ready to include with your booking.':'Manual pickup address is ready to include with your booking.'}</p>}</div>}{next&&<p className="validation">{next}</p>}</div><div className="form-foot"><button className="outline" onClick={()=>step>1?setStep(step-1):close()}>{step===1?'Cancel':'Back'}</button><button className="gold" onClick={advance}>{step===6?'Confirm booking':'Continue'} <ArrowRight size={16}/></button></div></div></div>}
 
-function SignIn({close,enter}:{close:()=>void;enter:(x:Viewer)=>void}){const[error,setError]=useState('');const clientId=process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;useEffect(()=>{if(!clientId){setError('Google sign-in is not configured for this environment.');return;}const run=()=>{const google=(window as Window & {google?:any}).google;if(!google)return;google.accounts.id.initialize({client_id:clientId,callback:async({credential}:{credential:string})=>{setError('');try{const response=await fetch('/api/auth/google',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({credential})});const data=await response.json();if(!response.ok){setError(data.error??'Sign-in failed.');return;}enter(data.viewer);}catch{setError('Could not complete sign-in. Check your connection and try again.')}}});google.accounts.id.renderButton(document.getElementById('google-sign-in-button'),{theme:'outline',text:'continue_with',shape:'rect',width:300});};const script=document.createElement('script');script.src='https://accounts.google.com/gsi/client';script.async=true;script.onload=run;document.head.appendChild(script);return()=>script.remove();},[clientId,enter]);return <div className="backdrop"><div className="modal" role="dialog" aria-modal="true" aria-label="Sign in"><button className="close" type="button" onClick={close} aria-label="Close sign in"><X/></button><p className="eyebrow">Secure access</p><h2>Welcome back.</h2><p>Continue with your approved Google account.</p><div id="google-sign-in-button"/><p className="validation">{error}</p><div className="form-foot"><button type="button" className="outline" onClick={close}>Cancel</button></div></div></div>}
+  const labels=['Vehicle','Service','Mode','Details','Slot','Confirm'];
+ const hasAddress=Object.values(address).some(Boolean);
+
+  const capture=()=>{if(!navigator.geolocation){setError('Location is unavailable in this browser. Enter the address below.');
+return;
+}setError('');
+navigator.geolocation.getCurrentPosition(p=>setLocation({latitude:p.coords.latitude,longitude:p.coords.longitude,accuracy:p.coords.accuracy,capturedAt:new Date().toISOString()}),()=>setError('We could not get your location. Enter the address below.'),{enableHighAccuracy:true,timeout:12000,maximumAge:0});
+};
+
+  const next=async()=>{if(step===1&&!vehicle.trim())return setError('Enter a vehicle name or registration.');
+if(step===2&&!service)return setError('Choose a service category.');
+if(step===3&&mode==='PICKUP_DROP'&&!location&&!hasAddress)return setError('Capture a location or enter a pickup address.');
+if(step<6){setError('');
+setStep(step+1);
+return;
+}if(!viewer){setError('Sign in is required to save this booking.');
+requestSignIn();
+return;
+}setSaving(true);
+setError('');
+try{const response=await fetch('/api/service-requests',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({vehicleName:vehicle,serviceCategory:service,serviceMode:mode,notes,preferredSlot:slot,pickupLocation:{...location,address}})});
+const data=await response.json();
+if(!response.ok){setError(data.error??'Could not save the booking.');
+return;
+}done(`Booking ${data.request.requestNumber} is now in the workshop queue.`);
+}catch{setError('Could not save the booking. Check your connection and try again.')}finally{setSaving(false)}};
+
+  return <div className="backdrop"><div className="modal" role="dialog" aria-modal="true" aria-label="Book a service"><button className="close" onClick={close} aria-label="Close booking"><X/></button><p className="eyebrow">Book a service</p><h2>Lets get your bike workshop-ready.</h2><div className="book-steps">{labels.map((label,index)=><span className={index<step?'on':''} key={label}>{index+1}<small>{label}</small></span>)}</div><div className="form">{step===1&&<label>Your vehicle<input autoFocus value={vehicle} onChange={e=>setVehicle(e.target.value)} placeholder="Vehicle model or registration"/></label>}{step===2&&<><label>Choose a service category</label><div className="choices">{[...services.map(([name])=>name),'Custom problem'].map(name=><button type="button" key={name} className={service===name?'selected':''} onClick={()=>{setService(name);
+setError('');
+setStep(3)}}>{name}</button>)}</div></>}{step===3&&<><label>Preferred service mode<select value={mode} onChange={e=>setMode(e.target.value as typeof mode)}><option value="SELF_DROP">Self drop &amp;
+ pickup</option><option value="PICKUP_DROP">Store pickup &amp;
+ drop</option></select></label>{mode==='PICKUP_DROP'&&<section className="pickup-location"><p><MapPin size={15}/>Pickup location is required.</p><button type="button" className="outline location-button" onClick={capture}><Crosshair size={15}/>Use my current location</button>{location&&<div className="location-captured"><Check size={15}/><span>Location captured <small>{location.latitude.toFixed(6)}, {location.longitude.toFixed(6)}</small></span><a href={`https://www.google.com/maps/dir/?api=1&destination=${location.latitude},${location.longitude}`} target="_blank" rel="noreferrer"><Navigation size={14}/>Open</a><button type="button" onClick={()=>navigator.clipboard?.writeText(`${location.latitude},${location.longitude}`)}><Copy size={14}/></button></div>}<p className="manual-label">Or enter a pickup address</p><div className="address-grid">{(['line','area','city','state','pin'] as const).map(field=><input key={field} value={address[field]} onChange={e=>setAddress(value=>({...value,[field]:e.target.value}))} placeholder={field==='line'?'Address line':field==='pin'?'PIN code':field[0].toUpperCase()+field.slice(1)}/>)}</div></section>}</>}{step===4&&<label>Tell us what you notice<textarea value={notes} onChange={e=>setNotes(e.target.value)} placeholder="For example: brake feels soft, chain makes noise..."/></label>}{step===5&&<label>Choose a preferred time<select value={slot} onChange={e=>setSlot(e.target.value)}><option>Tomorrow, 10:00 AM</option><option>Tomorrow, 2:00 PM</option><option>Saturday, 10:00 AM</option></select></label>}{step===6&&<div className="confirm"><Check size={28}/><h3>Ready to confirm</h3><p>{vehicle} â€” {service}. This will be saved to the admin booking queue.</p></div>}{error&&<p className="validation">{error}</p>}</div><div className="form-foot"><button className="outline" type="button" onClick={()=>step===1?close():setStep(step-1)}>{step===1?'Cancel':'Back'}</button><button className="gold" type="button" onClick={next} disabled={saving}>{saving?'Savingâ€¦':step===6?'Confirm booking':'Continue'} <ArrowRight size={16}/></button></div></div></div>
+}
+function Booking({close,done}:{close:()=>void;
+done:()=>void}){const[step,setStep]=useState(1);
+const[vehicle,setVehicle]=useState('');
+const[service,setService]=useState('');
+const[mode,setMode]=useState('SELF_DROP');
+const[location,setLocation]=useState<Coordinates|null>(null);
+const[locationState,setLocationState]=useState<'idle'|'loading'|'error'>('idle');
+const[locationError,setLocationError]=useState('');
+const[address,setAddress]=useState({line:'',area:'',city:'',state:'',pin:''});
+const[next,setNext]=useState('');
+const labels=['Vehicle','Service','Mode','Details','Slot','Confirm'];
+const hasAddress=Object.values(address).some(Boolean);
+const captureLocation=()=>{if(!navigator.geolocation){setLocationState('error');
+setLocationError('Location is not supported by this browser. Please enter your address manually.');
+return;
+}setLocationState('loading');
+setLocationError('');
+navigator.geolocation.getCurrentPosition(position=>{setLocation({latitude:position.coords.latitude,longitude:position.coords.longitude,accuracy:position.coords.accuracy,capturedAt:new Date().toISOString()});
+setLocationState('idle');
+},error=>{setLocationState('error');
+setLocationError(error.code===1?'Location permission was denied. Enter your pickup address below.':error.code===3?'Location request timed out. Try again or enter your address below.':'Location is unavailable right now. Enter your pickup address below.');
+},{enableHighAccuracy:true,timeout:12000,maximumAge:0});
+};
+const updateAddress=(field:keyof typeof address,value:string)=>setAddress(current=>({...current,[field]:value}));
+const advance=()=>{if(step===1&&!vehicle.trim()){setNext('Enter a vehicle name or registration to continue.');
+return;
+}if(step===2&&!service){setNext('Choose a service category to continue.');
+return;
+}if(step===3&&mode==='PICKUP_DROP'&&!location&&!hasAddress){setNext('Capture your current location or enter a pickup address to continue.');
+return;
+}setNext('');
+if(step<6)setStep(step+1);
+else done();
+};
+const selectService=(value:string)=>{setService(value);
+setNext('');
+setStep(3)};
+const mapsUrl=location?`https://www.google.com/maps/dir/?api=1&destination=${location.latitude},${location.longitude}`:'';
+return <div className="backdrop"><div className="modal" role="dialog" aria-modal="true" aria-label="Book a service"><button className="close" onClick={close} aria-label="Close booking"><X/></button><p className="eyebrow">Book a service</p><h2>Lets get your bike workshop-ready.</h2><div className="book-steps">{labels.map((x,i)=><span className={i<step?'on':''} key={x}>{i+1}<small>{x}</small></span>)}</div><div className="form">{step===1&&<label>Your vehicle<input value={vehicle} onChange={e=>setVehicle(e.target.value)} placeholder="Vehicle model or registration" autoFocus/></label>}{step===2&&<><label>Choose a service category</label><div className="choices">{services.map(([name])=><button type="button" onClick={()=>selectService(name)} className={service===name?'selected':''} key={name}>{name}</button>)}<button type="button" onClick={()=>selectService('Custom problem')} className={service==='Custom problem'?'selected':''}>Custom problem</button></div></>}{step===3&&<><label>Preferred service mode<select value={mode} onChange={e=>{setMode(e.target.value);
+setNext('')}}><option value="SELF_DROP">Self drop &amp;
+ pickup</option><option value="PICKUP_DROP">Store pickup &amp;
+ drop</option></select></label>{mode==='PICKUP_DROP'&&<section className="pickup-location"><p><MapPin size={15}/>Pickup location is required for store pickup &amp;
+ drop.</p><button type="button" className="outline location-button" onClick={captureLocation} disabled={locationState==='loading'}><Crosshair size={15}/>{locationState==='loading'?'Getting locationâ€¦':'Use my current location'}</button>{location&&<div className="location-captured"><Check size={15}/><span>Location captured <small>{location.latitude.toFixed(6)}, {location.longitude.toFixed(6)} Â· Â±{Math.round(location.accuracy)}m</small></span><a href={mapsUrl} target="_blank" rel="noreferrer"><Navigation size={14}/>Open location</a><button type="button" onClick={()=>navigator.clipboard?.writeText(`${location.latitude},${location.longitude}`)} aria-label="Copy coordinates"><Copy size={14}/></button></div>}{locationState==='error'&&<p className="validation">{locationError}</p>}<p className="manual-label">Or enter the pickup address manually</p><div className="address-grid"><input value={address.line} onChange={e=>updateAddress('line',e.target.value)} placeholder="Address line"/><input value={address.area} onChange={e=>updateAddress('area',e.target.value)} placeholder="Area"/><input value={address.city} onChange={e=>updateAddress('city',e.target.value)} placeholder="City"/><input value={address.state} onChange={e=>updateAddress('state',e.target.value)} placeholder="State"/><input value={address.pin} onChange={e=>updateAddress('pin',e.target.value)} inputMode="numeric" placeholder="PIN code"/></div></section>}</>}{step===4&&<label>Tell us what you notice<textarea placeholder="For example: brake feels soft, chain makes noise..."/></label>}{step===5&&<label>Choose a preferred time<select defaultValue="Tomorrow, 10:00 AM"><option>Tomorrow, 10:00 AM</option><option>Tomorrow, 2:00 PM</option><option>Saturday, 10:00 AM</option></select></label>}{step===6&&<div className="confirm"><Check size={28}/><h3>Ready to confirm</h3><p>{vehicle} - {service}. You can reschedule before the vehicle is received.</p>{mode==='PICKUP_DROP'&&<p><MapPin size={15}/>{location?'Pickup location is ready to include with your booking.':'Manual pickup address is ready to include with your booking.'}</p>}</div>}{next&&<p className="validation">{next}</p>}</div><div className="form-foot"><button className="outline" onClick={()=>step>1?setStep(step-1):close()}>{step===1?'Cancel':'Back'}</button><button className="gold" onClick={advance}>{step===6?'Confirm booking':'Continue'} <ArrowRight size={16}/></button></div></div></div>}
+
+function SignIn({close,enter}:{close:()=>void;
+enter:(x:Viewer)=>void}){const[error,setError]=useState('');
+const clientId=process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+useEffect(()=>{if(!clientId){setError('Google sign-in is not configured for this environment.');
+return;
+}const run=()=>{const google=(window as Window & {google?:any}).google;
+if(!google)return;
+google.accounts.id.initialize({client_id:clientId,callback:async({credential}:{credential:string})=>{setError('');
+try{const response=await fetch('/api/auth/google',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({credential})});
+const data=await response.json();
+if(!response.ok){setError(data.error??'Sign-in failed.');
+return;
+}enter(data.viewer);
+}catch{setError('Could not complete sign-in. Check your connection and try again.')}}});
+google.accounts.id.renderButton(document.getElementById('google-sign-in-button'),{theme:'outline',text:'continue_with',shape:'rect',width:300});
+};
+const script=document.createElement('script');
+script.src='https://accounts.google.com/gsi/client';
+script.async=true;
+script.onload=run;
+document.head.appendChild(script);
+return()=>script.remove();
+},[clientId,enter]);
+return <div className="backdrop"><div className="modal" role="dialog" aria-modal="true" aria-label="Sign in"><button className="close" type="button" onClick={close} aria-label="Close sign in"><X/></button><p className="eyebrow">Secure access</p><h2>Welcome back.</h2><p>Continue with your approved Google account.</p><div id="google-sign-in-button"/><p className="validation">{error}</p><div className="form-foot"><button type="button" className="outline" onClick={close}>Cancel</button></div></div></div>}
