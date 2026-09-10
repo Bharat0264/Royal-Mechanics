@@ -148,6 +148,7 @@ const invoiceSchema = new Schema(
     },
     razorpayOrderId: String,
     razorpayPaymentId: String,
+    paymentMethod: { type: String, enum: ['RAZORPAY', 'CASH', 'UPI', 'CARD'] },
     paymentConfirmedAt: Date,
     deliveredAt: Date,
   },

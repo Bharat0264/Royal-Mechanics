@@ -21,6 +21,16 @@ export async function POST(request: Request) {
   if (viewer?.role !== 'ADMIN') return reply({ error: 'Admin access required.' }, 403);
   const body = await request.json().catch(() => ({}));
   await connectMongo();
+  if (body.action === 'collect') {
+    const bill = await Invoice.findById(body.invoiceId);
+    if (!bill) return reply({ error: 'Bill not found.' }, 404);
+    if (bill.paymentStatus === 'PAID') return reply({ error: 'This bill is already paid.' }, 400);
+    const method = ['CASH', 'UPI', 'CARD'].includes(body.paymentMethod) ? body.paymentMethod : 'CASH';
+    bill.paymentStatus = 'PAID'; bill.paymentMethod = method; bill.paymentConfirmedAt = new Date();
+    await bill.save();
+    if (bill.bookingId) await ServiceRequest.findByIdAndUpdate(bill.bookingId, { status: 'COMPLETED' });
+    return reply({ ok: true, message: `${method === 'CASH' ? 'Cash' : method} payment collected. The paid bill is now in the customer portal.` });
+  }
   if (body.action === 'send') {
     const bill = await Invoice.findById(body.invoiceId);
     if (!bill) return reply({ error: 'Bill not found.' }, 404);
