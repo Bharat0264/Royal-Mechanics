@@ -4,7 +4,7 @@ import { connectMongo } from '@/lib/mongodb';
 import { ServiceRequest } from '@/lib/models';
 
 const reply = (body: unknown, status = 200) => NextResponse.json(body, { status });
-const image = (value: unknown) => typeof value === 'string' && /^https?:\/\//i.test(value.trim()) ? value.trim() : '';
+const image = (value: unknown) => typeof value === 'string' && (/^https?:\/\//i.test(value.trim()) || /^data:image\/(?:jpeg|png|webp);base64,/i.test(value.trim())) && value.length < 2_000_000 ? value.trim() : '';
 
 export async function PATCH(request: Request, context: RouteContext<'/api/jobs/[id]'>) {
   if (!sameOrigin(request)) return reply({ error: 'Invalid request origin.' }, 403);
