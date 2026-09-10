@@ -1476,7 +1476,7 @@ function ManagementForm({
                   .filter((u) => u.role === 'MECHANIC' && u.isAllowed)
                   .map((u) => (
                     <option key={u._id} value={u._id}>
-                      {u.displayName || u.email}
+                      {u.displayName || 'Mechanic'} — {u.email}{u.phone ? ` · ${u.phone}` : ''}
                     </option>
                   ))}
               </select>

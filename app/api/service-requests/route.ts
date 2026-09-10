@@ -101,7 +101,9 @@ export async function GET() {
   if (!viewer || !['ADMIN', 'MECHANIC'].includes(viewer.role))
     return reply({ error: 'Workshop access required.' }, 403);
   await connectMongo();
-  const query = viewer.role === 'ADMIN' ? {} : { mechanicEmail: viewer.email };
+  // Assignment and access are scoped to the immutable account ID, never a
+  // display name (or a shared-looking email label).
+  const query = viewer.role === 'ADMIN' ? {} : { mechanicId: viewer.id };
   const requests = await ServiceRequest.find(query)
     .sort({ createdAt: -1 })
     .limit(50)
