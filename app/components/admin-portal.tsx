@@ -1384,7 +1384,7 @@ function ManagementForm({
   users?: Person[];
 }) {
   const [v, setV] = useState<Values>(initial);
-  const input = (key: string, label: string, type = 'text') => (
+  const input = (key: string, label: string, type = 'text', required = ['name', 'title', 'email'].includes(key)) => (
     <label key={key}>
       {label}
       <input
@@ -1393,7 +1393,7 @@ function ManagementForm({
         value={String(v[key] ?? '')}
         min={type === 'number' ? 0 : undefined}
         step={type === 'number' ? '0.01' : undefined}
-        required={['name', 'title', 'email'].includes(key)}
+        required={required}
         onChange={(e) =>
           setV({
             ...v,
@@ -1511,7 +1511,7 @@ function ManagementForm({
           <>
             {input('customerName', 'Customer name')}
             {input('phone', 'Contact number')}
-            {input('email', 'Email (optional)', 'email')}
+            {input('email', 'Email (optional)', 'email', false)}
             {input('vehicleName', 'Bike / vehicle')}
             {input('serviceCategory', 'Service or issue')}
             {textarea('notes', 'Workshop notes')}

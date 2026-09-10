@@ -63,7 +63,7 @@ export async function POST(request: Request) {
       } else {
         customer.displayName = customer.displayName || name; customer.phone = phone; await customer.save();
       }
-      await ServiceRequest.create({ requestNumber: `RM-W${Date.now().toString().slice(-8)}`, customerId: customer._id, customerPhone: phone, vehicleName, serviceCategory, serviceMode: 'SELF_DROP', notes: text(data.notes, 1500), walkIn: true, status: 'BOOKED' });
+      await ServiceRequest.create({ requestNumber: `RM-W${Date.now().toString(36).toUpperCase()}-${crypto.randomUUID().slice(0, 4).toUpperCase()}`, customerId: customer._id, customerPhone: phone, vehicleName, serviceCategory, serviceMode: 'SELF_DROP', notes: text(data.notes, 1500), walkIn: true, status: 'BOOKED' });
     } else if (section === 'bookings') {
       if (
         !id ||
@@ -202,8 +202,10 @@ export async function POST(request: Request) {
     } else return fail('Unknown management section.');
     return NextResponse.json({ ok: true });
   } catch (e) {
-    if ((e as { code?: number }).code === 11000)
-      return fail('A record with this name already exists.', 409);
+    if ((e as { code?: number; keyPattern?: Record<string, number> }).code === 11000) {
+      const field = Object.keys((e as { keyPattern?: Record<string, number> }).keyPattern || {})[0];
+      return fail(field === 'email' ? 'That email already belongs to an account. Use the existing customer or leave email blank.' : 'This record already exists. Please try saving again.', 409);
+    }
     return fail('Unable to save changes. Check the fields and try again.', 503);
   }
 }
