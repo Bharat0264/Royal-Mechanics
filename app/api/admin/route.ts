@@ -51,10 +51,15 @@ export async function POST(request: Request) {
     if (section === 'walkin') {
       const name = text(data.customerName, 100), phone = text(data.phone, 30), vehicleName = text(data.vehicleName, 100), serviceCategory = text(data.serviceCategory, 100);
       if (!name || !phone || !vehicleName || !serviceCategory) return fail('Customer name, phone, vehicle and service are required.');
-      let customer = await User.findOne({ phone });
+      const email = text(data.email, 254).toLowerCase();
+      // A returning walk-in gets another booking on their existing account.
+      // Neither their phone nor their email can create a duplicate customer.
+      let customer = await User.findOne({
+        $or: [{ phone }, ...(email ? [{ email }] : [])],
+      });
       if (!customer) {
-        const email = text(data.email, 254).toLowerCase() || `walkin-${Date.now()}-${Math.random().toString(36).slice(2, 7)}@royal-mechanics.local`;
-        customer = await User.create({ displayName: name, phone, email, role: 'CUSTOMER', isAllowed: true });
+        const accountEmail = email || `walkin-${Date.now()}-${Math.random().toString(36).slice(2, 7)}@royal-mechanics.local`;
+        customer = await User.create({ displayName: name, phone, email: accountEmail, role: 'CUSTOMER', isAllowed: true });
       } else {
         customer.displayName = customer.displayName || name; customer.phone = phone; await customer.save();
       }
