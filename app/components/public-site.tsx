@@ -1,0 +1,620 @@
+'use client';
+
+import Link from 'next/link';
+import Image from 'next/image';
+import { useEffect, useState } from 'react';
+import {
+  defaultServices,
+  defaultWorkshop,
+  defaultSettings,
+} from '@/lib/site-defaults';
+import {
+  ArrowRight,
+  Bike,
+  CheckCircle2,
+  ChevronDown,
+  Clock3,
+  MapPin,
+  MessageCircle,
+  ShieldCheck,
+  Star,
+  Wrench,
+} from 'lucide-react';
+
+function useServices() {
+  const [catalogue, setCatalogue] = useState(defaultServices);
+  useEffect(() => {
+    let active = true;
+    fetch('/api/services')
+      .then((r) => r.json())
+      .then((d) => {
+        if (active && Array.isArray(d.services)) setCatalogue(d.services);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+  return catalogue.map(
+    (s) =>
+      [
+        s.name,
+        s.description,
+        '₹' + s.price.toLocaleString('en-IN'),
+        Wrench,
+      ] as const,
+  );
+}
+function useSite() {
+  const [site, setSite] = useState({
+    workshop: defaultWorkshop,
+    settings: defaultSettings,
+    reviews: [] as {
+      _id: string;
+      name: string;
+      vehicle: string;
+      text: string;
+      rating: number;
+    }[],
+  });
+  useEffect(() => {
+    let active = true;
+    fetch('/api/site')
+      .then((r) => r.json())
+      .then((d) => {
+        if (active) setSite(d);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+  return site;
+}
+
+export function PublicFooter() {
+  return (
+    <>
+      <footer className="public-footer">
+        <Link className="public-brand footer-brand" href="/">
+          <Image
+            className="brand-crest"
+            src="/royal-mechanics-logo-alpha.png"
+            width={180}
+            height={180}
+            alt="Royal Mechanics crest"
+          />
+          <b>
+            ROYAL<small>MECHANICS</small>
+          </b>
+        </Link>
+        <p>Two-wheeler care, made clear.</p>
+        <p>© 2026 Royal Mechanics</p>
+      </footer>
+      <Link className="mobile-book" href="/book-service">
+        Book service <ArrowRight size={15} />
+      </Link>
+    </>
+  );
+}
+
+function PageIntro({
+  eyebrow,
+  title,
+  text,
+}: {
+  eyebrow: string;
+  title: string;
+  text: string;
+}) {
+  return (
+    <section className="page-intro">
+      <p>{eyebrow}</p>
+      <h1>{title}</h1>
+      <span>{text}</span>
+    </section>
+  );
+}
+function Stars() {
+  return (
+    <span className="stars" aria-label="5 out of 5 stars">
+      {Array.from({ length: 5 }, (_, i) => (
+        <Star key={i} size={14} fill="currentColor" />
+      ))}
+    </span>
+  );
+}
+
+export function HomePage() {
+  const services = useServices();
+  return (
+    <>
+      <main className="public-main">
+        <section className="premium-hero">
+          <div>
+            <p className="kicker">
+              <i /> TWO-WHEELER SERVICE
+            </p>
+            <h1>Ride brilliant.</h1>
+            <p>Precision care for every ride.</p>
+            <Link className="gloss-button hero-cta" href="/book-service">
+              Book service <ArrowRight size={17} />
+            </Link>
+          </div>
+          <div className="hero-machine" aria-label="Royal Mechanics crest">
+            <div className="machine-glow" />
+            <Image
+              className="hero-crest"
+              src="/royal-mechanics-logo-alpha.png"
+              width={620}
+              height={620}
+              priority
+              alt="Royal Mechanics crest"
+            />
+          </div>
+        </section>
+        <section className="trust-strip">
+          <span>
+            <Bike /> <b>500+</b> Bikes serviced
+          </span>
+          <span>
+            <Star /> <b>4.8</b> Rated
+          </span>
+          <span>
+            <Clock3 /> <b>Same-day</b> Service
+          </span>
+        </section>
+        <section className="home-services">
+          <div className="section-label">
+            <p>ESSENTIAL CARE</p>
+            <h2>Made for the road.</h2>
+            <Link href="/services">
+              All services <ArrowRight size={15} />
+            </Link>
+          </div>
+          <div className="teaser-grid">
+            {services.slice(0, 3).map(([name, desc, price, Icon]) => (
+              <Link className="glass-card" href="/services" key={name}>
+                <Icon />
+                <h3>{name}</h3>
+                <p>{desc}</p>
+                <b>From {price}</b>
+              </Link>
+            ))}
+          </div>
+        </section>
+        <section className="quote-strip">
+          <Stars />
+          <blockquote>
+            “The workshop experience every rider deserves.”
+          </blockquote>
+          <span>— Dev, KTM Duke 390</span>
+        </section>
+      </main>
+      <PublicFooter />
+    </>
+  );
+}
+
+export function ServicesPage() {
+  const services = useServices();
+  return (
+    <>
+      <main className="public-main">
+        <PageIntro
+          eyebrow="SERVICE MENU"
+          title="Care, without compromise."
+          text="Clear prices. Expert hands."
+        />
+        <section className="service-full-grid">
+          {services.map(([name, desc, price, Icon]) => (
+            <article className="glass-card service-card" key={name}>
+              <Icon />
+              <div>
+                <h2>{name}</h2>
+                <p>{desc}</p>
+              </div>
+              <b>From {price}</b>
+              <Link
+                href={`/book-service?service=${encodeURIComponent(name)}`}
+                aria-label={`Book ${name}`}
+              >
+                <ArrowRight size={18} />
+              </Link>
+            </article>
+          ))}
+        </section>
+      </main>
+      <PublicFooter />
+    </>
+  );
+}
+
+export function WorkshopPage() {
+  const { workshop } = useSite();
+  return (
+    <>
+      <main className="public-main">
+        <PageIntro
+          eyebrow="THE WORKSHOP"
+          title={workshop.title}
+          text={workshop.description}
+        />
+        <p
+          style={{
+            maxWidth: 760,
+            margin: '0 auto 40px',
+            padding: '0 24px',
+            color: '#c7bcb3',
+            lineHeight: 1.8,
+            textAlign: 'center',
+          }}
+        >
+          {workshop.about}
+        </p>
+        <section className="workshop-visual">
+          {workshop.photos.length ? (
+            workshop.photos.map((src, i) => (
+              <Image
+                key={src}
+                src={src}
+                width={700}
+                height={450}
+                unoptimized
+                alt={`Royal Mechanics workshop ${i + 1}`}
+                style={{
+                  width: '100%',
+                  height: 350,
+                  objectFit: 'cover',
+                  borderRadius: 22,
+                }}
+              />
+            ))
+          ) : (
+            <>
+              <div className="photo-panel">
+                <Wrench size={72} />
+                <span>PRECISION BAY 01</span>
+              </div>
+              <div className="photo-panel photo-alt">
+                <Bike size={94} />
+                <span>READY FOR THE ROAD</span>
+              </div>
+            </>
+          )}
+        </section>
+        <section className="badge-grid">
+          {[
+            ['8+', 'Years active'],
+            ['100%', 'Genuine parts'],
+            ['30-day', 'Service warranty'],
+          ].map(([n, label]) => (
+            <article className="glass-card" key={label}>
+              <ShieldCheck />
+              <strong>{n}</strong>
+              <span>{label}</span>
+            </article>
+          ))}
+        </section>
+      </main>
+      <PublicFooter />
+    </>
+  );
+}
+
+export function ReviewsPage() {
+  const { reviews } = useSite();
+  return (
+    <>
+      <main className="public-main">
+        <PageIntro
+          eyebrow="RIDER REVIEWS"
+          title="Trusted at every turn."
+          text="Real riders. Real results."
+        />
+        <section className="review-grid">
+          {reviews.length ? (
+            reviews.map((r) => (
+              <article className="glass-card review-card" key={r._id}>
+                <span
+                  className="stars"
+                  aria-label={`${r.rating} out of 5 stars`}
+                >
+                  {Array.from({ length: r.rating }, (_, i) => (
+                    <Star key={i} size={14} fill="currentColor" />
+                  ))}
+                </span>
+                <blockquote>{r.text}</blockquote>
+                <b>{r.name}</b>
+                <span>{r.vehicle}</span>
+              </article>
+            ))
+          ) : (
+            <article className="glass-card review-card">
+              <h2>Every ride has a story.</h2>
+              <p style={{ color: '#c7bcb3' }}>
+                Be the first to share yours. Reviews appear after workshop
+                approval.
+              </p>
+              <Link href="/dashboard" style={{ color: '#ffad53' }}>
+                Share your experience <ArrowRight size={14} />
+              </Link>
+            </article>
+          )}
+        </section>
+      </main>
+      <PublicFooter />
+    </>
+  );
+}
+
+export function ContactPage() {
+  const { settings } = useSite();
+  const [open, setOpen] = useState<number | null>(null);
+  const faqs = [
+    [
+      'How long does a service take?',
+      'Most scheduled services are completed the same day.',
+    ],
+    [
+      'Do you use genuine parts?',
+      'Yes. We use genuine or approved OEM-quality parts.',
+    ],
+    [
+      'Can I approve repairs online?',
+      'Yes. Your service request shows inspection photos and estimates.',
+    ],
+    [
+      'Is pickup and drop available?',
+      'Yes, subject to location and slot availability.',
+    ],
+    [
+      'Is there a service warranty?',
+      'Every eligible repair receives a 30-day warranty.',
+    ],
+  ];
+  return (
+    <>
+      <main className="public-main">
+        <PageIntro
+          eyebrow="FAQ & CONTACT"
+          title="Ask. Book. Ride."
+          text="We are here when your bike needs us."
+        />
+        <section className="contact-layout">
+          <div className="faq-list">
+            {faqs.map(([q, a], index) => (
+              <article className={open === index ? 'open' : ''} key={q}>
+                <button onClick={() => setOpen(open === index ? null : index)}>
+                  {q}
+                  <ChevronDown />
+                </button>
+                {open === index && <p>{a}</p>}
+              </article>
+            ))}
+          </div>
+          <form
+            className="contact-card glass-card"
+            onSubmit={(e) => e.preventDefault()}
+          >
+            <h2>Start a conversation.</h2>
+            <input placeholder="Your name" aria-label="Your name" />
+            <input placeholder="Phone number" aria-label="Phone number" />
+            <textarea
+              placeholder="How can we help?"
+              aria-label="How can we help?"
+            />
+            <button className="gloss-button">
+              Send enquiry <ArrowRight size={15} />
+            </button>
+          </form>
+        </section>
+        <section className="visit-card">
+          <div>
+            <MapPin />
+            <h2>Visit the workshop</h2>
+            <p>{settings.address}</p>
+          </div>
+          <div>
+            <Clock3 />
+            <h2>Hours</h2>
+            <p>
+              {settings.hours}
+              {settings.phone && (
+                <>
+                  <br />
+                  {settings.phone}
+                </>
+              )}
+              {settings.email && (
+                <>
+                  <br />
+                  {settings.email}
+                </>
+              )}
+            </p>
+          </div>
+          <a
+            className="whatsapp"
+            href={
+              settings.phone
+                ? `https://wa.me/${settings.phone.replace(/\D/g, '')}`
+                : '/contact'
+            }
+            aria-label="Chat on WhatsApp"
+          >
+            <MessageCircle /> WhatsApp us
+          </a>
+        </section>
+        <section className="map-card">
+          <iframe
+            title="Royal Mechanics location"
+            loading="lazy"
+            src="https://www.google.com/maps?output=embed&q=Shop+No+07%2C+Plot+No+05%2C+Sai+Raj+Building%2C+Gurudwara+Road%2C+New+Panvel%2C+Navi+Mumbai+410206"
+          />
+          <a
+            className="gloss-button"
+            href="https://share.google/yQlVV3cGUfRQSWn2G"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Get directions <ArrowRight size={15} />
+          </a>
+        </section>
+      </main>
+      <PublicFooter />
+    </>
+  );
+}
+
+export function BookingPage() {
+  const services = useServices();
+  const [submitted, setSubmitted] = useState(false);
+  const [status, setStatus] = useState('');
+  const submit = async (event: React.SyntheticEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setStatus('');
+    const form = new FormData(event.currentTarget);
+    const response = await fetch('/api/service-requests', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        vehicleName: form.get('vehicleName'),
+        serviceCategory: form.get('serviceCategory'),
+        serviceMode: form.get('serviceMode'),
+        preferredSlot: form.get('preferredSlot'),
+        notes: form.get('notes'),
+      }),
+    });
+    if (response.ok) {
+      setSubmitted(true);
+      return;
+    }
+    const result = await response.json().catch(() => ({}));
+    setStatus(
+      typeof result.error === 'string'
+        ? result.error
+        : 'We could not submit your request. Please try again.',
+    );
+  };
+  return (
+    <>
+      <main className="public-main utility-page">
+        <section className="booking-intro">
+          <div>
+            <p className="kicker">
+              <i /> SERVICE REQUEST
+            </p>
+            <h1>
+              Set the next ride
+              <br />
+              in motion.
+            </h1>
+            <p>
+              Choose the care your two-wheeler needs. We will confirm your slot
+              before any work begins.
+            </p>
+          </div>
+          <Image
+            className="booking-crest"
+            src="/royal-mechanics-logo-alpha.png"
+            width={320}
+            height={320}
+            priority
+            alt="Royal Mechanics crest"
+          />
+        </section>
+        <section className="booking-shell glass-card">
+          <div className="booking-aside">
+            <span>01</span>
+            <h2>Tell us about your ride.</h2>
+            <p>
+              Share the essentials, then we will confirm availability and
+              pricing with you.
+            </p>
+            <div>
+              <Bike />
+              <p>
+                <b>Transparent updates</b> before work starts.
+              </p>
+            </div>
+            <div>
+              <ShieldCheck />
+              <p>
+                <b>Genuine care</b> for every ride.
+              </p>
+            </div>
+          </div>
+          <form className="booking-form" onSubmit={submit}>
+            <div className="form-heading">
+              <p className="kicker">BOOK A SERVICE</p>
+              <h2>Your booking details.</h2>
+            </div>
+            <div className="booking-fields">
+              <label>
+                Vehicle{' '}
+                <input
+                  required
+                  name="vehicleName"
+                  placeholder="e.g. Honda Activa 6G"
+                />
+              </label>
+              <label>
+                Service needed{' '}
+                <select required name="serviceCategory" defaultValue="">
+                  <option value="" disabled>
+                    Select a service
+                  </option>
+                  {services.map(([name]) => (
+                    <option key={name}>{name}</option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Service mode{' '}
+                <select required name="serviceMode" defaultValue="">
+                  <option value="" disabled>
+                    Choose pickup or drop-off
+                  </option>
+                  <option value="SELF_DROP">
+                    I’ll drop it at the workshop
+                  </option>
+                  <option value="PICKUP_DROP">Pickup & drop</option>
+                </select>
+              </label>
+              <label>
+                Preferred time{' '}
+                <input required name="preferredSlot" type="datetime-local" />
+              </label>
+              <label className="form-wide">
+                Anything we should know?{' '}
+                <textarea
+                  name="notes"
+                  placeholder="A sound, warning light, or preferred appointment time…"
+                />
+              </label>
+            </div>
+            <button className="gloss-button" type="submit">
+              Request service <ArrowRight size={16} />
+            </button>
+            {submitted && (
+              <output className="form-success">
+                <CheckCircle2 /> Request received. We’ll confirm your slot
+                shortly.
+              </output>
+            )}
+            {status && (
+              <p className="form-error" role="alert">
+                {status}{' '}
+                {status.includes('sign in') && (
+                  <Link href="/sign-in">Sign in</Link>
+                )}
+              </p>
+            )}
+          </form>
+        </section>
+      </main>
+      <PublicFooter />
+    </>
+  );
+}
