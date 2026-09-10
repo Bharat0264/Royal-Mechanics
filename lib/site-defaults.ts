@@ -39,7 +39,7 @@ export const defaultWorkshop = {
 };
 export const defaultSettings = {
   hours: 'Mon–Thu & Sat–Sun · 10:00 AM–7:00 PM',
-  phone: '',
+  phone: '+91 91823 72075',
   email: '',
   address:
     'Shop No. 07, Plot No. 05, Sai Raj Building, opposite Gurudwara, Gurudwara Road, New Panvel, Navi Mumbai 410206',

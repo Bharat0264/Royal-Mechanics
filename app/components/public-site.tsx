@@ -436,14 +436,10 @@ export function ContactPage() {
           </div>
           <a
             className="whatsapp"
-            href={
-              settings.phone
-                ? `https://wa.me/${settings.phone.replace(/\D/g, '')}`
-                : '/contact'
-            }
-            aria-label="Chat on WhatsApp"
+            href={`https://wa.me/919182372075?text=${encodeURIComponent('Hello Royal Mechanics, I would like to enquire about a service.')}`}
+            aria-label="Chat with Royal Mechanics on WhatsApp"
           >
-            <MessageCircle /> WhatsApp us
+            <MessageCircle /> WhatsApp +91 91823 72075
           </a>
         </section>
         <section className="map-card">
@@ -480,6 +476,7 @@ export function BookingPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         vehicleName: form.get('vehicleName'),
+        phone: form.get('phone'),
         serviceCategory: form.get('serviceCategory'),
         serviceMode: form.get('serviceMode'),
         preferredSlot: form.get('preferredSlot'),
@@ -551,6 +548,17 @@ export function BookingPage() {
               <h2>Your booking details.</h2>
             </div>
             <div className="booking-fields">
+              <label>
+                Contact number{' '}
+                <input
+                  required
+                  name="phone"
+                  type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
+                  placeholder="+91 98765 43210"
+                />
+              </label>
               <label>
                 Vehicle{' '}
                 <input
