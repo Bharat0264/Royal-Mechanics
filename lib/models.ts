@@ -76,6 +76,15 @@ const serviceRequestSchema = new Schema(
     },
     mechanicId: { type: Schema.Types.ObjectId, ref: 'User', index: true },
     mechanicEmail: { type: String, lowercase: true, trim: true },
+    walkIn: { type: Boolean, default: false },
+    customerPhone: { type: String, default: '' },
+    intakePhotos: { type: [String], default: [] },
+    faults: {
+      type: [{ text: String, beforePhoto: String, afterPhoto: String, completed: { type: Boolean, default: false } }],
+      default: [],
+    },
+    readyAt: Date,
+    sentAt: Date,
     status: {
       type: String,
       enum: [
@@ -115,6 +124,8 @@ const invoiceSchema = new Schema(
     invoiceNumber: { type: String, required: true, unique: true, index: true },
     createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     customerName: { type: String, default: '' },
+    customerId: { type: Schema.Types.ObjectId, ref: 'User', index: true },
+    bookingId: { type: Schema.Types.ObjectId, ref: 'ServiceRequest', index: true, unique: true, sparse: true },
     vehicleName: { type: String, default: '' },
     items: [
       {
@@ -125,6 +136,8 @@ const invoiceSchema = new Schema(
       },
     ],
     total: { type: Number, required: true, min: 0 },
+    tax: { type: Number, default: 0 },
+    taxRate: { type: Number, default: 0 },
     platformFee: { type: Number, default: 0 },
     paymentHandlingFee: { type: Number, default: 0 },
     payableTotal: { type: Number, default: 0 },
@@ -135,6 +148,7 @@ const invoiceSchema = new Schema(
     },
     razorpayOrderId: String,
     razorpayPaymentId: String,
+    deliveredAt: Date,
   },
   { timestamps: true },
 );

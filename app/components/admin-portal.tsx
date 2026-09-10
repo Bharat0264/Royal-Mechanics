@@ -73,6 +73,8 @@ type Booking = {
   estimate?: number;
   estimateApproved?: boolean;
   inspectionPhotos?: string[];
+  intakePhotos?: string[];
+  faults?: { text: string; beforePhoto?: string; afterPhoto?: string; completed?: boolean }[];
 };
 type Service = {
   _id?: string;
@@ -94,7 +96,7 @@ type Data = {
   users: Person[];
   services: Service[];
   reviews: Review[];
-  invoices: { total: number; updatedAt: string }[];
+  invoices: { _id: string; bookingId?: string; total: number; updatedAt: string; paymentStatus?: string; customerName?: string }[];
   workshop: typeof defaultWorkshop;
   settings: typeof defaultSettings;
 };
@@ -181,10 +183,10 @@ export function AdminPortal({
     setBusy(true);
     setError('');
     try {
-      const response = await fetch('/api/admin', {
+      const response = await fetch(section === 'billing' ? '/api/bills' : '/api/admin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ section, id, action, data: values }),
+        body: JSON.stringify(section === 'billing' ? { bookingId: values.bookingId, taxRate: Number(values.taxRate || 0), items: [{ name: values.serviceName, quantity: 1, unitPrice: Number(values.servicePrice || 0) }, ...(Number(values.partsPrice || 0) > 0 ? [{ name: 'Parts used', quantity: 1, unitPrice: Number(values.partsPrice) }] : []), ...(Number(values.laborPrice || 0) > 0 ? [{ name: 'Labour', quantity: 1, unitPrice: Number(values.laborPrice) }] : []), ...(Number(values.extraPrice || 0) > 0 ? [{ name: 'Extra charges', quantity: 1, unitPrice: Number(values.extraPrice) }] : [])] } : { section, id, action, data: values }),
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error);
@@ -309,6 +311,9 @@ export function AdminPortal({
         estimateApproved: b.estimateApproved || false,
         notes: b.notes || '',
         inspectionPhotos: b.inspectionPhotos || [],
+        bookingId: b._id,
+        vehicleName: b.vehicleName,
+        serviceCategory: b.serviceCategory,
       },
     });
   }
@@ -872,6 +877,7 @@ export function AdminPortal({
                       <h2>
                         All bookings <span>{bookings.length}</span>
                       </h2>
+                      <button className="admin-gold" onClick={() => setEditor({ section: 'walkin', title: 'Create walk-in booking', values: { customerName: '', phone: '', email: '', vehicleName: '', serviceCategory: '', notes: '' } })}><Plus size={15} /> Create booking</button>
                       <select
                         aria-label="Filter booking status"
                         value={filter}
@@ -1334,6 +1340,7 @@ export function AdminPortal({
                 }
               />
             )}
+            {editor.section === 'bookings' && (() => { const bill = data?.invoices.find((entry) => entry.bookingId === editor.values.bookingId); return bill ? <button className="admin-gold" disabled={busy || bill.paymentStatus !== 'PAID'} onClick={() => void (async () => { setBusy(true); const response = await fetch('/api/bills', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'send', invoiceId: bill._id }) }); const result = await response.json(); setBusy(false); if (!response.ok) { setError(result.error); return; } setNotice(result.message); setEditor(null); await load(); })()}>Send paid bill &amp; all job photos</button> : <button className="admin-gold" onClick={() => setEditor({ section: 'billing', title: 'Generate booking bill', values: { bookingId: String(editor.values.bookingId), serviceName: String(editor.values.serviceCategory), servicePrice: Number(editor.values.estimate || 0), partsPrice: 0, laborPrice: 0, extraPrice: 0, taxRate: 0 } })}>Generate bill</button>; })()}
             {editor.section === 'services' &&
               (editor.id || editor.values.originalName) && (
                 <button
@@ -1498,6 +1505,26 @@ function ManagementForm({
                   ))}
               </div>
             )}
+          </>
+        )}
+        {section === 'walkin' && (
+          <>
+            {input('customerName', 'Customer name')}
+            {input('phone', 'Contact number')}
+            {input('email', 'Email (optional)', 'email')}
+            {input('vehicleName', 'Bike / vehicle')}
+            {input('serviceCategory', 'Service or issue')}
+            {textarea('notes', 'Workshop notes')}
+          </>
+        )}
+        {section === 'billing' && (
+          <>
+            {input('serviceName', 'Service line item')}
+            {input('servicePrice', 'Base service price (₹)', 'number')}
+            {input('partsPrice', 'Parts used (₹)', 'number')}
+            {input('laborPrice', 'Labour (₹)', 'number')}
+            {input('extraPrice', 'Extra charges (₹)', 'number')}
+            {input('taxRate', 'Tax rate (%)', 'number')}
           </>
         )}
         {section === 'staff' && (

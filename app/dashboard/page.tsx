@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getViewer } from '@/lib/auth';
-import { ServiceRequest } from '@/lib/models';
+import { Invoice, ServiceRequest } from '@/lib/models';
 import { CustomerDashboard } from '../components/customer-dashboard';
 export const metadata = {
   title: 'Your garage | Royal Mechanics',
@@ -17,10 +17,12 @@ export default async function Page() {
   )
     .sort({ createdAt: -1 })
     .lean();
+  const invoices = viewer.role === 'MECHANIC' ? [] : await Invoice.find({ customerId: viewer.id }).sort({ createdAt: -1 }).lean();
   return (
     <CustomerDashboard
       viewer={viewer}
       bookings={JSON.parse(JSON.stringify(bookings))}
+      invoices={JSON.parse(JSON.stringify(invoices))}
     />
   );
 }

@@ -28,7 +28,7 @@ export async function adminData() {
       ServiceCatalog.find({ active: true }).sort({ createdAt: 1 }).lean(),
       Review.find().sort({ createdAt: -1 }).lean(),
       SiteContent.find().lean(),
-      Invoice.find({ paymentStatus: 'PAID' }).select('total updatedAt').lean(),
+      Invoice.find().sort({ createdAt: -1 }).lean(),
     ]);
   const catalogueInitialized = content.some(
     (x) => x.key === 'catalogueInitialized',

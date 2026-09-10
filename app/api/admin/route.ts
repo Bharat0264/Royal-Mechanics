@@ -48,7 +48,18 @@ export async function POST(request: Request) {
     const { section, action, id } = body;
     const data = body.data || {};
     if (id && !isValidObjectId(id)) return fail('Invalid record ID.');
-    if (section === 'bookings') {
+    if (section === 'walkin') {
+      const name = text(data.customerName, 100), phone = text(data.phone, 30), vehicleName = text(data.vehicleName, 100), serviceCategory = text(data.serviceCategory, 100);
+      if (!name || !phone || !vehicleName || !serviceCategory) return fail('Customer name, phone, vehicle and service are required.');
+      let customer = await User.findOne({ phone });
+      if (!customer) {
+        const email = text(data.email, 254).toLowerCase() || `walkin-${Date.now()}-${Math.random().toString(36).slice(2, 7)}@royal-mechanics.local`;
+        customer = await User.create({ displayName: name, phone, email, role: 'CUSTOMER', isAllowed: true });
+      } else {
+        customer.displayName = customer.displayName || name; customer.phone = phone; await customer.save();
+      }
+      await ServiceRequest.create({ requestNumber: `RM-W${Date.now().toString().slice(-8)}`, customerId: customer._id, customerPhone: phone, vehicleName, serviceCategory, serviceMode: 'SELF_DROP', notes: text(data.notes, 1500), walkIn: true, status: 'BOOKED' });
+    } else if (section === 'bookings') {
       if (
         !id ||
         !bookingStatuses.includes(data.status) ||

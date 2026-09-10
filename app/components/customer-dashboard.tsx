@@ -14,16 +14,31 @@ type Booking = {
   status: string;
   estimate?: number;
   estimateApproved?: boolean;
+  intakePhotos?: string[];
+  faults?: { text: string; beforePhoto?: string; afterPhoto?: string; completed?: boolean }[];
 };
+type Invoice = { _id: string; invoiceNumber: string; vehicleName: string; items: { name: string; quantity: number; unitPrice: number; amount: number }[]; total: number; tax?: number; paymentStatus: 'UNPAID' | 'PAID'; deliveredAt?: string };
 export function CustomerDashboard({
   viewer,
   bookings,
+  invoices,
 }: {
   viewer: Viewer;
   bookings: Booking[];
+  invoices: Invoice[];
 }) {
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
+  async function pay(invoiceId: string) {
+    setBusy(true); setMessage('');
+    try {
+      const response = await fetch('/api/payments/razorpay/order', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ invoiceId }) });
+      const order = await response.json(); if (!response.ok) throw new Error(order.error);
+      if (!window.Razorpay) await new Promise<void>((resolve, reject) => { const script = document.createElement('script'); script.src = 'https://checkout.razorpay.com/v1/checkout.js'; script.onload = () => resolve(); script.onerror = () => reject(new Error('Could not load secure payment checkout.')); document.body.appendChild(script); });
+      const Razorpay = window.Razorpay; if (!Razorpay) throw new Error('Could not start secure payment checkout.');
+      new Razorpay({ key: order.keyId, amount: order.amount, currency: order.currency, name: 'Royal Mechanics', description: order.invoiceNumber, order_id: order.orderId, handler: async (payment: { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string }) => { const verify = await fetch('/api/payments/razorpay/verify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ invoiceId, ...payment }) }); const result = await verify.json(); if (!verify.ok) { setMessage(result.error || 'Payment verification failed.'); return; } setMessage(`Payment received for ${result.invoiceNumber}. Your receipt is ready.`); window.location.reload(); } }).open();
+    } catch (error) { setMessage(error instanceof Error ? error.message : 'Payment could not be started.'); } finally { setBusy(false); }
+  }
   async function review(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
     setBusy(true);
@@ -137,6 +152,9 @@ export function CustomerDashboard({
             </div>
           )}
         </section>
+        {viewer.role === 'CUSTOMER' && bookings.some((b) => (b.intakePhotos?.length || b.faults?.length)) && <section className="admin-widget" style={{ marginTop: 25 }}><div className="admin-widget-heading"><h2>Service evidence</h2></div>{bookings.filter((b) => b.intakePhotos?.length || b.faults?.length).map((b) => <details key={`evidence-${b._id}`} className="admin-list-item"><summary>{b.vehicleName} — photos and repair checklist</summary><div className="admin-photo-grid">{b.intakePhotos?.map((src, i) => <a key={src} href={src} target="_blank" rel="noreferrer"><Image src={src} width={180} height={130} unoptimized alt={`Intake ${i + 1}`} /></a>)}</div>{b.faults?.map((fault) => <div key={fault.text}><p>{fault.completed ? '✓' : '•'} {fault.text}</p><div className="admin-photo-grid">{[fault.beforePhoto, fault.afterPhoto].filter(Boolean).map((src, i) => <a key={src} href={src} target="_blank" rel="noreferrer"><Image src={src!} width={180} height={130} unoptimized alt={i ? 'Repair after' : 'Repair before'} /></a>)}</div></div>)}</details>)}</section>}
+        {viewer.role === 'MECHANIC' && bookings.map((b) => <section className="admin-widget" style={{ marginTop: 18 }} key={`job-${b._id}`}><div className="admin-widget-heading"><h2>{b.vehicleName} — evidence checklist</h2></div><MechanicJob booking={b} onMessage={setMessage} /></section>)}
+        {viewer.role === 'CUSTOMER' && <section className="admin-widget" style={{ marginTop: 25 }}><div className="admin-widget-heading"><h2>Bills &amp; payments</h2></div>{invoices.length ? invoices.map((invoice) => <details key={invoice._id} className="admin-list-item"><summary>{invoice.invoiceNumber} · {invoice.vehicleName} · ₹{invoice.total.toLocaleString('en-IN')} · {invoice.paymentStatus}</summary><div className="admin-muted">{invoice.items.map((item) => <p key={item.name}>{item.name} × {item.quantity} — ₹{item.amount.toLocaleString('en-IN')}</p>)}{invoice.tax ? <p>Tax — ₹{invoice.tax.toLocaleString('en-IN')}</p> : null}</div>{invoice.paymentStatus === 'UNPAID' ? <button className="admin-gold" disabled={busy} onClick={() => pay(invoice._id)}>Pay now ₹{invoice.total.toLocaleString('en-IN')}</button> : <p className="admin-success">Paid receipt{invoice.deliveredAt ? ' and service package delivered.' : ' confirmed.'}</p>}</details>) : <p className="admin-muted">Your generated bills will appear here with their full breakdown.</p>}{message && <output>{message}</output>}</section>}
         {viewer.role === 'CUSTOMER' && (
           <section className="admin-widget" style={{ marginTop: 25 }}>
             <div className="admin-widget-heading">
@@ -191,3 +209,12 @@ export function CustomerDashboard({
     </div>
   );
 }
+
+function MechanicJob({ booking, onMessage }: { booking: Booking; onMessage: (message: string) => void }) {
+  const [photos, setPhotos] = useState(['', '', '', '']); const [faultText, setFaultText] = useState(''); const [busy, setBusy] = useState(false);
+  const submit = async (action: string, data: object = {}) => { setBusy(true); const res = await fetch(`/api/jobs/${booking._id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, ...data }) }); const json = await res.json(); setBusy(false); onMessage(json.error || (json.ok ? 'Job evidence saved.' : 'Could not update job.')); if (json.ok) window.location.reload(); };
+  return <div className="admin-form"><p className="admin-muted">A job can be marked ready only after all required evidence is attached.</p>{booking.intakePhotos?.length === 4 ? <p className="admin-success">Four intake photos recorded.</p> : <><div className="admin-grid">{['Front', 'Back', 'Left', 'Right'].map((side, index) => <label key={side}>{side} photo URL<input value={photos[index]} onChange={(e) => setPhotos(photos.map((p, i) => i === index ? e.target.value : p))} placeholder="https://…" /></label>)}</div><button className="admin-secondary" disabled={busy} onClick={() => submit('intake', { photos })}>Save 4 intake photos</button></>}{booking.intakePhotos?.length === 4 && !booking.faults?.length && <><label>Faults found (one per line)<textarea value={faultText} onChange={(e) => setFaultText(e.target.value)} rows={4} /></label><button className="admin-secondary" disabled={busy} onClick={() => submit('faults', { faults: faultText.split('\n') })}>Create repair checklist</button></>}{booking.faults?.map((fault, index) => <Fault key={`${fault.text}-${index}`} fault={fault} disabled={busy} save={(data) => submit('fault', { index, ...data })} />)}{booking.faults?.length ? <button className="admin-gold" disabled={busy} onClick={() => submit('ready')}>Mark vehicle ready for approval</button> : null}</div>;
+}
+function Fault({ fault, disabled, save }: { fault: NonNullable<Booking['faults']>[number]; disabled: boolean; save: (data: object) => void }) { const [beforePhoto, setBefore] = useState(fault.beforePhoto || ''); const [afterPhoto, setAfter] = useState(fault.afterPhoto || ''); return <div className="admin-list-item"><strong>{fault.completed ? '✓ ' : ''}{fault.text}</strong><div className="admin-grid"><label>Before photo URL<input value={beforePhoto} onChange={(e) => setBefore(e.target.value)} /></label><label>After photo URL<input value={afterPhoto} onChange={(e) => setAfter(e.target.value)} /></label></div><button className="admin-secondary" disabled={disabled} onClick={() => save({ beforePhoto, afterPhoto })}>Save photos</button> <button className="admin-gold" disabled={disabled || !beforePhoto || !afterPhoto || fault.completed} onClick={() => save({ beforePhoto, afterPhoto, completed: true })}>Mark fixed</button></div>; }
+
+declare global { interface Window { Razorpay?: new (options: Record<string, unknown>) => { open: () => void } } }
