@@ -28,7 +28,7 @@ export async function GET(request: Request) {
   )
     return fail('state');
   try {
-    const origin = process.env.APP_URL || url.origin;
+    const origin = url.origin;
     const exchange = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
       body: new URLSearchParams({

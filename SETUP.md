@@ -18,7 +18,7 @@ EMAIL_FROM=Royal Mechanics <accounts@your-verified-domain.example>
 ADMIN_EMAIL=your-workshop-owner@example.com
 ```
 
-Register `${APP_URL}/api/auth/google/callback` as an authorized Google OAuth redirect URI. Google sign-in and reset email intentionally return an unavailable message until configured. Reset links expire after 30 minutes; password changes revoke existing sessions. Email/password signups always receive the CUSTOMER role. The configured owner email receives ADMIN access only after Google verifies its ownership.
+Register every live site URL followed by `/api/auth/google/callback` as an authorized Google OAuth redirect URI. For example, the current Vercel deployment needs `https://royal-mechanics-one.vercel.app/api/auth/google/callback`; local development needs `http://localhost:3000/api/auth/google/callback`. Google sign-in and reset email intentionally return an unavailable message until configured. Reset links expire after 30 minutes; password changes revoke existing sessions. Email/password signups always receive the CUSTOMER role. The configured owner email receives ADMIN access only after Google verifies its ownership.
 
 Alternatively, bootstrap the first administrator on your own database with the script below after creating its account. Additional accounts and roles can then be managed through Admin → Settings.
 

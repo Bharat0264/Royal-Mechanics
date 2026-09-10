@@ -6,7 +6,7 @@ export async function GET(request: Request) {
       new URL('/sign-in?error=google-unavailable', request.url),
     );
   const state = randomBytes(32).toString('hex');
-  const origin = process.env.APP_URL || new URL(request.url).origin;
+  const origin = new URL(request.url).origin;
   const url = new URL('https://accounts.google.com/o/oauth2/v2/auth');
   url.search = new URLSearchParams({
     client_id: process.env.GOOGLE_CLIENT_ID,
