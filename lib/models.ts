@@ -148,6 +148,7 @@ const invoiceSchema = new Schema(
     },
     razorpayOrderId: String,
     razorpayPaymentId: String,
+    paymentConfirmedAt: Date,
     deliveredAt: Date,
   },
   { timestamps: true },

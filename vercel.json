@@ -1,0 +1,3 @@
+{
+  "crons": [{ "path": "/api/maintenance/purge-paid-job-photos", "schedule": "0 * * * *" }]
+}
