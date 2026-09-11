@@ -13,6 +13,7 @@ export type Viewer = {
   email: string;
   displayName: string | null;
   role: 'ADMIN' | 'MECHANIC' | 'CUSTOMER';
+  mustChangePassword: boolean;
 };
 const derive = promisify(scrypt);
 export async function hashSession(value: string) {
@@ -76,10 +77,11 @@ export async function getViewer(): Promise<Viewer | null> {
     email: user.email,
     displayName: user.displayName ?? null,
     role: user.role,
+    mustChangePassword: user.mustChangePassword === true,
   };
 }
 export async function issueSession(
-  user: { _id: unknown; role: string },
+  user: { _id: unknown; role: string; mustChangePassword?: boolean },
   request: Request,
   remember = false,
   response?: NextResponse,
@@ -95,9 +97,23 @@ export async function issueSession(
     response ??
     NextResponse.json({
       ok: true,
-      redirect: user.role === 'ADMIN' ? '/admin' : '/dashboard',
+      redirect:
+        user.role === 'ADMIN'
+          ? '/admin'
+          : user.role === 'MECHANIC'
+            ? user.mustChangePassword
+              ? '/mechanic/set-password'
+              : '/mechanic'
+            : '/dashboard',
     });
   result.cookies.set(SESSION_COOKIE, raw, {
+    httpOnly: true,
+    secure: new URL(request.url).protocol === 'https:',
+    sameSite: 'lax',
+    path: '/',
+    ...(remember ? { expires: expiresAt } : {}),
+  });
+  result.cookies.set('royal_mechanics_role', String(user.role), {
     httpOnly: true,
     secure: new URL(request.url).protocol === 'https:',
     sameSite: 'lax',

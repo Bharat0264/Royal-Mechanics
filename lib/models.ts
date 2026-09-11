@@ -8,6 +8,7 @@ const userSchema = new Schema(
     passwordHash: { type: String, select: false },
     termsAcceptedAt: Date,
     specialties: { type: String, default: '' },
+    mustChangePassword: { type: Boolean, default: false },
     role: {
       type: String,
       enum: ['ADMIN', 'MECHANIC', 'CUSTOMER'],

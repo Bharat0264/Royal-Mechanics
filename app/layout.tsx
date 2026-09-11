@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import { PublicHeader } from './components/public-header';
 import { InternalFeedback } from './components/internal-feedback';
 
 export const metadata: Metadata = {
@@ -24,7 +23,6 @@ export default function RootLayout({
     <html lang="en" data-scroll-behavior="smooth">
       <body>
         <InternalFeedback />
-        <PublicHeader />
         {children}
         <script
           id="royal-mechanics-local-business"

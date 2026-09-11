@@ -10,7 +10,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "oxlint",
-    "format": "oxfmt"
+    "format": "oxfmt",
+    "cleanup:non-admin": "node scripts/cleanup-non-admin-data.mjs"
   },
   "dependencies": {
     "@base-ui/react": "1.7.0",

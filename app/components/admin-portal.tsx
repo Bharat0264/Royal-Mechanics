@@ -1,4 +1,7 @@
 'use client';
+import { triggerHaptic } from '@/lib/haptics';
+import { requestWithMinimum as fetch } from '@/lib/minimum-request';
+import { Loader, useMinimumBusy } from './loader';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -17,7 +20,6 @@ import {
   CircleDollarSign,
   Clock3,
   LayoutDashboard,
-  LoaderCircle,
   LogOut,
   Menu,
   Plus,
@@ -48,6 +50,8 @@ import {
   statusLabel,
 } from '@/lib/site-defaults';
 import './admin.css';
+import { GlassPanel } from './glass-panel';
+import { AdminSidebar } from './admin-sidebar';
 
 type Person = {
   _id: string;
@@ -74,7 +78,12 @@ type Booking = {
   estimateApproved?: boolean;
   inspectionPhotos?: string[];
   intakePhotos?: string[];
-  faults?: { text: string; beforePhoto?: string; afterPhoto?: string; completed?: boolean }[];
+  faults?: {
+    text: string;
+    beforePhoto?: string;
+    afterPhoto?: string;
+    completed?: boolean;
+  }[];
 };
 type Service = {
   _id?: string;
@@ -96,14 +105,24 @@ type Data = {
   users: Person[];
   services: Service[];
   reviews: Review[];
-  invoices: { _id: string; bookingId?: string; invoiceNumber?: string; vehicleName?: string; total: number; updatedAt: string; paymentStatus?: string; paymentMethod?: string; customerName?: string }[];
+  invoices: {
+    _id: string;
+    bookingId?: string;
+    invoiceNumber?: string;
+    vehicleName?: string;
+    total: number;
+    updatedAt: string;
+    paymentStatus?: string;
+    paymentMethod?: string;
+    customerName?: string;
+  }[];
   workshop: typeof defaultWorkshop;
   settings: typeof defaultSettings;
 };
 type Values = Record<string, string | number | boolean | string[]>;
 type Editor = { section: string; id?: string; title: string; values: Values };
 const nav = [
-  ['overview', 'Overview', LayoutDashboard],
+  ['overview', 'Dashboard', LayoutDashboard],
   ['bookings', 'Bookings', CalendarDays],
   ['customers', 'Customers', Users],
   ['staff', 'Mechanics', Wrench],
@@ -132,8 +151,8 @@ export function AdminPortal({
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useMinimumBusy(true);
+  const [busy, setBusy] = useMinimumBusy();
   const [collapsed, setCollapsed] = useState(false);
   const [mobile, setMobile] = useState(false);
   const [query, setQuery] = useState('');
@@ -152,6 +171,7 @@ export function AdminPortal({
       if (!res.ok) throw new Error(result.error);
       setData(result);
     } catch (e) {
+      triggerHaptic('error');
       setError(e instanceof Error ? e.message : 'Unable to load data.');
     } finally {
       setLoading(false);
@@ -181,16 +201,68 @@ export function AdminPortal({
     id?: string,
     action = 'save',
   ) {
+    triggerHaptic('medium');
     setBusy(true);
     setError('');
     try {
-      const response = await fetch(section === 'billing' ? '/api/bills' : '/api/admin', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(section === 'billing' ? { bookingId: values.bookingId, taxRate: Number(values.taxRate || 0), items: [{ name: values.serviceName, quantity: 1, unitPrice: Number(values.servicePrice || 0) }, ...(Number(values.partsPrice || 0) > 0 ? [{ name: 'Parts used', quantity: 1, unitPrice: Number(values.partsPrice) }] : []), ...(Number(values.laborPrice || 0) > 0 ? [{ name: 'Labour', quantity: 1, unitPrice: Number(values.laborPrice) }] : []), ...(Number(values.extraPrice || 0) > 0 ? [{ name: 'Extra charges', quantity: 1, unitPrice: Number(values.extraPrice) }] : [])] } : { section, id, action, data: values }),
-      });
+      const response = await fetch(
+        section === 'billing'
+          ? '/api/bills'
+          : section === 'createMechanic'
+            ? '/api/mechanics'
+            : '/api/admin',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(
+            section === 'billing'
+              ? {
+                  bookingId: values.bookingId,
+                  taxRate: Number(values.taxRate || 0),
+                  items: [
+                    {
+                      name: values.serviceName,
+                      quantity: 1,
+                      unitPrice: Number(values.servicePrice || 0),
+                    },
+                    ...(Number(values.partsPrice || 0) > 0
+                      ? [
+                          {
+                            name: 'Parts used',
+                            quantity: 1,
+                            unitPrice: Number(values.partsPrice),
+                          },
+                        ]
+                      : []),
+                    ...(Number(values.laborPrice || 0) > 0
+                      ? [
+                          {
+                            name: 'Labour',
+                            quantity: 1,
+                            unitPrice: Number(values.laborPrice),
+                          },
+                        ]
+                      : []),
+                    ...(Number(values.extraPrice || 0) > 0
+                      ? [
+                          {
+                            name: 'Extra charges',
+                            quantity: 1,
+                            unitPrice: Number(values.extraPrice),
+                          },
+                        ]
+                      : []),
+                  ],
+                }
+              : section === 'createMechanic'
+                ? values
+                : { section, id, action, data: values },
+          ),
+        },
+      );
       const result = await response.json();
       if (!response.ok) throw new Error(result.error);
+      triggerHaptic('success');
       setEditor(null);
       setNotice(
         action === 'delete'
@@ -200,6 +272,7 @@ export function AdminPortal({
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Unable to save.');
+      triggerHaptic('error');
     } finally {
       setBusy(false);
     }
@@ -300,6 +373,15 @@ export function AdminPortal({
     },
   );
   const pendingReviews = data?.reviews.filter((r) => !r.approved).length || 0;
+  const completedCounts = (mechanicId: string) => {
+    const completed = (data?.bookings || []).filter(
+      (booking) => booking.mechanicId === mechanicId && booking.status === 'COMPLETED',
+    );
+    const countSince = (days: number) => completed.filter(
+      (booking) => now - new Date(booking.createdAt).getTime() < days * 86400000,
+    ).length;
+    return { day: countSince(1), week: countSince(7), month: countSince(30), lifetime: completed.length };
+  };
   function bookingEditor(b: Booking) {
     setEditor({
       section: 'bookings',
@@ -340,7 +422,12 @@ export function AdminPortal({
               <th>Mechanic</th>
               <th>Status</th>
               <th>
-                <button onClick={() => setAscending(!ascending)}>
+                <button
+                  onClick={() => {
+                    triggerHaptic('light');
+                    return setAscending(!ascending);
+                  }}
+                >
                   Date <ArrowDownUp size={12} />
                 </button>
               </th>
@@ -355,7 +442,10 @@ export function AdminPortal({
                 <td>
                   <button
                     className="admin-record"
-                    onClick={() => bookingEditor(b)}
+                    onClick={() => {
+                      triggerHaptic('light');
+                      return bookingEditor(b);
+                    }}
                   >
                     {b.customerId?.displayName || 'Customer'}
                   </button>
@@ -382,7 +472,10 @@ export function AdminPortal({
                   <button
                     className="admin-icon"
                     aria-label={`View ${b.requestNumber}`}
-                    onClick={() => bookingEditor(b)}
+                    onClick={() => {
+                      triggerHaptic('light');
+                      return bookingEditor(b);
+                    }}
                   >
                     <ArrowRight size={15} />
                   </button>
@@ -400,7 +493,7 @@ export function AdminPortal({
     <div
       className={`admin-shell ${collapsed ? 'is-collapsed' : ''} ${mobile ? 'mobile-open' : ''}`}
     >
-      <aside className="admin-sidebar">
+      <AdminSidebar>
         <Link className="admin-brand" href="/admin">
           <Image
             src="/royal-mechanics-logo-alpha.png"
@@ -423,7 +516,13 @@ export function AdminPortal({
               title={label}
               className={section === id ? 'active' : ''}
               aria-current={section === id ? 'page' : undefined}
-              href={id === 'overview' ? '/admin' : `/admin/${id}`}
+              href={
+                id === 'overview'
+                  ? '/admin'
+                  : id === 'staff'
+                    ? '/admin/mechanics'
+                    : `/admin/${id}`
+              }
               onClick={() => setMobile(false)}
             >
               <Icon size={18} />
@@ -440,21 +539,25 @@ export function AdminPortal({
             <strong>The Royal standard.</strong>
             <p>Every detail. Every day.</p>
           </div>
-          <Link href="/">
-            <ArrowLeft size={16} />
-            <span>View public website</span>
-          </Link>
-          <button onClick={() => setCollapsed(!collapsed)}>
+          <button
+            onClick={() => {
+              triggerHaptic('light');
+              return setCollapsed(!collapsed);
+            }}
+          >
             <ChevronsLeft size={16} />
             <span>Collapse sidebar</span>
           </button>
         </div>
-      </aside>
+      </AdminSidebar>
       {mobile && (
         <button
           className="admin-backdrop"
           aria-label="Close navigation"
-          onClick={() => setMobile(false)}
+          onClick={() => {
+            triggerHaptic('light');
+            return setMobile(false);
+          }}
         />
       )}
       <div className="admin-workspace">
@@ -462,7 +565,10 @@ export function AdminPortal({
           <button
             className="admin-menu admin-icon"
             aria-label="Toggle navigation"
-            onClick={() => setMobile(!mobile)}
+            onClick={() => {
+              triggerHaptic('light');
+              return setMobile(!mobile);
+            }}
           >
             <Menu size={20} />
           </button>
@@ -507,6 +613,7 @@ export function AdminPortal({
                     <button
                       key={b._id}
                       onClick={() => {
+                        triggerHaptic('light');
                         bookingEditor(b);
                         setQuery('');
                       }}
@@ -538,6 +645,7 @@ export function AdminPortal({
                     <button
                       key={s.name}
                       onClick={() => {
+                        triggerHaptic('light');
                         setEditor({
                           section: 'services',
                           id: s._id,
@@ -556,7 +664,12 @@ export function AdminPortal({
                       <small>{money(s.price)}</small>
                     </button>
                   ))}
-                <button onClick={() => setQuery('')}>
+                <button
+                  onClick={() => {
+                    triggerHaptic('light');
+                    return setQuery('');
+                  }}
+                >
                   Clear search <X size={12} />
                 </button>
               </div>
@@ -567,7 +680,10 @@ export function AdminPortal({
               className="admin-icon notification-bell"
               aria-label="Notifications"
               aria-expanded={popover === 'notifications'}
-              onClick={() => setPopover(popover ? '' : 'notifications')}
+              onClick={() => {
+                triggerHaptic('light');
+                return setPopover(popover ? '' : 'notifications');
+              }}
             >
               <Bell size={18} />
               {pendingReviews > 0 && <i />}
@@ -594,7 +710,10 @@ export function AdminPortal({
           <div className="admin-popover-anchor">
             <button
               className="admin-profile"
-              onClick={() => setPopover(popover ? '' : 'profile')}
+              onClick={() => {
+                triggerHaptic('light');
+                return setPopover(popover ? '' : 'profile');
+              }}
               aria-expanded={popover === 'profile'}
             >
               <span className="admin-avatar">
@@ -610,7 +729,12 @@ export function AdminPortal({
               <div className="admin-popover">
                 <b>{viewer.email}</b>
                 <Link href="/admin/settings">Account settings</Link>
-                <button onClick={signout}>
+                <button
+                  onClick={() => {
+                    triggerHaptic('light');
+                    return signout();
+                  }}
+                >
                   <LogOut size={15} /> Sign out
                 </button>
               </div>
@@ -662,12 +786,19 @@ export function AdminPortal({
           {error && !editor && (
             <div className="admin-error" role="alert">
               {error}
-              <button onClick={() => void load()}>Try again</button>
+              <button
+                onClick={() => {
+                  triggerHaptic('light');
+                  return void load();
+                }}
+              >
+                Try again
+              </button>
             </div>
           )}
           {loading && !data ? (
             <div className="admin-loading">
-              <LoaderCircle className="spin" /> Loading your workshop…
+              <Loader size="skeleton" label="Loading workshop data" />
             </div>
           ) : (
             data && (
@@ -727,7 +858,7 @@ export function AdminPortal({
                       })}
                     </div>
                     <div className="admin-overview-grid">
-                      <section className="admin-widget admin-chart">
+                      <GlassPanel className="admin-widget admin-chart">
                         <div className="admin-widget-heading">
                           <div>
                             <h2>Momentum, measured.</h2>
@@ -836,8 +967,8 @@ export function AdminPortal({
                             </AreaChart>
                           </ResponsiveContainer>
                         </div>
-                      </section>
-                      <section className="admin-widget admin-activity">
+                      </GlassPanel>
+                      <GlassPanel className="admin-widget admin-activity">
                         <div className="admin-widget-heading">
                           <h2>Recent activity</h2>
                           <Activity size={17} />
@@ -856,9 +987,9 @@ export function AdminPortal({
                               </div>
                             ))
                           : empty('A fresh page')}
-                      </section>
+                      </GlassPanel>
                     </div>
-                    <section className="admin-widget">
+                    <GlassPanel className="admin-widget">
                       <div className="admin-widget-heading">
                         <div>
                           <h2>Recent bookings</h2>
@@ -869,16 +1000,35 @@ export function AdminPortal({
                         </Link>
                       </div>
                       {bookingTable(bookings.slice(0, 5))}
-                    </section>
+                    </GlassPanel>
                   </>
                 )}
                 {section === 'bookings' && (
-                  <section className="admin-widget">
+                  <GlassPanel className="admin-widget">
                     <div className="admin-toolbar">
                       <h2>
                         All bookings <span>{bookings.length}</span>
                       </h2>
-                      <button className="admin-gold" onClick={() => setEditor({ section: 'walkin', title: 'Create walk-in booking', values: { customerName: '', phone: '', email: '', vehicleName: '', serviceCategory: '', notes: '' } })}><Plus size={15} /> Create booking</button>
+                      <button
+                        className="admin-gold"
+                        onClick={() => {
+                          triggerHaptic('light');
+                          return setEditor({
+                            section: 'walkin',
+                            title: 'Create walk-in booking',
+                            values: {
+                              customerName: '',
+                              phone: '',
+                              email: '',
+                              vehicleName: '',
+                              serviceCategory: '',
+                              notes: '',
+                            },
+                          });
+                        }}
+                      >
+                        <Plus size={15} /> Create booking
+                      </button>
                       <select
                         aria-label="Filter booking status"
                         value={filter}
@@ -893,10 +1043,10 @@ export function AdminPortal({
                       </select>
                     </div>
                     {bookingTable(bookings)}
-                  </section>
+                  </GlassPanel>
                 )}
                 {section === 'customers' && (
-                  <section className="admin-widget">
+                  <GlassPanel className="admin-widget">
                     <div className="admin-widget-heading">
                       <h2>
                         Your customers <span>{customers.length}</span>
@@ -949,14 +1099,15 @@ export function AdminPortal({
                                   <td>
                                     <button
                                       className="admin-record"
-                                      onClick={() =>
-                                        setEditor({
+                                      onClick={() => {
+                                        triggerHaptic('light');
+                                        return setEditor({
                                           section: 'customer',
                                           id: p._id,
                                           title: p.displayName || 'Customer',
                                           values: {},
-                                        })
-                                      }
+                                        });
+                                      }}
                                     >
                                       View history
                                     </button>
@@ -970,7 +1121,7 @@ export function AdminPortal({
                     ) : (
                       empty('Your riders will appear here')
                     )}
-                  </section>
+                  </GlassPanel>
                 )}
                 {section === 'staff' && (
                   <>
@@ -981,78 +1132,29 @@ export function AdminPortal({
                       </p>
                       <button
                         className="admin-gold"
-                        onClick={() =>
-                          setEditor({
-                            section: 'staff',
+                        onClick={() => {
+                          triggerHaptic('light');
+                          return setEditor({
+                            section: 'createMechanic',
                             title: 'Add a mechanic',
                             values: {
-                              userId: '',
-                              displayName: '',
-                              specialties: '',
-                              isAllowed: true,
+                              name: '', email: '', phone: '', specialty: '',
                             },
-                          })
-                        }
+                          });
+                        }}
                       >
                         <Plus size={15} /> Add mechanic
                       </button>
                     </div>
-                    <div className="admin-staff-grid">
-                      {mechanics.map((p) => {
-                        const jobs = active.filter(
-                          (b) => b.mechanicId === p._id,
-                        );
-                        return (
-                          <article
-                            className="admin-widget admin-staff-card"
-                            key={p._id}
-                          >
-                            <span className="admin-avatar">
-                              {(p.displayName || p.email)
-                                .slice(0, 2)
-                                .toUpperCase()}
-                            </span>
-                            <h2>{p.displayName || 'Mechanic'}</h2>
-                            <p>{p.email}</p>
-                            <span className="admin-status">
-                              {p.isAllowed ? 'Active' : 'Disabled'}
-                            </span>
-                            <p>{p.specialties || 'General servicing'}</p>
-                            <div className="admin-workload">
-                              <span>Current workload</span>
-                              <b>{jobs.length} jobs</b>
-                            </div>
-                            {jobs.map((b) => (
-                              <small key={b._id}>
-                                {b.vehicleName} · {statusLabel(b.status)}
-                              </small>
-                            ))}
-                            <button
-                              className="admin-secondary"
-                              onClick={() =>
-                                setEditor({
-                                  section: 'staff',
-                                  id: p._id,
-                                  title: 'Mechanic profile',
-                                  values: {
-                                    displayName: p.displayName || '',
-                                    specialties: p.specialties || '',
-                                    isAllowed: p.isAllowed,
-                                  },
-                                })
-                              }
-                            >
-                              Edit profile <ArrowRight size={13} />
-                            </button>
-                          </article>
-                        );
-                      })}
-                    </div>
+                    <GlassPanel className="admin-widget"><div className="admin-table-wrap"><table>
+                      <thead><tr><th>Mechanic</th><th>Specialties</th><th>Active vehicles</th><th>Completed jobs</th><th>Access</th><th>Actions</th></tr></thead>
+                      <tbody>{mechanics.map(p=>{const counts=completedCounts(p._id);return <tr key={p._id}><td>{p.displayName || 'Mechanic'}<small>{p.email}</small></td><td>{p.specialties || 'General servicing'}</td><td>{active.filter(b=>b.mechanicId===p._id).map(b=><button key={b._id} className="admin-record" onClick={()=>{triggerHaptic('light');bookingEditor(b);}}>{b.vehicleName} · {statusLabel(b.status)}</button>)}</td><td><strong>{counts.lifetime}</strong><small>Today {counts.day} · Week {counts.week} · Month {counts.month} · Lifetime {counts.lifetime}</small></td><td>{p.isAllowed?'Enabled':'Disabled'}</td><td><button className="admin-secondary" onClick={()=>{triggerHaptic('light');setEditor({section:'staff',id:p._id,title:'Mechanic profile',values:{displayName:p.displayName||'',specialties:p.specialties||'',isAllowed:p.isAllowed}});}}>Edit profile</button></td></tr>})}</tbody>
+                    </table></div></GlassPanel>
                     {!mechanics.length && empty('Build your workshop team')}
                   </>
                 )}
                 {section === 'services' && (
-                  <section className="admin-widget">
+                  <GlassPanel className="admin-widget">
                     <div className="admin-widget-heading">
                       <div>
                         <h2>Service menu</h2>
@@ -1060,13 +1162,14 @@ export function AdminPortal({
                       </div>
                       <button
                         className="admin-gold"
-                        onClick={() =>
-                          setEditor({
+                        onClick={() => {
+                          triggerHaptic('light');
+                          return setEditor({
                             section: 'services',
                             title: 'Add service',
                             values: { name: '', description: '', price: 0 },
-                          })
-                        }
+                          });
+                        }}
                       >
                         <Plus size={14} /> Add service
                       </button>
@@ -1102,8 +1205,9 @@ export function AdminPortal({
                                 <td>
                                   <button
                                     className="admin-record"
-                                    onClick={() =>
-                                      setEditor({
+                                    onClick={() => {
+                                      triggerHaptic('light');
+                                      return setEditor({
                                         section: 'services',
                                         id: s._id,
                                         title: 'Edit service',
@@ -1113,8 +1217,8 @@ export function AdminPortal({
                                           originalName: s.name,
                                           price: s.price,
                                         },
-                                      })
-                                    }
+                                      });
+                                    }}
                                   >
                                     Edit <ArrowRight size={12} />
                                   </button>
@@ -1124,13 +1228,62 @@ export function AdminPortal({
                         </tbody>
                       </table>
                     </div>
-                  </section>
+                  </GlassPanel>
                 )}
                 {section === 'billing' && (
-                  <section className="admin-widget">
-                    <div className="admin-widget-heading"><div><h2>Billing control</h2><p>Issued bills, in-person collections, and customer payments.</p></div><CircleDollarSign size={18} /></div>
-                    {data.invoices.length ? <div className="admin-table-wrap"><table><thead><tr><th>Bill</th><th>Customer / vehicle</th><th>Amount</th><th>Payment</th><th>Updated</th></tr></thead><tbody>{data.invoices.map((bill) => <tr key={bill._id}><td>{bill.invoiceNumber || 'Royal Mechanics bill'}</td><td>{bill.customerName || 'Customer'}<small>{bill.vehicleName}</small></td><td>{money(bill.total)}</td><td><span className={`admin-status ${bill.paymentStatus === 'PAID' ? 'status-COMPLETED' : ''}`}>{bill.paymentStatus === 'PAID' ? `Paid${bill.paymentMethod ? ` · ${bill.paymentMethod}` : ''}` : 'Awaiting payment'}</span></td><td>{date(bill.updatedAt)}</td></tr>)}</tbody></table></div> : empty('No bills issued yet')}
-                  </section>
+                  <GlassPanel className="admin-widget">
+                    <div className="admin-widget-heading">
+                      <div>
+                        <h2>Billing control</h2>
+                        <p>
+                          Issued bills, in-person collections, and customer
+                          payments.
+                        </p>
+                      </div>
+                      <CircleDollarSign size={18} />
+                    </div>
+                    {data.invoices.length ? (
+                      <div className="admin-table-wrap">
+                        <table>
+                          <thead>
+                            <tr>
+                              <th>Bill</th>
+                              <th>Customer / vehicle</th>
+                              <th>Amount</th>
+                              <th>Payment</th>
+                              <th>Updated</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {data.invoices.map((bill) => (
+                              <tr key={bill._id}>
+                                <td>
+                                  {bill.invoiceNumber || 'Royal Mechanics bill'}
+                                </td>
+                                <td>
+                                  {bill.customerName || 'Customer'}
+                                  <small>{bill.vehicleName}</small>
+                                </td>
+                                <td>{money(bill.total)}</td>
+                                <td>
+                                  <span
+                                    className={`admin-status ${bill.paymentStatus === 'PAID' ? 'status-COMPLETED' : ''}`}
+                                  >
+                                    {bill.paymentStatus === 'PAID'
+                                      ? `Paid${bill.paymentMethod ? ` · ${bill.paymentMethod}` : ''}`
+                                      : 'Awaiting payment'}
+                                  </span>
+                                </td>
+                                <td>{date(bill.updatedAt)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      empty('No bills issued yet')
+                    )}
+                  </GlassPanel>
                 )}
                 {section === 'reviews' && (
                   <>
@@ -1146,57 +1299,12 @@ export function AdminPortal({
                         <option value="approved">Approved</option>
                       </select>
                     </div>
-                    <div className="admin-review-grid">
-                      {data.reviews
-                        .filter(
-                          (r) =>
-                            matches(r.name, r.text) &&
-                            (filter === 'all' ||
-                              (filter === 'approved'
-                                ? r.approved
-                                : !r.approved)),
-                        )
-                        .map((r) => (
-                          <article
-                            className="admin-widget admin-review"
-                            key={r._id}
-                          >
-                            <div className="admin-stars">
-                              {Array.from({ length: r.rating }, (_, i) => (
-                                <Star key={i} size={14} fill="currentColor" />
-                              ))}
-                            </div>
-                            <blockquote>{r.text}</blockquote>
-                            <b>{r.name}</b>
-                            <small>
-                              {r.vehicle} · {date(r.createdAt)}
-                            </small>
-                            <button
-                              disabled={busy}
-                              className={
-                                r.approved ? 'admin-secondary' : 'admin-gold'
-                              }
-                              onClick={() =>
-                                void save(
-                                  'reviews',
-                                  { approved: !r.approved },
-                                  r._id,
-                                )
-                              }
-                            >
-                              {r.approved
-                                ? 'Unpublish review'
-                                : 'Approve & publish'}{' '}
-                              <Check size={14} />
-                            </button>
-                          </article>
-                        ))}
-                    </div>
+                    <GlassPanel className="admin-widget"><div className="admin-table-wrap"><table><thead><tr><th>Customer</th><th>Vehicle</th><th>Rating</th><th>Review</th><th>Status</th><th>Action</th></tr></thead><tbody>{data.reviews.filter(r=>matches(r.name,r.text)&&(filter==='all'||(filter==='approved'?r.approved:!r.approved))).map(r=><tr key={r._id}><td>{r.name}</td><td>{r.vehicle}</td><td>{r.rating}/5</td><td style={{whiteSpace:'normal',minWidth:240}}>{r.text}</td><td>{r.approved?'Published':'Pending'}</td><td><button className="admin-secondary" disabled={busy} onClick={()=>{triggerHaptic('light');void save('reviews',{approved:!r.approved},r._id);}}>{r.approved?'Unpublish':'Approve'}</button></td></tr>)}</tbody></table></div></GlassPanel>
                     {!data.reviews.length && empty('No reviews to moderate')}
                   </>
                 )}
                 {section === 'workshop' && (
-                  <section className="admin-widget admin-content-editor">
+                  <GlassPanel className="admin-widget admin-content-editor">
                     <div className="admin-widget-heading">
                       <div>
                         <h2>The story of your workshop</h2>
@@ -1211,11 +1319,11 @@ export function AdminPortal({
                       busy={busy}
                       onSave={(v) => void save('workshop', v)}
                     />
-                  </section>
+                  </GlassPanel>
                 )}
                 {section === 'settings' && (
                   <>
-                    <section className="admin-widget admin-content-editor">
+                    <GlassPanel className="admin-widget admin-content-editor">
                       <div className="admin-widget-heading">
                         <h2>Business details</h2>
                       </div>
@@ -1225,8 +1333,8 @@ export function AdminPortal({
                         busy={busy}
                         onSave={(v) => void save('settings', v)}
                       />
-                    </section>
-                    <section className="admin-widget">
+                    </GlassPanel>
+                    <GlassPanel className="admin-widget">
                       <div className="admin-widget-heading">
                         <div>
                           <h2>Accounts & access</h2>
@@ -1261,8 +1369,9 @@ export function AdminPortal({
                                   <td>
                                     <button
                                       className="admin-record"
-                                      onClick={() =>
-                                        setEditor({
+                                      onClick={() => {
+                                        triggerHaptic('light');
+                                        return setEditor({
                                           section: 'accounts',
                                           id: p._id,
                                           title: 'Manage access',
@@ -1270,8 +1379,8 @@ export function AdminPortal({
                                             role: p.role,
                                             isAllowed: p.isAllowed,
                                           },
-                                        })
-                                      }
+                                        });
+                                      }}
                                     >
                                       Manage
                                     </button>
@@ -1281,7 +1390,7 @@ export function AdminPortal({
                           </tbody>
                         </table>
                       </div>
-                    </section>
+                    </GlassPanel>
                   </>
                 )}
               </>
@@ -1313,7 +1422,10 @@ export function AdminPortal({
               <button
                 className="admin-icon"
                 aria-label="Close details"
-                onClick={() => setEditor(null)}
+                onClick={() => {
+                  triggerHaptic('light');
+                  return setEditor(null);
+                }}
               >
                 <X size={20} />
               </button>
@@ -1347,13 +1459,94 @@ export function AdminPortal({
                 }
               />
             )}
-            {editor.section === 'bookings' && (() => { const bill = data?.invoices.find((entry) => entry.bookingId === editor.values.bookingId); const action = async (type: 'collect' | 'send') => { setBusy(true); const response = await fetch('/api/bills', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: type, invoiceId: bill?._id, paymentMethod: 'CASH' }) }); const result = await response.json(); setBusy(false); if (!response.ok) { setError(result.error); return; } setNotice(result.message); setEditor(null); await load(); }; return bill ? bill.paymentStatus === 'PAID' ? <button className="admin-gold" disabled={busy} onClick={() => void action('send')}>Send paid bill &amp; all job photos</button> : <button className="admin-gold" disabled={busy} onClick={() => { if (window.confirm(`Collect ₹${bill.total.toLocaleString('en-IN')} in cash and issue the paid bill?`)) void action('collect'); }}>Collect cash ₹{bill.total.toLocaleString('en-IN')}</button> : <button className="admin-gold" onClick={() => setEditor({ section: 'billing', title: 'Generate booking bill', values: { bookingId: String(editor.values.bookingId), serviceName: String(editor.values.serviceCategory), servicePrice: Number(editor.values.estimate || 0), partsPrice: 0, laborPrice: 0, extraPrice: 0, taxRate: 0 } })}>Generate bill</button>; })()}
+            {editor.section === 'bookings' &&
+              (() => {
+                const bill = data?.invoices.find(
+                  (entry) => entry.bookingId === editor.values.bookingId,
+                );
+                const action = async (type: 'collect' | 'send') => {
+                  setBusy(true);
+                  const response = await fetch('/api/bills', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      action: type,
+                      invoiceId: bill?._id,
+                      paymentMethod: 'CASH',
+                    }),
+                  });
+                  const result = await response.json();
+                  setBusy(false);
+                  if (!response.ok) {
+                    triggerHaptic('error');
+                    setError(result.error);
+                    return;
+                  }
+                  triggerHaptic('success');
+                  setNotice(result.message);
+                  setEditor(null);
+                  await load();
+                };
+                return bill ? (
+                  bill.paymentStatus === 'PAID' ? (
+                    <button
+                      className="admin-gold"
+                      disabled={busy}
+                      onClick={() => {
+                        triggerHaptic('light');
+                        return void action('send');
+                      }}
+                    >
+                      Send paid bill &amp; all job photos
+                    </button>
+                  ) : (
+                    <button
+                      className="admin-gold"
+                      disabled={busy}
+                      onClick={() => {
+                        triggerHaptic('light');
+                        if (
+                          window.confirm(
+                            `Collect ₹${bill.total.toLocaleString('en-IN')} in cash and issue the paid bill?`,
+                          )
+                        )
+                          void action('collect');
+                      }}
+                    >
+                      Collect cash ₹{bill.total.toLocaleString('en-IN')}
+                    </button>
+                  )
+                ) : (
+                  <button
+                    className="admin-gold"
+                    onClick={() => {
+                      triggerHaptic('light');
+                      return setEditor({
+                        section: 'billing',
+                        title: 'Generate booking bill',
+                        values: {
+                          bookingId: String(editor.values.bookingId),
+                          serviceName: String(editor.values.serviceCategory),
+                          servicePrice: Number(editor.values.estimate || 0),
+                          partsPrice: 0,
+                          laborPrice: 0,
+                          extraPrice: 0,
+                          taxRate: 0,
+                        },
+                      });
+                    }}
+                  >
+                    Generate bill
+                  </button>
+                );
+              })()}
             {editor.section === 'services' &&
               (editor.id || editor.values.originalName) && (
                 <button
                   disabled={busy}
                   className="admin-delete"
                   onClick={() => {
+                    triggerHaptic('light');
                     if (
                       window.confirm(
                         'Remove this service from the public menu?',
@@ -1391,7 +1584,12 @@ function ManagementForm({
   users?: Person[];
 }) {
   const [v, setV] = useState<Values>(initial);
-  const input = (key: string, label: string, type = 'text', required = ['name', 'title', 'email'].includes(key)) => (
+  const input = (
+    key: string,
+    label: string,
+    type = 'text',
+    required = ['name', 'title', 'email'].includes(key),
+  ) => (
     <label key={key}>
       {label}
       <input
@@ -1483,7 +1681,8 @@ function ManagementForm({
                   .filter((u) => u.role === 'MECHANIC' && u.isAllowed)
                   .map((u) => (
                     <option key={u._id} value={u._id}>
-                      {u.displayName || 'Mechanic'} — {u.email}{u.phone ? ` · ${u.phone}` : ''}
+                      {u.displayName || 'Mechanic'} — {u.email}
+                      {u.phone ? ` · ${u.phone}` : ''}
                     </option>
                   ))}
               </select>
@@ -1564,6 +1763,15 @@ function ManagementForm({
             {checkbox('isAllowed', 'Account enabled')}
           </>
         )}
+        {section === 'createMechanic' && (
+          <>
+            {input('name', 'Mechanic name')}
+            {input('email', 'Email address', 'email')}
+            {input('phone', 'Phone number', 'tel')}
+            {textarea('specialty', 'Specialty')}
+            <p className="admin-muted">A secure temporary password is emailed immediately. The mechanic must change it at first sign-in.</p>
+          </>
+        )}
         {section === 'accounts' && (
           <>
             <label>
@@ -1604,12 +1812,12 @@ function ManagementForm({
             )}
           </>
         )}
-        <button className="admin-gold" type="submit">
-          {busy ? (
-            <LoaderCircle size={15} className="spin" />
-          ) : (
-            <Check size={15} />
-          )}{' '}
+        <button
+          className="admin-gold"
+          type="submit"
+          onClick={() => triggerHaptic('light')}
+        >
+          {busy ? <Loader size="button" /> : <Check size={15} />}{' '}
           {busy ? 'Saving…' : 'Save changes'}
         </button>
       </fieldset>

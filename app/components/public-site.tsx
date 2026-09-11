@@ -1,4 +1,7 @@
 'use client';
+import { triggerHaptic } from '@/lib/haptics';
+import { requestWithMinimum as fetch } from '@/lib/minimum-request';
+import { Loader, useMinimumBusy } from './loader';
 
 import Link from 'next/link';
 import Image from 'next/image';
@@ -46,6 +49,7 @@ function useServices() {
   );
 }
 function useSite() {
+  const [loading, setLoading] = useMinimumBusy(true);
   const [site, setSite] = useState({
     workshop: defaultWorkshop,
     settings: defaultSettings,
@@ -64,12 +68,15 @@ function useSite() {
       .then((d) => {
         if (active) setSite(d);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => {
+        if (active) setLoading(false);
+      });
     return () => {
       active = false;
     };
   }, []);
-  return site;
+  return { ...site, loading };
 }
 
 export function PublicFooter() {
@@ -303,7 +310,7 @@ export function WorkshopPage() {
 }
 
 export function ReviewsPage() {
-  const { reviews } = useSite();
+  const { reviews, loading } = useSite();
   return (
     <>
       <main className="public-main">
@@ -313,7 +320,9 @@ export function ReviewsPage() {
           text="Real riders. Real results."
         />
         <section className="review-grid">
-          {reviews.length ? (
+          {loading ? (
+            <Loader size="skeleton" label="Loading reviews" />
+          ) : reviews.length ? (
             reviews.map((r) => (
               <article className="glass-card review-card" key={r._id}>
                 <span
@@ -385,7 +394,12 @@ export function ContactPage() {
           <div className="faq-list">
             {faqs.map(([q, a], index) => (
               <article className={open === index ? 'open' : ''} key={q}>
-                <button onClick={() => setOpen(open === index ? null : index)}>
+                <button
+                  onClick={() => {
+                    triggerHaptic('light');
+                    return setOpen(open === index ? null : index);
+                  }}
+                >
                   {q}
                   <ChevronDown />
                 </button>
@@ -395,16 +409,40 @@ export function ContactPage() {
           </div>
           <form
             className="contact-card glass-card"
-            onSubmit={(e) => e.preventDefault()}
+            onSubmit={(e) => {
+              e.preventDefault();
+              triggerHaptic('medium');
+              const form = new FormData(e.currentTarget);
+              const text = `Hello Royal Mechanics, I am ${form.get('name')}. Contact: ${form.get('phone')}. ${form.get('message')}`;
+              window.location.assign(
+                `https://wa.me/919182372075?text=${encodeURIComponent(text)}`,
+              );
+            }}
           >
             <h2>Start a conversation.</h2>
-            <input placeholder="Your name" aria-label="Your name" />
-            <input placeholder="Phone number" aria-label="Phone number" />
+            <input
+              name="name"
+              required
+              placeholder="Your name"
+              aria-label="Your name"
+            />
+            <input
+              name="phone"
+              required
+              type="tel"
+              placeholder="Phone number"
+              aria-label="Phone number"
+            />
             <textarea
               placeholder="How can we help?"
+              name="message"
+              required
               aria-label="How can we help?"
             />
-            <button className="gloss-button">
+            <button
+              className="gloss-button"
+              onClick={() => triggerHaptic('light')}
+            >
               Send enquiry <ArrowRight size={15} />
             </button>
           </form>
@@ -466,33 +504,45 @@ export function ContactPage() {
 export function BookingPage() {
   const services = useServices();
   const [submitted, setSubmitted] = useState(false);
+  const [busy, setBusy] = useMinimumBusy();
   const [status, setStatus] = useState('');
   const submit = async (event: React.SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
+    triggerHaptic('medium');
     setStatus('');
     const form = new FormData(event.currentTarget);
-    const response = await fetch('/api/service-requests', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        vehicleName: form.get('vehicleName'),
-        phone: form.get('phone'),
-        serviceCategory: form.get('serviceCategory'),
-        serviceMode: form.get('serviceMode'),
-        preferredSlot: form.get('preferredSlot'),
-        notes: form.get('notes'),
-      }),
-    });
-    if (response.ok) {
-      setSubmitted(true);
-      return;
+    setBusy(true);
+    try {
+      const response = await fetch('/api/service-requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          vehicleName: form.get('vehicleName'),
+          phone: form.get('phone'),
+          serviceCategory: form.get('serviceCategory'),
+          serviceMode: form.get('serviceMode'),
+          preferredSlot: form.get('preferredSlot'),
+          notes: form.get('notes'),
+        }),
+      });
+      if (response.ok) {
+        triggerHaptic('success');
+        setSubmitted(true);
+        return;
+      }
+      triggerHaptic('error');
+      const result = await response.json().catch(() => ({}));
+      setStatus(
+        typeof result.error === 'string'
+          ? result.error
+          : 'We could not submit your request. Please try again.',
+      );
+    } catch {
+      triggerHaptic('error');
+      setStatus('Unable to connect. Please try again.');
+    } finally {
+      setBusy(false);
     }
-    const result = await response.json().catch(() => ({}));
-    setStatus(
-      typeof result.error === 'string'
-        ? result.error
-        : 'We could not submit your request. Please try again.',
-    );
   };
   return (
     <>
@@ -542,7 +592,8 @@ export function BookingPage() {
               </p>
             </div>
           </div>
-          <form className="booking-form" onSubmit={submit}>
+          <form className="booking-form" onSubmit={submit} aria-busy={busy}>
+            {busy && <Loader size="button" />}
             <div className="form-heading">
               <p className="kicker">BOOK A SERVICE</p>
               <h2>Your booking details.</h2>
@@ -602,8 +653,14 @@ export function BookingPage() {
                 />
               </label>
             </div>
-            <button className="gloss-button" type="submit">
-              Request service <ArrowRight size={16} />
+            <button
+              className="gloss-button"
+              type="submit"
+              disabled={busy}
+              onClick={() => triggerHaptic('light')}
+            >
+              Request service{' '}
+              {busy ? <Loader size="button" /> : <ArrowRight size={16} />}
             </button>
             {submitted && (
               <output className="form-success">

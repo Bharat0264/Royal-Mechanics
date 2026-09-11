@@ -24,5 +24,6 @@ export async function POST(request: Request) {
     path: '/',
     maxAge: 0,
   });
+  response.cookies.set('royal_mechanics_role', '', { path: '/', maxAge: 0 });
   return response;
 }

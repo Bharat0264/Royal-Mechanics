@@ -1,0 +1,75 @@
+.rm-loader {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #d8b46f;
+  vertical-align: middle;
+}
+.rm-loader svg {
+  width: 24px;
+  height: 26px;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.crest-outline,
+.crest-detail {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: crest-assemble 1.5s ease-in-out infinite;
+}
+.crest-detail {
+  animation-delay: 0.18s;
+}
+.rm-loader-full {
+  display: flex;
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  flex-direction: column;
+  gap: 20px;
+  background: #0d1011;
+  font: 10px Arial;
+  letter-spacing: 0.2em;
+}
+.rm-loader-full svg {
+  width: 90px;
+  height: 100px;
+}
+.rm-loader-skeleton {
+  display: block;
+  min-height: 120px;
+  width: 100%;
+  border-radius: 8px;
+  background: linear-gradient(110deg, #181c1e 25%, #bfa46522 45%, #181c1e 65%);
+  background-size: 250% 100%;
+  animation: gold-skeleton 1.6s ease-in-out infinite;
+}
+@keyframes crest-assemble {
+  0% {
+    stroke-dashoffset: 100;
+    opacity: 0.5;
+  }
+  65%,
+  85% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: -100;
+    opacity: 0.5;
+  }
+}
+@keyframes gold-skeleton {
+  to {
+    background-position: -160% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rm-loader *,
+  .rm-loader-skeleton {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}

@@ -3,40 +3,125 @@ import { getViewer, sameOrigin } from '@/lib/auth';
 import { connectMongo } from '@/lib/mongodb';
 import { ServiceRequest } from '@/lib/models';
 
-const reply = (body: unknown, status = 200) => NextResponse.json(body, { status });
-const image = (value: unknown) => typeof value === 'string' && (/^https?:\/\//i.test(value.trim()) || /^data:image\/(?:jpeg|png|webp);base64,/i.test(value.trim())) && value.length < 2_000_000 ? value.trim() : '';
+const reply = (body: unknown, status = 200) =>
+  NextResponse.json(body, { status });
+const image = (value: unknown) =>
+  typeof value === 'string' &&
+  (/^https?:\/\//i.test(value.trim()) ||
+    /^data:image\/(?:jpeg|png|webp);base64,/i.test(value.trim())) &&
+  value.length < 2_000_000
+    ? value.trim()
+    : '';
 
-export async function PATCH(request: Request, context: RouteContext<'/api/jobs/[id]'>) {
-  if (!sameOrigin(request)) return reply({ error: 'Invalid request origin.' }, 403);
+export async function PATCH(
+  request: Request,
+  context: RouteContext<'/api/jobs/[id]'>,
+) {
+  if (!sameOrigin(request))
+    return reply({ error: 'Invalid request origin.' }, 403);
   const viewer = await getViewer();
-  if (!viewer || !['ADMIN', 'MECHANIC'].includes(viewer.role)) return reply({ error: 'Mechanic or admin access required.' }, 403);
+  if (!viewer || !['ADMIN', 'MECHANIC'].includes(viewer.role))
+    return reply({ error: 'Mechanic or admin access required.' }, 403);
   const { id } = await context.params;
   const body = await request.json().catch(() => ({}));
   await connectMongo();
   const booking = await ServiceRequest.findById(id);
   if (!booking) return reply({ error: 'Job not found.' }, 404);
-  if (viewer.role === 'MECHANIC' && String(booking.mechanicId) !== viewer.id) return reply({ error: 'This job is not assigned to you.' }, 403);
+  if (viewer.role === 'MECHANIC' && String(booking.mechanicId) !== viewer.id)
+    return reply({ error: 'This job is not assigned to you.' }, 403);
+  if (['COMPLETED', 'CANCELLED', 'QUALITY_CHECK'].includes(booking.status))
+    return reply({ error: 'This job is closed for mechanic changes.' }, 409);
+  if (body.action !== 'intake' && booking.intakePhotos.length !== 4)
+    return reply({ error: 'Save all four intake photos first.' }, 400);
   if (body.action === 'intake') {
-    const photos = Array.isArray(body.photos) ? body.photos.map(image).filter(Boolean) : [];
-    if (photos.length !== 4) return reply({ error: 'Attach exactly four intake photos: front, back, left and right.' }, 400);
-    booking.intakePhotos = photos; booking.status = 'IN_PROGRESS';
+    const photos = Array.isArray(body.photos)
+      ? body.photos.map(image).filter(Boolean)
+      : [];
+    if (photos.length !== 4)
+      return reply(
+        {
+          error:
+            'Attach exactly four intake photos: front, back, left and right.',
+        },
+        400,
+      );
+    booking.intakePhotos = photos;
+    booking.status = 'IN_PROGRESS';
+  } else if (body.action === 'addFault') {
+    const text = typeof body.text === 'string' ? body.text.trim() : '';
+    if (!text || text.length > 300 || booking.faults.length >= 30)
+      return reply(
+        { error: 'Enter one fault, up to 300 characters (30 faults maximum).' },
+        400,
+      );
+    booking.faults.push({
+      text,
+      beforePhoto: '',
+      afterPhoto: '',
+      completed: false,
+    });
   } else if (body.action === 'faults') {
-    const faults = Array.isArray(body.faults) ? body.faults.map((text: unknown) => String(text).trim()).filter(Boolean).slice(0, 30) : [];
+    if (booking.faults.length)
+      return reply(
+        { error: 'Add faults individually to preserve existing evidence.' },
+        409,
+      );
+    const faults = Array.isArray(body.faults)
+      ? body.faults
+          .map((text: unknown) => String(text).trim())
+          .filter(Boolean)
+          .slice(0, 30)
+      : [];
     if (!faults.length) return reply({ error: 'Add at least one fault.' }, 400);
-    booking.faults = faults.map((text: string) => ({ text, beforePhoto: '', afterPhoto: '', completed: false }));
+    booking.faults = faults.map((text: string) => ({
+      text,
+      beforePhoto: '',
+      afterPhoto: '',
+      completed: false,
+    }));
   } else if (body.action === 'fault') {
     const index = Number(body.index);
-    if (!Number.isInteger(index) || !booking.faults[index]) return reply({ error: 'Fault not found.' }, 404);
+    if (!Number.isInteger(index) || !booking.faults[index])
+      return reply({ error: 'Fault not found.' }, 404);
     const fault = booking.faults[index];
-    if (body.beforePhoto !== undefined) fault.beforePhoto = image(body.beforePhoto);
-    if (body.afterPhoto !== undefined) fault.afterPhoto = image(body.afterPhoto);
+    if (body.beforePhoto !== undefined)
+      fault.beforePhoto = image(body.beforePhoto);
+    if (body.afterPhoto !== undefined)
+      fault.afterPhoto = image(body.afterPhoto);
     if (body.completed) {
-      if (!fault.beforePhoto || !fault.afterPhoto) return reply({ error: 'Attach both before and after photos before completing a fault.' }, 400);
+      if (!fault.beforePhoto || !fault.afterPhoto)
+        return reply(
+          {
+            error:
+              'Attach both before and after photos before completing a fault.',
+          },
+          400,
+        );
       fault.completed = true;
     }
+    if (body.completed === false || !fault.beforePhoto || !fault.afterPhoto)
+      fault.completed = false;
   } else if (body.action === 'ready') {
-    if (booking.intakePhotos.length !== 4 || !booking.faults.length || booking.faults.some((fault: { completed: boolean; beforePhoto: string; afterPhoto: string }) => !fault.completed || !fault.beforePhoto || !fault.afterPhoto)) return reply({ error: 'Complete all intake and fault evidence before marking the vehicle ready.' }, 400);
-    booking.status = 'QUALITY_CHECK'; booking.readyAt = new Date();
+    if (
+      booking.intakePhotos.length !== 4 ||
+      !booking.faults.length ||
+      booking.faults.some(
+        (fault: {
+          completed: boolean;
+          beforePhoto: string;
+          afterPhoto: string;
+        }) => !fault.completed || !fault.beforePhoto || !fault.afterPhoto,
+      )
+    )
+      return reply(
+        {
+          error:
+            'Complete all intake and fault evidence before marking the vehicle ready.',
+        },
+        400,
+      );
+    booking.status = 'QUALITY_CHECK';
+    booking.readyAt = new Date();
   } else return reply({ error: 'Unknown job action.' }, 400);
   await booking.save();
   return reply({ ok: true, booking: JSON.parse(JSON.stringify(booking)) });

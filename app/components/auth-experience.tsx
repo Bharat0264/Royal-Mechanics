@@ -1,4 +1,7 @@
 'use client';
+import { triggerHaptic } from '@/lib/haptics';
+import { requestWithMinimum as fetch } from '@/lib/minimum-request';
+import { Loader, useMinimumBusy } from './loader';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
@@ -10,7 +13,6 @@ import {
   CheckCircle2,
   Eye,
   EyeOff,
-  LoaderCircle,
   LockKeyhole,
   Mail,
   ShieldCheck,
@@ -31,7 +33,7 @@ export function AuthExperience({
   const router = useRouter();
   const [mode, setMode] = useState<Mode>(initialMode);
   const [visible, setVisible] = useState(false);
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useMinimumBusy();
   const [error, setError] = useState(initialError);
   const [fields, setFields] = useState({
     name: '',
@@ -81,6 +83,7 @@ export function AuthExperience({
   ].filter(Boolean).length;
   async function submit(event: React.SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
+    triggerHaptic('medium');
     const keys =
       mode === 'forgot'
         ? ['email']
@@ -90,7 +93,10 @@ export function AuthExperience({
             ? ['name', 'email', 'phone', 'password', 'terms']
             : ['email', 'password'];
     setTouched(Object.fromEntries(keys.map((k) => [k, true])));
-    if (keys.some((k) => errors[k])) return;
+    if (keys.some((k) => errors[k])) {
+      triggerHaptic('error');
+      return;
+    }
     setBusy(true);
     setError('');
     try {
@@ -110,6 +116,7 @@ export function AuthExperience({
         throw new Error(
           data.error || 'Something went wrong. Please try again.',
         );
+      triggerHaptic('success');
       if (mode === 'forgot') changeMode('sent');
       else if (mode === 'reset') changeMode('done');
       else {
@@ -117,6 +124,7 @@ export function AuthExperience({
         router.refresh();
       }
     } catch (e) {
+      triggerHaptic('error');
       setError(
         e instanceof Error ? e.message : 'Unable to connect. Please try again.',
       );
@@ -165,7 +173,10 @@ export function AuthExperience({
               type="button"
               aria-label={visible ? 'Hide password' : 'Show password'}
               aria-pressed={visible}
-              onClick={() => setVisible(!visible)}
+              onClick={() => {
+                triggerHaptic('light');
+                return setVisible(!visible);
+              }}
             >
               {visible ? <EyeOff size={17} /> : <Eye size={17} />}
             </button>
@@ -247,7 +258,10 @@ export function AuthExperience({
                 type="button"
                 role="tab"
                 aria-selected={!signup}
-                onClick={() => changeMode('login')}
+                onClick={() => {
+                  triggerHaptic('light');
+                  return changeMode('login');
+                }}
               >
                 Sign in
               </button>
@@ -255,7 +269,10 @@ export function AuthExperience({
                 type="button"
                 role="tab"
                 aria-selected={signup}
-                onClick={() => changeMode('signup')}
+                onClick={() => {
+                  triggerHaptic('light');
+                  return changeMode('signup');
+                }}
               >
                 Create account
               </button>
@@ -302,9 +319,10 @@ export function AuthExperience({
                 <button
                   type="button"
                   className="auth-google"
-                  onClick={() =>
-                    window.location.assign('/api/auth/google/start')
-                  }
+                  onClick={() => {
+                    triggerHaptic('light');
+                    return window.location.assign('/api/auth/google/start');
+                  }}
                 >
                   <svg
                     viewBox="0 0 24 24"
@@ -386,7 +404,10 @@ export function AuthExperience({
                       </label>
                       <button
                         type="button"
-                        onClick={() => changeMode('forgot')}
+                        onClick={() => {
+                          triggerHaptic('light');
+                          return changeMode('forgot');
+                        }}
                       >
                         Forgot password?
                       </button>
@@ -422,7 +443,11 @@ export function AuthExperience({
                       {error}
                     </p>
                   )}
-                  <button className="auth-submit" type="submit">
+                  <button
+                    className="auth-submit"
+                    type="submit"
+                    onClick={() => triggerHaptic('light')}
+                  >
                     <span>
                       {busy
                         ? 'One moment…'
@@ -434,11 +459,7 @@ export function AuthExperience({
                               ? 'Update password'
                               : 'Sign in to your account'}
                     </span>
-                    {busy ? (
-                      <LoaderCircle size={18} className="spin" />
-                    ) : (
-                      <ArrowRight size={18} />
-                    )}
+                    {busy ? <Loader size="button" /> : <ArrowRight size={18} />}
                   </button>
                 </fieldset>
               </form>
@@ -451,14 +472,20 @@ export function AuthExperience({
                 )}
                 <button
                   className="auth-submit"
-                  onClick={() => changeMode('login')}
+                  onClick={() => {
+                    triggerHaptic('light');
+                    return changeMode('login');
+                  }}
                 >
                   Back to sign in <ArrowRight size={18} />
                 </button>
                 {mode === 'sent' && (
                   <button
                     className="auth-text-button"
-                    onClick={() => changeMode('forgot')}
+                    onClick={() => {
+                      triggerHaptic('light');
+                      return changeMode('forgot');
+                    }}
                   >
                     Try another email or resend
                   </button>
@@ -468,7 +495,10 @@ export function AuthExperience({
             {(mode === 'forgot' || mode === 'reset') && (
               <button
                 className="auth-text-button"
-                onClick={() => changeMode('login')}
+                onClick={() => {
+                  triggerHaptic('light');
+                  return changeMode('login');
+                }}
               >
                 <ArrowLeft size={13} /> Back to sign in
               </button>

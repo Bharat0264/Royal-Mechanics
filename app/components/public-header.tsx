@@ -1,4 +1,5 @@
 'use client';
+import { triggerHaptic } from '@/lib/haptics';
 
 import Image from 'next/image';
 import Link from 'next/link';
@@ -166,8 +167,8 @@ export function PublicHeader() {
       : accountRole === 'MECHANIC'
         ? '/mechanic'
         : accountRole
-        ? '/dashboard'
-        : '/sign-in';
+          ? '/dashboard'
+          : '/sign-in';
   const accountLabel =
     accountRole === 'ADMIN'
       ? 'Admin portal'
@@ -280,7 +281,10 @@ export function PublicHeader() {
           aria-label={open ? 'Close menu' : 'Open menu'}
           aria-expanded={open}
           aria-controls="public-mobile-menu"
-          onClick={() => setOpen(!open)}
+          onClick={() => {
+            triggerHaptic('light');
+            return setOpen(!open);
+          }}
         >
           {open ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
         </button>

@@ -75,7 +75,16 @@ export async function GET(request: Request) {
       await user.save();
     }
     const result = NextResponse.redirect(
-      new URL(user.role === 'ADMIN' ? '/admin' : '/dashboard', request.url),
+      new URL(
+        user.role === 'ADMIN'
+          ? '/admin'
+          : user.role === 'MECHANIC'
+            ? user.mustChangePassword
+              ? '/mechanic/set-password'
+              : '/mechanic'
+            : '/dashboard',
+        request.url,
+      ),
     );
     result.cookies.set('rm_oauth_state', '', {
       path: '/api/auth/google',
