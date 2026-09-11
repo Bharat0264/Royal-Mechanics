@@ -96,7 +96,7 @@ type Data = {
   users: Person[];
   services: Service[];
   reviews: Review[];
-  invoices: { _id: string; bookingId?: string; total: number; updatedAt: string; paymentStatus?: string; customerName?: string }[];
+  invoices: { _id: string; bookingId?: string; invoiceNumber?: string; vehicleName?: string; total: number; updatedAt: string; paymentStatus?: string; paymentMethod?: string; customerName?: string }[];
   workshop: typeof defaultWorkshop;
   settings: typeof defaultSettings;
 };
@@ -109,6 +109,7 @@ const nav = [
   ['staff', 'Mechanics', Wrench],
   ['services', 'Services & pricing', SlidersHorizontal],
   ['reviews', 'Reviews', Star],
+  ['billing', 'Billing', CircleDollarSign],
   ['workshop', 'Workshop & content', Bike],
   ['settings', 'Settings', Settings],
 ] as const;
@@ -1123,6 +1124,12 @@ export function AdminPortal({
                         </tbody>
                       </table>
                     </div>
+                  </section>
+                )}
+                {section === 'billing' && (
+                  <section className="admin-widget">
+                    <div className="admin-widget-heading"><div><h2>Billing control</h2><p>Issued bills, in-person collections, and customer payments.</p></div><CircleDollarSign size={18} /></div>
+                    {data.invoices.length ? <div className="admin-table-wrap"><table><thead><tr><th>Bill</th><th>Customer / vehicle</th><th>Amount</th><th>Payment</th><th>Updated</th></tr></thead><tbody>{data.invoices.map((bill) => <tr key={bill._id}><td>{bill.invoiceNumber || 'Royal Mechanics bill'}</td><td>{bill.customerName || 'Customer'}<small>{bill.vehicleName}</small></td><td>{money(bill.total)}</td><td><span className={`admin-status ${bill.paymentStatus === 'PAID' ? 'status-COMPLETED' : ''}`}>{bill.paymentStatus === 'PAID' ? `Paid${bill.paymentMethod ? ` · ${bill.paymentMethod}` : ''}` : 'Awaiting payment'}</span></td><td>{date(bill.updatedAt)}</td></tr>)}</tbody></table></div> : empty('No bills issued yet')}
                   </section>
                 )}
                 {section === 'reviews' && (

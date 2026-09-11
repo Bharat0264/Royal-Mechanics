@@ -10,14 +10,13 @@ export default async function Page() {
   const viewer = await getViewer();
   if (!viewer) redirect('/sign-in');
   if (viewer.role === 'ADMIN') redirect('/admin');
+  if (viewer.role === 'MECHANIC') redirect('/mechanic');
   const bookings = await ServiceRequest.find(
-    viewer.role === 'MECHANIC'
-      ? { mechanicId: viewer.id }
-      : { customerId: viewer.id },
+    { customerId: viewer.id },
   )
     .sort({ createdAt: -1 })
     .lean();
-  const invoices = viewer.role === 'MECHANIC' ? [] : await Invoice.find({ customerId: viewer.id }).sort({ createdAt: -1 }).lean();
+  const invoices = await Invoice.find({ customerId: viewer.id }).sort({ createdAt: -1 }).lean();
   return (
     <CustomerDashboard
       viewer={viewer}

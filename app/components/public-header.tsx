@@ -163,7 +163,9 @@ export function PublicHeader() {
   const accountHref =
     accountRole === 'ADMIN'
       ? '/admin'
-      : accountRole
+      : accountRole === 'MECHANIC'
+        ? '/mechanic'
+        : accountRole
         ? '/dashboard'
         : '/sign-in';
   const accountLabel =

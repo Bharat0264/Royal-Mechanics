@@ -348,6 +348,7 @@
 .admin-widget {
   border: 1px solid #c7ab7618;
   border-radius: 12px;
+  position:relative;
   background: linear-gradient(135deg, #ffffff05, #ffffff01);
   background-color: #141818;
   box-shadow:
@@ -356,6 +357,7 @@
   min-width: 0;
   overflow: hidden;
 }
+.admin-widget:before{content:'';position:absolute;inset:-120% -35%;pointer-events:none;background:linear-gradient(110deg,transparent 42%,#d8b46a08 50%,transparent 58%);animation:liquid-sheen 13s linear infinite}.admin-widget>*{position:relative}.admin-shell :is(.admin-gold,.admin-secondary,.admin-icon){overflow:hidden}.admin-shell :is(.admin-gold,.admin-secondary,.admin-icon):active:after{content:'';position:absolute;width:140px;height:140px;border-radius:50%;background:#f4d58e55;animation:liquid-ripple .55s ease-out;pointer-events:none}@keyframes liquid-sheen{to{transform:translate(45%,45%)}}@keyframes liquid-ripple{from{transform:scale(.05);opacity:.8}to{transform:scale(1);opacity:0}}
 .admin-kpi {
   padding: 18px;
 }
