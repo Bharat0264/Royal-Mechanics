@@ -61,6 +61,7 @@ import {
 } from '@/lib/site-defaults';
 import './admin.css';
 import { GlassPanel } from './glass-panel';
+import { GlassButton } from './glass-button';
 import { AdminSidebar } from './admin-sidebar';
 
 type Person = {
@@ -177,7 +178,7 @@ function GaugeKpi({
     '--needle-opacity': safeProgress > 0 ? '1' : '0',
   } as CSSProperties;
   return (
-    <article className={`admin-widget admin-kpi ${alert ? 'is-alert' : ''}`}>
+    <GlassPanel className={`admin-widget admin-kpi ${alert ? 'is-alert' : ''}`}>
       <span className="admin-kpi-label">{label}</span>
       <div className="admin-gauge" style={style}>
         <svg viewBox="0 0 100 100" aria-hidden="true">
@@ -196,7 +197,7 @@ function GaugeKpi({
         <strong>{value}</strong>
         <small>{caption}</small>
       </div>
-    </article>
+    </GlassPanel>
   );
 }
 export function AdminPortal({
@@ -1024,7 +1025,7 @@ export function AdminPortal({
                               ['week', 'Week'],
                               ['month', 'Month'],
                             ].map(([id, name]) => (
-                              <button
+                              <GlassButton
                                 key={id}
                                 type="button"
                                 role="tab"
@@ -1036,7 +1037,7 @@ export function AdminPortal({
                                 }}
                               >
                                 {name}
-                              </button>
+                              </GlassButton>
                             ))}
                           </div>
                         </div>
