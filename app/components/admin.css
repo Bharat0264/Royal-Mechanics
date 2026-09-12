@@ -1696,16 +1696,16 @@ details[open] > .customer-expandable-summary::after { transform:rotate(225deg); 
 .booking-gauge g > line { stroke:#4d504d; stroke-width:2; transition:stroke .35s ease; }
 .booking-gauge g.is-reached > line { stroke:#f0bd59; }
 .booking-gauge text { fill:#7f877e; font:700 5px Arial,sans-serif; letter-spacing:.03em; }
-.booking-gauge-needle { transform:rotate(var(--needle-turn)); transform-origin:100px 105px; transition:transform 1.15s cubic-bezier(.16,1,.3,1); }
-.booking-gauge-needle line { stroke:#ffe3a1; stroke-width:3; stroke-linecap:round; filter:drop-shadow(0 0 4px #f2ae3b); }
-.booking-gauge-needle circle { fill:#f2b94f; stroke:#fff0bf; stroke-width:2; }
+.booking-gauge-needle { stroke:#f5c65f; stroke-width:2.6; stroke-linecap:round; filter:drop-shadow(0 0 4px #e8b84b88); }
+.booking-gauge-hub { stroke:#ffe7a5; stroke-width:1.35; filter:drop-shadow(0 0 5px #e8b84b80); }
+.booking-gauge-position-dot { fill:#f4bf49; stroke:#fff2bc; stroke-width:2; filter:drop-shadow(0 0 6px #e8b84bcc); }
 .booking-gauge figcaption { display:grid; gap:2px; margin-top:-4px; }
 .booking-gauge figcaption span { color:#f8d894; font-size:12px; font-weight:800; }
 .booking-gauge figcaption small { color:#7e877d; font-size:9px; letter-spacing:.08em; text-transform:uppercase; }
 .booking-gauge-compact { width:112px; margin:0; }
 .booking-gauge-compact .booking-gauge-track,.booking-gauge-compact .booking-gauge-fill { stroke-width:10; }
 .booking-gauge.is-advancing .booking-gauge-fill { animation:booking-gauge-wash 1.15s ease-out; }
-.booking-gauge.is-advancing .booking-gauge-needle circle { animation:booking-gauge-tick 1.15s ease-out; }
+.booking-gauge.is-advancing .booking-gauge-position-dot { animation:booking-gauge-tick 1.15s ease-out; }
 @keyframes booking-gauge-wash { 45% { filter:drop-shadow(0 0 13px #ffe3a1); stroke:#fff0be; } }
 @keyframes booking-gauge-tick { 40% { filter:drop-shadow(0 0 12px #ffe3a1); transform:scale(1.45); } }
 @media (max-width:700px) { .booking-detail-card { grid-template-columns:1fr; padding:17px; gap:14px; } .booking-card-details { grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px 10px; } .booking-card-status { grid-template-columns:auto 1fr; justify-items:start; border-top:1px solid #ffffff10; border-left:0; padding:12px 0 0; } .booking-gauge-compact { width:125px; justify-self:end; } .customer-progress-details .booking-gauge { width:100%; padding-inline:14px; } .booking-gauge text { font-size:4.4px; } }
