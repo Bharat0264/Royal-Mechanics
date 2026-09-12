@@ -226,7 +226,7 @@ export function CustomerDashboard({
     }
   }
   return (
-    <div className="admin-shell">
+    <div className="admin-shell customer-garage-shell">
       <main className="admin-main" style={{ width: '100%', maxWidth: 1100 }}>
         <div className="admin-title-row">
           <Link href="/">
@@ -297,10 +297,10 @@ export function CustomerDashboard({
                 <tbody>
                   {liveBookings.map((b) => (
                     <tr key={b._id}>
-                      <td>{b.requestNumber}</td>
-                      <td>{b.vehicleName}</td>
-                      <td>{b.serviceCategory}</td>
-                      <td>
+                      <td data-label="Booking">{b.requestNumber}</td>
+                      <td data-label="Vehicle">{b.vehicleName}</td>
+                      <td data-label="Service">{b.serviceCategory}</td>
+                      <td data-label="Status">
                         <span className={`admin-status status-${b.status}`}>
                           {statusLabel(b.status)}
                         </span>
@@ -310,7 +310,7 @@ export function CustomerDashboard({
                           transitionKey={transitions[b._id]}
                         />
                       </td>
-                      <td>
+                      <td data-label="Estimate">
                         {b.estimate
                           ? `₹${b.estimate.toLocaleString('en-IN')}`
                           : 'Not yet estimated'}

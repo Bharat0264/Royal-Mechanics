@@ -922,13 +922,23 @@ button {
     width: 280px;
   }
   .trust-strip {
-    justify-content: flex-start;
-    gap: 26px;
-    overflow: auto;
-    padding: 18px 24px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    justify-content: stretch;
+    gap: 7px;
+    overflow: hidden;
+    padding: 16px 13px;
   }
   .trust-strip span {
-    white-space: nowrap;
+    justify-content: center;
+    gap: 5px;
+    min-width: 0;
+    white-space: normal;
+    font-size: 9px;
+    text-align: center;
+  }
+  .trust-strip b {
+    font-size: 12px;
   }
   .teaser-grid,
   .service-full-grid,
