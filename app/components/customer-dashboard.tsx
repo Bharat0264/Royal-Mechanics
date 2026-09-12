@@ -340,7 +340,10 @@ export function CustomerDashboard({
               const invoice = invoices.find((item) => item.bookingId === booking._id);
               return (
                 <details className="admin-list-item" key={`progress-${booking._id}`}>
-                  <summary>{booking.vehicleName} — {bookingStageLabel(booking)}</summary>
+                  <summary className="customer-expandable-summary">
+                    <span className="customer-row-primary">{booking.vehicleName}</span>
+                    <span className={`admin-status status-${booking.status}`}>{bookingStageLabel(booking)}</span>
+                  </summary>
                   <BookingStatusTracker
                     booking={booking}
                     transitionKey={transitions[booking._id]}
@@ -383,8 +386,9 @@ export function CustomerDashboard({
                     key={`evidence-${b._id}`}
                     className="admin-list-item"
                   >
-                    <summary>
-                      {b.vehicleName} — photos and repair checklist
+                    <summary className="customer-expandable-summary">
+                      <span className="customer-row-primary">{b.vehicleName}</span>
+                      <span className="customer-row-meta">Photos &amp; repair checklist</span>
                     </summary>
                     <div className="admin-photo-grid">
                       {b.intakePhotos?.map((src, i) => (
@@ -443,10 +447,13 @@ export function CustomerDashboard({
             {invoices.length ? (
               invoices.map((invoice) => (
                 <details key={invoice._id} className="admin-list-item">
-                  <summary>
-                    {invoice.invoiceNumber} · {invoice.vehicleName} · ₹
-                    {invoice.total.toLocaleString('en-IN')} ·{' '}
-                    {invoice.paymentStatus}
+                  <summary className="customer-expandable-summary customer-bill-summary">
+                    <span className="customer-row-primary">{invoice.invoiceNumber}</span>
+                    <span className="customer-row-meta">{invoice.vehicleName}</span>
+                    <span className="customer-row-amount">₹{invoice.total.toLocaleString('en-IN')}</span>
+                    <span className={`admin-status ${invoice.paymentStatus === 'PAID' ? 'status-COMPLETED' : 'status-AWAITING_APPROVAL'}`}>
+                      {invoice.paymentStatus === 'PAID' ? 'Paid' : 'Pending'}
+                    </span>
                   </summary>
                   <div className="admin-muted">
                     {invoice.items.map((item) => (
