@@ -1688,14 +1688,14 @@ details[open] > .customer-expandable-summary::after { transform:rotate(225deg); 
 .fault-status svg { width:14px; height:14px; flex:0 0 auto; color:#e8b84b; }
 .booking-card-status { display:grid; justify-items:center; align-content:center; gap:8px; border-left:1px solid #ffffff10; padding-left:18px; }
 .booking-card-legacy-estimate { display:none; }
-.booking-gauge { width:min(100%,390px); margin:8px auto 0; color:#7c837c; text-align:center; }
+.booking-gauge { width:min(100%,390px); margin:8px auto 0; padding-inline:8px; color:#7c837c; text-align:center; }
 .booking-gauge svg { display:block; width:100%; overflow:visible; }
 .booking-gauge-track,.booking-gauge-fill { fill:none; stroke-linecap:round; stroke-width:8; }
 .booking-gauge-track { stroke:#ffffff13; }
 .booking-gauge-fill { stroke:#e8b84b; stroke-dasharray:1; stroke-dashoffset:calc(1 - var(--gauge-progress)); filter:drop-shadow(0 0 6px #e8b84b99); transition:stroke-dashoffset 1.15s cubic-bezier(.16,1,.3,1); }
 .booking-gauge g > line { stroke:#4d504d; stroke-width:2; transition:stroke .35s ease; }
 .booking-gauge g.is-reached > line { stroke:#f0bd59; }
-.booking-gauge text { fill:#7f877e; font:700 5px Arial,sans-serif; text-anchor:middle; letter-spacing:.03em; }
+.booking-gauge text { fill:#7f877e; font:700 5px Arial,sans-serif; letter-spacing:.03em; }
 .booking-gauge-needle { transform:rotate(var(--needle-turn)); transform-origin:100px 105px; transition:transform 1.15s cubic-bezier(.16,1,.3,1); }
 .booking-gauge-needle line { stroke:#ffe3a1; stroke-width:3; stroke-linecap:round; filter:drop-shadow(0 0 4px #f2ae3b); }
 .booking-gauge-needle circle { fill:#f2b94f; stroke:#fff0bf; stroke-width:2; }
@@ -1708,7 +1708,7 @@ details[open] > .customer-expandable-summary::after { transform:rotate(225deg); 
 .booking-gauge.is-advancing .booking-gauge-needle circle { animation:booking-gauge-tick 1.15s ease-out; }
 @keyframes booking-gauge-wash { 45% { filter:drop-shadow(0 0 13px #ffe3a1); stroke:#fff0be; } }
 @keyframes booking-gauge-tick { 40% { filter:drop-shadow(0 0 12px #ffe3a1); transform:scale(1.45); } }
-@media (max-width:700px) { .booking-detail-card { grid-template-columns:1fr; padding:17px; gap:14px; } .booking-card-details { grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px 10px; } .booking-card-status { grid-template-columns:auto 1fr; justify-items:start; border-top:1px solid #ffffff10; border-left:0; padding:12px 0 0; } .booking-gauge-compact { width:125px; justify-self:end; } .customer-progress-details .booking-gauge { width:100%; } }
+@media (max-width:700px) { .booking-detail-card { grid-template-columns:1fr; padding:17px; gap:14px; } .booking-card-details { grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px 10px; } .booking-card-status { grid-template-columns:auto 1fr; justify-items:start; border-top:1px solid #ffffff10; border-left:0; padding:12px 0 0; } .booking-gauge-compact { width:125px; justify-self:end; } .customer-progress-details .booking-gauge { width:100%; padding-inline:14px; } .booking-gauge text { font-size:4.4px; } }
 @media (max-width:700px) { .customer-expandable-summary { grid-template-columns:minmax(0,1fr) auto; gap:6px 12px; padding-right:38px; } .customer-expandable-summary .customer-row-meta { grid-column:1; } .customer-expandable-summary .customer-row-amount { grid-column:1; } .customer-expandable-summary .admin-status { grid-column:2; grid-row:1; } }
 @keyframes speedometer-sweep { to { transform:rotate(70deg); } }
 @media (max-width: 1200px) { .admin-kpi { min-height:214px; } }

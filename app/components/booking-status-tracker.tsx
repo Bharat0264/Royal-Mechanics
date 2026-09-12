@@ -33,7 +33,7 @@ export function BookingStatusTracker({ booking, compact = false, transitionKey =
   const progress = current / (stages.length - 1);
   return (
     <figure className={`booking-gauge ${compact ? 'booking-gauge-compact' : ''} ${transitionKey ? 'is-advancing' : ''}`} aria-label={`Service status: ${bookingStageLabel(booking)}.`}>
-      <svg viewBox="0 0 200 132" aria-hidden="true">
+      <svg viewBox="-28 0 256 132" aria-hidden="true">
         <defs>
           <path id={arcId} d="M 16 105 A 84 84 0 0 1 184 105" pathLength="1" />
         </defs>
@@ -43,12 +43,14 @@ export function BookingStatusTracker({ booking, compact = false, transitionKey =
           const tick = point(index, 84), outer = point(index, 92), text = point(index, 110);
           return <g className={index <= current ? 'is-reached' : ''} key={label}>
             <line x1={tick.x} y1={tick.y} x2={outer.x} y2={outer.y} />
-            {!compact && <text x={text.x} y={text.y}>{label}</text>}
+            {!compact && <text x={text.x} y={text.y} textAnchor={index === 0 ? 'start' : index === stages.length - 1 ? 'end' : 'middle'}>{label}</text>}
           </g>;
         })}
-        <g className="booking-gauge-needle" style={{ '--needle-turn': `${turn}deg` } as React.CSSProperties}>
-          <line x1="100" y1="105" x2="100" y2="21" /><circle cx="100" cy="21" r="4" />
-        </g>
+        {current < stages.length - 1 && (
+          <g className="booking-gauge-needle" style={{ '--needle-turn': `${turn}deg` } as React.CSSProperties}>
+            <line x1="100" y1="105" x2="100" y2="21" /><circle cx="100" cy="21" r="4" />
+          </g>
+        )}
       </svg>
       {!compact && <figcaption><span>{bookingStageLabel(booking)}</span><small>Live booking status</small></figcaption>}
     </figure>

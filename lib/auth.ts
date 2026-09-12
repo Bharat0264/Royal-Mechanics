@@ -103,7 +103,9 @@ export async function issueSession(
   response?: NextResponse,
 ) {
   const raw = randomBytes(32).toString('hex');
-  const expiresAt = new Date(Date.now() + (remember ? 30 : 1) * 86400000);
+  // Persist across browser restarts: 7 days normally, 30 days when requested.
+  const maxAge = (remember ? 30 : 7) * 86400;
+  const expiresAt = new Date(Date.now() + maxAge * 1000);
   await Session.create({
     tokenHash: await hashSession(raw),
     userId: user._id,
@@ -120,14 +122,16 @@ export async function issueSession(
     secure: new URL(request.url).protocol === 'https:',
     sameSite: 'lax',
     path: '/',
-    ...(remember ? { expires: expiresAt } : {}),
+    maxAge,
+    expires: expiresAt,
   });
   result.cookies.set('royal_mechanics_role', String(user.role), {
     httpOnly: true,
     secure: new URL(request.url).protocol === 'https:',
     sameSite: 'lax',
     path: '/',
-    ...(remember ? { expires: expiresAt } : {}),
+    maxAge,
+    expires: expiresAt,
   });
   result.cookies.set(GUEST_COOKIE, '', { httpOnly: true, path: '/', maxAge: 0 });
   return result;
