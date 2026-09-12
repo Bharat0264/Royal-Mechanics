@@ -1710,78 +1710,6 @@ details[open] > .customer-expandable-summary::after { transform:rotate(225deg); 
 @keyframes booking-gauge-tick { 40% { filter:drop-shadow(0 0 12px #ffe3a1); transform:scale(1.45); } }
 @media (max-width:700px) { .booking-detail-card { grid-template-columns:1fr; padding:17px; gap:14px; } .booking-card-details { grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px 10px; } .booking-card-status { grid-template-columns:auto 1fr; justify-items:start; border-top:1px solid #ffffff10; border-left:0; padding:12px 0 0; } .booking-gauge-compact { width:125px; justify-self:end; } .customer-progress-details .booking-gauge { width:100%; padding-inline:14px; } .booking-gauge text { font-size:4.4px; } }
 @media (max-width:700px) { .customer-expandable-summary { grid-template-columns:minmax(0,1fr) auto; gap:6px 12px; padding-right:38px; } .customer-expandable-summary .customer-row-meta { grid-column:1; } .customer-expandable-summary .customer-row-amount { grid-column:1; } .customer-expandable-summary .admin-status { grid-column:2; grid-row:1; } }
-
-/* Liquid Glass material system — shared by GlassPanel, GlassButton, and all portal surfaces. */
-.admin-shell {
-  --glass-tint: rgb(196 213 230 / 9%);
-  --glass-edge: rgb(237 246 255 / 25%);
-  --glass-shadow: rgb(0 0 0 / 42%);
-  background:
-    radial-gradient(900px 540px at -5% -5%, rgb(125 161 185 / 18%), transparent 60%),
-    radial-gradient(800px 460px at 100% 18%, rgb(106 127 160 / 13%), transparent 63%),
-    linear-gradient(145deg, #090b10, #11151d 55%, #08090d);
-}
-.admin-shell :is(.glass-panel, .admin-widget, .admin-sidebar, .admin-topbar, .admin-dialog-content) {
-  position:relative;
-  overflow:hidden;
-  border:1px solid rgb(227 240 255 / 17%);
-  border-top-color:rgb(244 249 255 / 34%);
-  border-left-color:rgb(235 245 255 / 25%);
-  border-right-color:rgb(8 13 20 / 42%);
-  border-bottom-color:rgb(4 8 13 / 58%);
-  border-radius:24px;
-  background:
-    linear-gradient(145deg, rgb(230 240 252 / 13%), rgb(169 190 214 / 6%) 45%, rgb(255 255 255 / 3%)),
-    var(--glass-tint);
-  box-shadow:
-    inset 1px 1px 0 rgb(255 255 255 / 19%),
-    inset -1px -1px 0 rgb(0 0 0 / 22%),
-    0 20px 48px var(--glass-shadow);
-  backdrop-filter:blur(28px) saturate(130%);
-  -webkit-backdrop-filter:blur(28px) saturate(130%);
-}
-.admin-shell :is(.glass-panel, .admin-widget, .admin-sidebar, .admin-topbar, .admin-dialog-content)::before {
-  content:'';
-  position:absolute;
-  z-index:0;
-  inset:0;
-  pointer-events:none;
-  background:
-    radial-gradient(125% 50% at 18% -12%, rgb(255 255 255 / 31%), transparent 58%),
-    linear-gradient(105deg, transparent 12%, rgb(255 255 255 / 10%) 35%, transparent 58%);
-  opacity:.78;
-}
-.admin-shell :is(.glass-panel, .admin-widget, .admin-sidebar, .admin-topbar, .admin-dialog-content) > * { position:relative; z-index:1; }
-.admin-shell .admin-sidebar { border-radius:0 24px 24px 0; background-color:rgb(135 156 181 / 8%); }
-.admin-shell .admin-topbar { border-radius:0; border-inline:0; border-top:0; background-color:rgb(130 152 178 / 8%); }
-.admin-shell .admin-widget:hover { transform:translateY(-2px); border-top-color:rgb(255 255 255 / 45%); box-shadow:inset 1px 1px 0 rgb(255 255 255 / 25%),inset -1px -1px 0 rgb(0 0 0 / 25%),0 27px 62px rgb(0 0 0 / 48%); filter:none; }
-.admin-shell :is(.admin-gold, .admin-secondary, .glass-button, .admin-period-tabs, .admin-status, .admin-sidebar nav a) {
-  position:relative;
-  overflow:hidden;
-  border:1px solid rgb(239 247 255 / 18%);
-  border-top-color:rgb(255 255 255 / 30%);
-  border-radius:999px;
-  background:linear-gradient(145deg, rgb(255 255 255 / 15%), rgb(156 183 207 / 6%));
-  box-shadow:inset 0 1px 0 rgb(255 255 255 / 19%),0 8px 20px rgb(0 0 0 / 20%);
-  backdrop-filter:blur(18px) saturate(125%);
-  -webkit-backdrop-filter:blur(18px) saturate(125%);
-}
-.admin-shell :is(.admin-gold, .glass-button.is-active, .admin-period-tabs button.is-active) { color:#21160c; border-color:#ffd47d99; background:linear-gradient(135deg, rgb(255 222 142 / 92%), rgb(229 159 67 / 90%)); box-shadow:inset 0 1px #fff9,0 8px 24px #e7a23b42; }
-.admin-shell .glass-button { padding:7px 11px; color:#dfe8ee; font:700 9px Arial,sans-serif; }
-.admin-shell .admin-period-tabs { padding:3px; gap:3px; }
-.admin-shell .admin-period-tabs button { border:0; padding:7px 11px; border-radius:999px; background:transparent; color:#bdc8cf; box-shadow:none; }
-.admin-shell :is(.admin-gold, .admin-secondary, .glass-button, .admin-period-tabs button)::after {
-  content:'';
-  position:absolute;
-  inset:-120% -35%;
-  pointer-events:none;
-  background:linear-gradient(110deg,transparent 42%,rgb(255 255 255 / 35%) 50%,transparent 58%);
-  transform:translateX(-65%);
-  transition:transform .55s var(--ease-liquid);
-}
-.admin-shell :is(.admin-gold, .admin-secondary, .glass-button, .admin-period-tabs button):hover::after { transform:translateX(65%); }
-.admin-shell :is(.admin-gold, .admin-secondary, .glass-button, .admin-period-tabs button):active { transform:translateY(1px); filter:brightness(1.12); }
-.admin-shell :is(.admin-form input, .admin-form select, .admin-form textarea, .admin-global-search) { border-radius:16px; border-color:rgb(235 245 255 / 16%); background:rgb(206 221 238 / 7%); box-shadow:inset 0 1px 0 rgb(255 255 255 / 13%),inset 0 -1px 0 rgb(0 0 0 / 20%); backdrop-filter:blur(16px); }
 @keyframes speedometer-sweep { to { transform:rotate(70deg); } }
 @media (max-width: 1200px) { .admin-kpi { min-height:214px; } }
 @media (max-width: 850px) {
@@ -2013,4 +1941,137 @@ details[open] > .customer-expandable-summary::after { transform:rotate(225deg); 
   -webkit-box-shadow: 0 0 0 1000px rgb(3 6 9 / 82%) inset, 0 0 0 1px #d9a85a55;
   caret-color: #e7ece6;
   transition: background-color 9999s ease-out 0s;
+}
+
+/* Admin material reset: one clean, dark liquid-glass system.  This deliberately
+   comes after the older experimental chrome rules so every dashboard surface
+   shares the same material instead of accumulating competing gradients. */
+.admin-shell,
+.admin-shell.lights-on {
+  --admin-gold: #e8b84b;
+  --admin-glass: rgb(210 224 240 / 7%);
+  --admin-glass-edge: rgb(240 247 255 / 16%);
+  --admin-glass-shadow: rgb(0 0 0 / 44%);
+  background:
+    radial-gradient(900px 560px at 100% -10%, rgb(117 139 169 / 12%), transparent 64%),
+    radial-gradient(760px 500px at -10% 100%, rgb(73 91 113 / 9%), transparent 68%),
+    #090b0f;
+  color: #edf0f3;
+}
+
+/* The workspace is the page canvas, not another floating card. */
+.admin-workspace {
+  width: calc(100% - 116px);
+  max-width: none;
+  margin-left: 116px;
+}
+.admin-main { width: 100%; max-width: none; margin: 0; padding: 34px 32px 32px; }
+.admin-topbar,
+.admin-shell:not(.lights-on) .admin-topbar,
+.admin-shell.lights-on .admin-topbar {
+  top: 0;
+  width: 100%;
+  margin: 0;
+  border: 0;
+  border-bottom: 1px solid rgb(255 255 255 / 8%);
+  border-radius: 0;
+  background: rgb(12 15 20 / 74%);
+  box-shadow: none;
+  backdrop-filter: blur(22px) saturate(120%);
+  -webkit-backdrop-filter: blur(22px) saturate(120%);
+}
+
+/* Shared panel material: translucent charcoal, a lit upper edge, and diffuse depth. */
+.admin-shell :is(.admin-widget, .internal-admin .glass-panel, .admin-dialog-content) {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid var(--admin-glass-edge);
+  border-top-color: rgb(255 255 255 / 25%);
+  border-left-color: rgb(255 255 255 / 19%);
+  border-right-color: rgb(255 255 255 / 9%);
+  border-bottom-color: rgb(0 0 0 / 38%);
+  border-radius: 22px;
+  background: linear-gradient(160deg, rgb(224 235 248 / 11%), rgb(169 187 210 / 5%) 42%, rgb(10 14 20 / 21%));
+  box-shadow: inset 1px 1px 0 rgb(255 255 255 / 9%), inset -1px -1px 0 rgb(0 0 0 / 16%), 0 18px 46px var(--admin-glass-shadow);
+  backdrop-filter: blur(24px) saturate(120%);
+  -webkit-backdrop-filter: blur(24px) saturate(120%);
+}
+.admin-shell :is(.admin-widget, .internal-admin .glass-panel, .admin-dialog-content)::before {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  pointer-events: none;
+  transform: none;
+  animation: none;
+  background: radial-gradient(115% 54% at 38% -14%, rgb(255 255 255 / 21%), transparent 58%);
+}
+.admin-shell :is(.admin-widget, .internal-admin .glass-panel, .admin-dialog-content) > * {
+  position: relative;
+  z-index: 1;
+}
+.admin-shell .admin-widget:hover {
+  transform: translateY(-2px);
+  filter: none;
+  border-top-color: rgb(255 255 255 / 34%);
+  box-shadow: inset 1px 1px 0 rgb(255 255 255 / 12%), inset -1px -1px 0 rgb(0 0 0 / 18%), 0 24px 56px rgb(0 0 0 / 48%);
+}
+.admin-shell .admin-chart::after { display: none; }
+
+/* Navigation stays quiet until the active destination earns the gold accent. */
+.admin-shell .admin-sidebar,
+.admin-shell.lights-on .admin-sidebar {
+  background: rgb(14 17 23 / 74%);
+  border-color: rgb(255 255 255 / 11%);
+  border-left-color: rgb(255 255 255 / 18%);
+  box-shadow: inset 1px 1px 0 rgb(255 255 255 / 7%), 0 18px 46px rgb(0 0 0 / 34%);
+  backdrop-filter: blur(24px) saturate(120%);
+  -webkit-backdrop-filter: blur(24px) saturate(120%);
+}
+.admin-shell .admin-sidebar nav a,
+.admin-shell.lights-on .admin-sidebar nav a { color: #a8b0bb; }
+.admin-shell .admin-sidebar nav a:hover,
+.admin-shell.lights-on .admin-sidebar nav a:hover {
+  color: #edf0f3;
+  border-color: rgb(255 255 255 / 14%);
+  background: rgb(255 255 255 / 7%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 10%), 0 7px 17px rgb(0 0 0 / 16%);
+}
+.admin-shell .admin-sidebar nav a.active,
+.admin-shell.lights-on .admin-sidebar nav a.active {
+  color: var(--admin-gold);
+  border-color: rgb(232 184 75 / 52%);
+  background: rgb(232 184 75 / 14%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 16%), 0 0 0 5px rgb(232 184 75 / 7%), 0 9px 22px rgb(232 184 75 / 18%);
+}
+
+/* Gold is the sole data accent, including every KPI ring and both chart series. */
+.admin-shell .admin-gauge-value { stroke: var(--admin-gold); }
+.admin-shell .admin-gauge-hub { color: var(--admin-gold); }
+.admin-shell .admin-kpi.is-alert .admin-gauge::after { border-color: rgb(232 184 75 / 70%); }
+.admin-shell .admin-kpi.is-alert .admin-kpi-copy strong { color: #ffe0a0; }
+.admin-shell .admin-chart-legend i,
+.admin-shell .admin-chart-legend span:last-child i { background: var(--admin-gold); }
+.admin-shell .admin-chart-legend span:last-child i { opacity: .58; }
+.admin-shell .admin-activity-item:hover { background: rgb(232 184 75 / 8%); }
+.admin-shell .admin-activity-item > span { color: var(--admin-gold); border-color: rgb(232 184 75 / 26%); background: rgb(232 184 75 / 10%); }
+.admin-shell .admin-status { color: #f3cb73; border-color: rgb(232 184 75 / 30%); background: rgb(232 184 75 / 10%); }
+
+/* Glass controls use the same crisp material, with gold reserved for active state. */
+.admin-shell :is(.glass-button, .admin-secondary, .admin-icon, .admin-period-tabs, .admin-global-search, .admin-date) {
+  border-color: rgb(255 255 255 / 14%);
+  background: rgb(221 233 247 / 7%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 11%), 0 8px 20px rgb(0 0 0 / 18%);
+  backdrop-filter: blur(16px) saturate(120%);
+  -webkit-backdrop-filter: blur(16px) saturate(120%);
+}
+.admin-shell .glass-button { position: relative; overflow: hidden; border: 0; border-radius: 999px; padding: 7px 11px; color: #bdc6d0; font: 700 9px Arial, sans-serif; }
+.admin-shell .admin-period-tabs { border: 1px solid rgb(255 255 255 / 14%); }
+.admin-shell .admin-period-tabs .glass-button.is-active { color: #261b08; background: linear-gradient(135deg, #f7cf75, #dca63d); box-shadow: inset 0 1px rgb(255 255 255 / 76%), 0 5px 13px rgb(232 184 75 / 28%); }
+
+@media (max-width: 850px) {
+  .admin-workspace { width: 100%; margin-left: 0; }
+  .admin-main { padding: 25px 18px 24px; }
+  .admin-topbar { margin: 0; border-radius: 0; }
 }

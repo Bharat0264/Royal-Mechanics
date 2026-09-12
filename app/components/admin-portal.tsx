@@ -160,7 +160,6 @@ function GaugeKpi({
   caption,
   progress,
   alert = false,
-  accent,
 }: {
   Icon: typeof CalendarDays;
   label: string;
@@ -168,13 +167,12 @@ function GaugeKpi({
   caption: string;
   progress: number;
   alert?: boolean;
-  accent: string;
 }) {
   const safeProgress = Math.min(100, Math.max(0, progress));
   const style = {
     '--gauge-offset': String(251 - (251 * safeProgress) / 100),
     '--needle-turn': `${safeProgress * 3.6}deg`,
-    '--gauge-color': accent,
+    '--gauge-color': '#e8b84b',
     '--needle-opacity': safeProgress > 0 ? '1' : '0',
   } as CSSProperties;
   return (
@@ -956,7 +954,6 @@ export function AdminPortal({
                           'Scheduled today',
                           Math.min(100, data.bookings.filter((b) => isToday(b.createdAt)).length * 20),
                           false,
-                          '#e9ad55',
                         ],
                         [
                           Wrench,
@@ -965,7 +962,6 @@ export function AdminPortal({
                           'In the workshop',
                           Math.min(100, active.length * 16),
                           false,
-                          '#e08a5d',
                         ],
                         [
                           CircleDollarSign,
@@ -974,7 +970,6 @@ export function AdminPortal({
                           `Paid · this ${period}`,
                           Math.min(100, (revenue / 100000) * 100),
                           false,
-                          '#dbb258',
                         ],
                         [
                           Star,
@@ -983,7 +978,6 @@ export function AdminPortal({
                           `${approvedReviews.length} approved reviews`,
                           Number(rating) * 20,
                           false,
-                          '#8ebeb1',
                         ],
                         [
                           Clock3,
@@ -994,9 +988,8 @@ export function AdminPortal({
                           'Estimates to review',
                           Math.min(100, data.bookings.filter((b) => b.status === 'AWAITING_APPROVAL').length * 25),
                           data.bookings.some((b) => b.status === 'AWAITING_APPROVAL'),
-                          '#d98568',
                         ],
-                      ].map(([Icon, label, value, caption, progress, alert, accent]) => {
+                      ].map(([Icon, label, value, caption, progress, alert]) => {
                         const Glyph = Icon as typeof CalendarDays;
                         return (
                           <GaugeKpi
@@ -1007,7 +1000,6 @@ export function AdminPortal({
                             caption={String(caption)}
                             progress={Number(progress)}
                             alert={Boolean(alert)}
-                            accent={String(accent)}
                           />
                         );
                       })}
@@ -1063,28 +1055,6 @@ export function AdminPortal({
                               }}
                             >
                               <defs>
-                                <filter
-                                  id="heat-shimmer"
-                                  x="-10%"
-                                  y="-20%"
-                                  width="120%"
-                                  height="140%"
-                                >
-                                  <feTurbulence
-                                    type="turbulence"
-                                    baseFrequency="0.012 0.04"
-                                    numOctaves="2"
-                                    seed="8"
-                                    result="noise"
-                                  />
-                                  <feDisplacementMap
-                                    in="SourceGraphic"
-                                    in2="noise"
-                                    scale="3"
-                                    xChannelSelector="R"
-                                    yChannelSelector="G"
-                                  />
-                                </filter>
                                 <linearGradient
                                   id="revenue-gold"
                                   x1="0"
@@ -1143,14 +1113,14 @@ export function AdminPortal({
                                 stroke="#d5ae67"
                                 strokeWidth={2}
                                 fill="url(#revenue-gold)"
-                                filter="url(#heat-shimmer)"
                               />
                               <Area
                                 yAxisId="count"
                                 type="monotone"
                                 dataKey="bookings"
                                 name="Bookings"
-                                stroke="#738d83"
+                                stroke="#e8b84b"
+                                strokeOpacity={0.58}
                                 strokeWidth={2}
                                 fill="transparent"
                               />
