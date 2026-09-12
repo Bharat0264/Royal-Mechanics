@@ -27,7 +27,7 @@ export default function Page() {
           publication. Accounts may be restricted for misuse.
         </p>
         <Link href="/contact">Contact the workshop</Link> ·{' '}
-        <Link href="/sign-in">Back to sign in</Link>
+        <Link href="/login">Back to login</Link>
       </article>
     </main>
   );

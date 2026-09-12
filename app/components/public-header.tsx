@@ -1,22 +1,23 @@
 'use client';
 import { triggerHaptic } from '@/lib/haptics';
+import { roleHomePath } from '@/lib/role-redirect';
 
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { ArrowRight, Menu, X } from 'lucide-react';
+import { ArrowRight, ChevronDown, LogOut, Menu, X } from 'lucide-react';
 import styles from './public-header.module.css';
 
 const links = [
   ['Home', '/'],
   ['Services', '/services'],
-  ['Workshop', '/workshop'],
+  ['Workshop', '/our-workshop'],
   ['Reviews', '/reviews'],
   ['FAQ & Contact', '/contact'],
 ] as const;
 
-const utilityRoutes = ['/book-service'];
+const utilityRoutes = ['/book-service', '/garage'];
 
 function isActive(pathname: string, href: string) {
   return pathname === href || (href !== '/' && pathname.startsWith(`${href}/`));
@@ -148,36 +149,41 @@ function NavLinks({
 export function PublicHeader() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const [accountRole, setAccountRole] = useState<string | null>(null);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [viewer, setViewer] = useState<{
+    role: string;
+    displayName: string | null;
+    email: string;
+  } | null>(null);
   useEffect(() => {
     let active = true;
     fetch('/api/auth/me')
       .then((r) => r.json())
       .then((data) => {
-        if (active) setAccountRole(data.viewer?.role || null);
+        if (active) setViewer(data.viewer || null);
       })
       .catch(() => {});
     return () => {
       active = false;
     };
   }, [pathname]);
-  const accountHref =
-    accountRole === 'ADMIN'
-      ? '/admin'
-      : accountRole === 'MECHANIC'
-        ? '/mechanic'
-        : accountRole
-          ? '/dashboard'
-          : '/sign-in';
-  const accountLabel =
-    accountRole === 'ADMIN'
-      ? 'Admin portal'
-      : accountRole
-        ? 'My garage'
-        : 'Sign in';
+  const accountHref = viewer
+    ? roleHomePath(viewer.role as 'ADMIN' | 'MECHANIC' | 'CUSTOMER')
+    : '/login';
+  const customer = viewer?.role === 'CUSTOMER';
+  const authenticated = Boolean(viewer);
+  const accountLabel = customer ? 'My garage' : 'Account';
+  const initials = (viewer?.displayName || viewer?.email || 'RM')
+    .split(/\s+|@/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase();
   const headerRef = useRef<HTMLElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
   const publicRoute =
     links.some(([, href]) => isActive(pathname, href)) ||
     utilityRoutes.includes(pathname);
@@ -237,6 +243,29 @@ export function PublicHeader() {
     };
   }, [open]);
 
+  useEffect(() => {
+    if (!profileOpen) return;
+    const dismiss = (event: PointerEvent) => {
+      if (event.target instanceof Node && !profileRef.current?.contains(event.target))
+        setProfileOpen(false);
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setProfileOpen(false);
+    };
+    document.addEventListener('pointerdown', dismiss);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', dismiss);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [profileOpen]);
+
+  async function signOut() {
+    triggerHaptic('light');
+    await fetch('/api/auth/signout', { method: 'POST' });
+    window.location.assign('/');
+  }
+
   if (!publicRoute) return null;
 
   return (
@@ -261,12 +290,47 @@ export function PublicHeader() {
       </Link>
       <NavLinks pathname={pathname} />
       <div className={styles.actions}>
-        <Link
-          className={`${styles.signin} ${styles.desktopSignin}`}
-          href={accountHref}
-        >
-          {accountLabel}
-        </Link>
+        {authenticated ? (
+          <div className={styles.profileWrap} ref={profileRef}>
+            <button
+              className={styles.profileChip}
+              type="button"
+              aria-label="Open account menu"
+              aria-expanded={profileOpen}
+              onClick={() => {
+                triggerHaptic('light');
+                setProfileOpen(!profileOpen);
+              }}
+            >
+              <span>{initials}</span>
+              <ChevronDown size={14} aria-hidden="true" />
+            </button>
+            {profileOpen && (
+              <div className={styles.profileMenu} role="menu">
+                <div className={styles.profileIdentity}>
+                  <strong>{viewer?.displayName || 'Royal Mechanics rider'}</strong>
+                  <span>{viewer?.email}</span>
+                </div>
+                {customer ? (
+                  <Link href="/garage" role="menuitem" onNavigate={() => setProfileOpen(false)}>
+                    My garage
+                  </Link>
+                ) : (
+                  <Link href={accountHref} role="menuitem" onNavigate={() => setProfileOpen(false)}>
+                    {accountLabel}
+                  </Link>
+                )}
+                <button type="button" role="menuitem" onClick={() => void signOut()}>
+                  <LogOut size={14} aria-hidden="true" /> Sign out
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <Link className={`${styles.signin} ${styles.desktopSignin}`} href={accountHref}>
+            Sign in
+          </Link>
+        )}
         <Link
           className={`${styles.booking} ${styles.headerBooking}`}
           href="/book-service"
@@ -311,13 +375,15 @@ export function PublicHeader() {
           />
         </div>
         <div className={styles.menuActions}>
-          <Link
-            className={styles.signin}
-            href={accountHref}
-            onNavigate={() => setOpen(false)}
-          >
-            {accountLabel}
-          </Link>
+          {authenticated ? (
+            <Link className={styles.signin} href={customer ? '/garage' : accountHref} onNavigate={() => setOpen(false)}>
+              {accountLabel}
+            </Link>
+          ) : (
+            <Link className={styles.signin} href={accountHref} onNavigate={() => setOpen(false)}>
+              Sign in
+            </Link>
+          )}
           <Link
             className={styles.booking}
             href="/book-service"

@@ -31,18 +31,8 @@ const sessionSchema = new Schema(
   },
   { timestamps: true },
 );
-const inviteSchema = new Schema(
-  {
-    email: { type: String, required: true, unique: true, lowercase: true },
-    invitedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    acceptedAt: Date,
-  },
-  { timestamps: true },
-);
 export const User = models.User || model('User', userSchema);
 export const Session = models.Session || model('Session', sessionSchema);
-export const MechanicInvite =
-  models.MechanicInvite || model('MechanicInvite', inviteSchema);
 
 const serviceRequestSchema = new Schema(
   {

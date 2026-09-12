@@ -14,7 +14,7 @@ try{
   assert.equal((await call('/api/admin',null,null,'GET')).response.status,403);
   assert.equal((await fetch(base+'/admin',{redirect:'manual'})).status,307);
   const signup=await call('/api/auth/signup',{name:'Verification Rider',email,phone:'9876543210',password:'TestingRoyal123!',terms:true,role:'ADMIN'});
-  assert.equal(signup.response.status,200,JSON.stringify(signup.data));assert.equal(signup.data.redirect,'/dashboard');assert.ok(signup.response.headers.get('set-cookie').includes('HttpOnly'));
+  assert.equal(signup.response.status,200,JSON.stringify(signup.data));assert.equal(signup.data.redirect,'/');assert.ok(signup.response.headers.get('set-cookie').includes('HttpOnly'));
   let cookie=signup.cookie;const user=await db.collection('users').findOne({email});customerId=user._id;assert.equal(user.role,'CUSTOMER');assert.ok(user.passwordHash&&!user.passwordHash.includes('TestingRoyal123!'));
   assert.equal((await call('/api/admin',null,cookie,'GET')).response.status,403);
   assert.equal((await call('/api/admin',{section:'services',data:{name:'bad',price:1}},cookie)).response.status,403);

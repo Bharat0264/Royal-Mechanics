@@ -4,16 +4,19 @@ import { promisify } from 'node:util';
 import { NextResponse } from 'next/server';
 import { connectMongo } from '@/lib/mongodb';
 import { AuthThrottle, Session, User } from '@/lib/models';
+import { roleHomePath } from '@/lib/role-redirect';
 
 export const ADMIN_EMAIL =
   process.env.ADMIN_EMAIL || 'bharathsaipulipati@gmail.com';
 export const SESSION_COOKIE = 'royal_mechanics_session';
+export const GUEST_COOKIE = 'royal_mechanics_guest';
 export type Viewer = {
   id: string;
   email: string;
   displayName: string | null;
   role: 'ADMIN' | 'MECHANIC' | 'CUSTOMER';
   mustChangePassword: boolean;
+  isGuest: boolean;
 };
 const derive = promisify(scrypt);
 export async function hashSession(value: string) {
@@ -62,7 +65,8 @@ export async function throttle(key: string, max = 10) {
   return record.count <= max;
 }
 export async function getViewer(): Promise<Viewer | null> {
-  const token = (await cookies()).get(SESSION_COOKIE)?.value;
+  const jar = await cookies();
+  const token = jar.get(SESSION_COOKIE)?.value;
   if (!token) return null;
   await connectMongo();
   const session = await Session.findOne({
@@ -78,6 +82,7 @@ export async function getViewer(): Promise<Viewer | null> {
     displayName: user.displayName ?? null,
     role: user.role,
     mustChangePassword: user.mustChangePassword === true,
+    isGuest: false,
   };
 }
 export async function issueSession(
@@ -97,14 +102,7 @@ export async function issueSession(
     response ??
     NextResponse.json({
       ok: true,
-      redirect:
-        user.role === 'ADMIN'
-          ? '/admin'
-          : user.role === 'MECHANIC'
-            ? user.mustChangePassword
-              ? '/mechanic/set-password'
-              : '/mechanic'
-            : '/dashboard',
+      redirect: roleHomePath(user.role as Viewer['role']),
     });
   result.cookies.set(SESSION_COOKIE, raw, {
     httpOnly: true,
@@ -119,6 +117,27 @@ export async function issueSession(
     sameSite: 'lax',
     path: '/',
     ...(remember ? { expires: expiresAt } : {}),
+  });
+  result.cookies.set(GUEST_COOKIE, '', { httpOnly: true, path: '/', maxAge: 0 });
+  return result;
+}
+
+/** A browser-session-only viewer. It deliberately creates no User or Session record. */
+export function issueGuestSession(request: Request) {
+  const result = NextResponse.json({ ok: true, redirect: '/' });
+  const secure = new URL(request.url).protocol === 'https:';
+  result.cookies.set(GUEST_COOKIE, '1', {
+    httpOnly: true,
+    secure,
+    sameSite: 'lax',
+    path: '/',
+  });
+  result.cookies.set(SESSION_COOKIE, '', { httpOnly: true, path: '/', maxAge: 0 });
+  result.cookies.set('royal_mechanics_role', 'GUEST', {
+    httpOnly: true,
+    secure,
+    sameSite: 'lax',
+    path: '/',
   });
   return result;
 }

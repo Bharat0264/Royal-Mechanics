@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { isValidObjectId } from 'mongoose';
 import { getViewer, sameOrigin } from '@/lib/auth';
-import { adminData } from '@/lib/admin-data';
+import { adminData, guestAdminData } from '@/lib/admin-data';
 import {
   ServiceCatalog,
   ServiceRequest,
@@ -9,7 +9,6 @@ import {
   SiteContent,
   User,
   Session,
-  MechanicInvite,
 } from '@/lib/models';
 import { bookingStatuses, defaultServices } from '@/lib/site-defaults';
 const fail = (error: string, status = 400) =>
@@ -22,15 +21,18 @@ const urls = (value: unknown) =>
         .filter(
           (v): v is string =>
             typeof v === 'string' &&
-            v.startsWith('https://') &&
-            v.length < 2048,
+            (v.startsWith('https://') ||
+              /^data:image\/(?:jpeg|png|webp);base64,/i.test(v)) &&
+            v.length < 2_000_000,
         )
         .slice(0, 12)
     : [];
 export async function GET() {
   try {
-    if ((await getViewer())?.role !== 'ADMIN')
+    const viewer = await getViewer();
+    if (viewer?.role !== 'ADMIN')
       return fail('Admin access required.', 403);
+    if (viewer.isGuest) return NextResponse.json(guestAdminData());
     return NextResponse.json(await adminData());
   } catch {
     return fail(
@@ -43,7 +45,8 @@ export async function POST(request: Request) {
   if (!sameOrigin(request)) return fail('Invalid request origin.', 403);
   try {
     const viewer = await getViewer();
-    if (viewer?.role !== 'ADMIN') return fail('Admin access required.', 403);
+    if (viewer?.role !== 'ADMIN' || viewer.isGuest)
+      return fail(viewer?.isGuest ? 'Sign in to make changes.' : 'Admin access required.', 403);
     const body = await request.json().catch(() => ({}));
     const { section, action, id } = body;
     const data = body.data || {};
@@ -161,9 +164,6 @@ export async function POST(request: Request) {
       if (text(data.displayName, 100))
         user.displayName = text(data.displayName, 100);
       await user.save();
-      // Remove legacy invites so an old Google login cannot re-promote a demoted mechanic.
-      if (role !== 'MECHANIC')
-        await MechanicInvite.deleteMany({ email: user.email });
       await Session.deleteMany({ userId: id });
     } else if (section === 'workshop') {
       if (!text(data.title, 100) || !text(data.description))

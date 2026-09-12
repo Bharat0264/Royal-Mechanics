@@ -345,7 +345,7 @@ export function ReviewsPage() {
                 Be the first to share yours. Reviews appear after workshop
                 approval.
               </p>
-              <Link href="/dashboard" style={{ color: '#ffad53' }}>
+              <Link href="/login" style={{ color: '#ffad53' }}>
                 Share your experience <ArrowRight size={14} />
               </Link>
             </article>
@@ -672,7 +672,7 @@ export function BookingPage() {
               <p className="form-error" role="alert">
                 {status}{' '}
                 {status.includes('sign in') && (
-                  <Link href="/sign-in">Sign in</Link>
+                  <Link href="/login">Sign in</Link>
                 )}
               </p>
             )}

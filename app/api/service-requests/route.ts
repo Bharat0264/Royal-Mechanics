@@ -8,7 +8,7 @@ const reply = (body: unknown, status = 200) =>
 
 export async function POST(request: Request) {
   const viewer = await getViewer();
-  if (!viewer)
+  if (!viewer || viewer.isGuest)
     return reply({ error: 'Please sign in before confirming a booking.' }, 401);
   const body = (await request.json().catch(() => null)) as Record<
     string,

@@ -265,6 +265,82 @@
 .signin:focus-visible::after {
   transform: scaleX(1);
 }
+.profileWrap {
+  position: relative;
+}
+.profileChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 4px 6px 4px 4px;
+  border: 1px solid #f4c58032;
+  border-radius: 999px;
+  background: #ffe2b30b;
+  color: #e7ddd1;
+  transition: border-color 240ms ease-out, background 240ms ease-out, color 240ms ease-out;
+}
+.profileChip > span {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid #ffd08782;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #f5bd6866, #b864252e);
+  box-shadow: inset 0 1px #fff1cf63, 0 3px 10px #e6992630;
+  color: #fff4df;
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: .05em;
+}
+.profileMenu {
+  position: absolute;
+  z-index: 50;
+  top: calc(100% + 10px);
+  right: 0;
+  display: grid;
+  width: 230px;
+  overflow: hidden;
+  border: 1px solid #ecc27a4a;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #f5c36e18, transparent 55%), #17151ae8;
+  box-shadow: inset 0 1px #fff3d427, 0 18px 42px #0008;
+  -webkit-backdrop-filter: blur(22px) saturate(145%);
+  backdrop-filter: blur(22px) saturate(145%);
+}
+.profileIdentity {
+  display: grid;
+  gap: 4px;
+  padding: 15px 16px;
+  border-bottom: 1px solid #f0c37824;
+}
+.profileIdentity strong { color: #fff4e6; font-size: 12px; }
+.profileIdentity span { overflow: hidden; color: #bfb4a6; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.profileMenu a,
+.profileMenu button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  border: 0;
+  padding: 0 16px;
+  color: #ded5ca;
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: left;
+  text-decoration: none;
+  transition: color 200ms ease-out, background 200ms ease-out;
+}
+.profileMenu a:hover,
+.profileMenu button:hover,
+.profileMenu a:focus-visible,
+.profileMenu button:focus-visible {
+  color: #ffd08a;
+  background: #f5b75f14;
+}
 .header :is(a, button):focus-visible {
   outline: 2px solid #ffd08a;
   outline-offset: 4px;

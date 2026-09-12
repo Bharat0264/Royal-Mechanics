@@ -13,12 +13,21 @@ if (!uri?.startsWith('mongodb://127.0.0.1:27018/'))
   );
 const base = 'http://localhost:3000';
 const calls = [];
-const compiled = ts.transpile(readFileSync('lib/haptics.ts', 'utf8'), {
+const compiled = ts.transpile(readFileSync('lib/haptics.tsx', 'utf8'), {
   module: ts.ModuleKind.CommonJS,
+  jsx: ts.JsxEmit.ReactJSX,
 });
 const context = {
   exports: {},
   navigator: { vibrate: (pattern) => calls.push(pattern) },
+  require: () => ({
+    createContext: () => ({ Provider: () => null }),
+    useCallback: (value) => value,
+    useContext: () => null,
+    useEffect: () => {},
+    useMemo: (value) => value(),
+    useState: (value) => [value, () => {}],
+  }),
 };
 vm.runInNewContext(compiled, context);
 for (const type of ['light', 'medium', 'success', 'error', 'capture'])

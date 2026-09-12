@@ -22,12 +22,12 @@ export type HapticType =
   | 'capture';
 
 export const hapticPatterns: Record<HapticType, number[]> = {
-  light: [50],
-  medium: [100],
-  success: [50, 50, 50],
-  error: [100, 50, 100, 50, 100],
+  light: [10],
+  medium: [25],
+  success: [15, 50, 15],
+  error: [60],
   warning: [75, 50, 75],
-  capture: [50],
+  capture: [15],
 };
 
 type HapticsContextValue = {

@@ -3,7 +3,7 @@ import { randomBytes } from 'node:crypto';
 export async function GET(request: Request) {
   if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET)
     return NextResponse.redirect(
-      new URL('/sign-in?error=google-unavailable', request.url),
+      new URL('/login?error=google-unavailable', request.url),
     );
   const state = randomBytes(32).toString('hex');
   const origin = new URL(request.url).origin;

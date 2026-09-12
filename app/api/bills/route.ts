@@ -18,7 +18,8 @@ export async function GET() {
 export async function POST(request: Request) {
   if (!sameOrigin(request)) return reply({ error: 'Invalid request origin.' }, 403);
   const viewer = await getViewer();
-  if (viewer?.role !== 'ADMIN') return reply({ error: 'Admin access required.' }, 403);
+  if (viewer?.role !== 'ADMIN' || viewer.isGuest)
+    return reply({ error: viewer?.isGuest ? 'Sign in to make changes.' : 'Admin access required.' }, 403);
   const body = await request.json().catch(() => ({}));
   await connectMongo();
   if (body.action === 'collect') {

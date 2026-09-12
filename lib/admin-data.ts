@@ -48,3 +48,16 @@ export async function adminData() {
     }),
   );
 }
+
+/** Safe zero-state data for the guest dashboard; no workshop records are exposed. */
+export function guestAdminData() {
+  return {
+    bookings: [],
+    users: [],
+    services: defaultServices,
+    reviews: [],
+    invoices: [],
+    workshop: defaultWorkshop,
+    settings: defaultSettings,
+  };
+}

@@ -20,7 +20,7 @@ export async function PATCH(
   if (!sameOrigin(request))
     return reply({ error: 'Invalid request origin.' }, 403);
   const viewer = await getViewer();
-  if (!viewer || !['ADMIN', 'MECHANIC'].includes(viewer.role))
+  if (!viewer || viewer.isGuest || !['ADMIN', 'MECHANIC'].includes(viewer.role))
     return reply({ error: 'Mechanic or admin access required.' }, 403);
   const { id } = await context.params;
   const body = await request.json().catch(() => ({}));

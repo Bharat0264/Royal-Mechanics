@@ -2,15 +2,15 @@ import { redirect } from 'next/navigation';
 import { getViewer } from '@/lib/auth';
 import { ServiceRequest } from '@/lib/models';
 import { MechanicQueue } from '../components/mechanic-portal';
+import { roleHomePath } from '@/lib/role-redirect';
 export const metadata = {
   title: 'Mechanic console | Royal Mechanics',
   robots: { index: false },
 };
 export default async function MechanicPage() {
   const viewer = await getViewer();
-  if (!viewer) redirect('/sign-in');
-  if (viewer.role !== 'MECHANIC')
-    redirect(viewer.role === 'ADMIN' ? '/admin' : '/dashboard');
+  if (!viewer || viewer.isGuest || viewer.role !== 'MECHANIC')
+    redirect(roleHomePath(viewer?.role));
   if (viewer.mustChangePassword) redirect('/mechanic/set-password');
   const bookings = await ServiceRequest.find({ mechanicId: viewer.id })
     .populate('customerId', 'displayName')

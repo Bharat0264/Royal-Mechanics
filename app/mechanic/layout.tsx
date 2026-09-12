@@ -1,14 +1,17 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { getViewer } from '@/lib/auth';
-import '../components/internal-portals.css';
+import { roleHomePath } from '@/lib/role-redirect';
 import { MechanicSignout } from '../components/mechanic-portal';
+
 export default async function MechanicLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const viewer = await getViewer();
-  if (viewer?.role !== 'MECHANIC') return children;
+  if (!viewer || viewer.isGuest || viewer.role !== 'MECHANIC')
+    redirect(roleHomePath(viewer?.role));
   return (
     <div className="mechanic-console">
       <header>

@@ -2,6 +2,15 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
+import {
+  ArrowLeft,
+  ArrowRight,
+  Camera,
+  Check,
+  Images,
+  Tag,
+  Wrench,
+} from 'lucide-react';
 import { triggerHaptic } from '@/lib/haptics';
 import { requestWithMinimum as fetch } from '@/lib/minimum-request';
 import { GlassPanel } from './glass-panel';
@@ -33,7 +42,7 @@ export function MechanicSignout() {
           try {
             const result = await fetch('/api/auth/signout', { method: 'POST' });
             if (!result.ok) throw new Error('Sign out failed.');
-            window.location.assign('/sign-in');
+            window.location.assign('/login');
           } catch {
             triggerHaptic('error');
             setError('Unable to sign out. Try again.');
@@ -66,55 +75,116 @@ export function MechanicSetPassword() {
     setError('');
     try {
       const response = await fetch('/api/auth/change-password', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password }),
       });
       const result = await response.json();
-      if (!response.ok) throw new Error(result.error || 'Unable to save password.');
+      if (!response.ok)
+        throw new Error(result.error || 'Unable to save password.');
       triggerHaptic('success');
       window.location.assign(result.redirect);
     } catch (cause) {
       triggerHaptic('error');
-      setError(cause instanceof Error ? cause.message : 'Unable to save password.');
-    } finally { setBusy(false); }
+      setError(
+        cause instanceof Error ? cause.message : 'Unable to save password.',
+      );
+    } finally {
+      setBusy(false);
+    }
   }
-  return <GlassPanel className="job-editor">
-    <p className="console-kicker">FIRST SIGN-IN</p>
-    <h1>Set your workshop password</h1>
-    <p>Choose a password before opening your assigned job queue.</p>
-    <form onSubmit={submit}>
-      <label>New password<input required minLength={10} maxLength={128} type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} /></label>
-      <label>Confirm password<input required minLength={10} maxLength={128} type="password" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} /></label>
-      {error && <p role="alert">{error}</p>}
-      <button disabled={busy} type="submit">{busy ? <Loader size="button" /> : 'Save and open jobs'}</button>
-    </form>
-  </GlassPanel>;
+  return (
+    <GlassPanel className="job-editor">
+      <p className="console-kicker">FIRST SIGN-IN</p>
+      <h1>Set your workshop password</h1>
+      <p>Choose a password before opening your assigned job queue.</p>
+      <form onSubmit={submit}>
+        <label>
+          New password
+          <input
+            required
+            minLength={10}
+            maxLength={128}
+            type="password"
+            autoComplete="new-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </label>
+        <label>
+          Confirm password
+          <input
+            required
+            minLength={10}
+            maxLength={128}
+            type="password"
+            autoComplete="new-password"
+            value={confirm}
+            onChange={(e) => setConfirm(e.target.value)}
+          />
+        </label>
+        {error && <p role="alert">{error}</p>}
+        <button disabled={busy} type="submit">
+          {busy ? <Loader size="button" /> : 'Save and open jobs'}
+        </button>
+      </form>
+    </GlassPanel>
+  );
 }
 
 export function MechanicQueue({ jobs }: { jobs: MechanicBooking[] }) {
   const active = jobs.filter(
     (job) => !['COMPLETED', 'CANCELLED'].includes(job.status),
   );
+  const statusCount = (status: string) =>
+    active.filter((job) => job.status === status).length;
+  const statusName = (status: string) => status.replaceAll('_', ' ');
   return (
     <>
       <h1>Job queue</h1>
       <p>{active.length} active vehicles</p>
+      <div className="job-summary" aria-label="Job status summary">
+        <span data-status="ASSIGNED">Assigned · {statusCount('ASSIGNED')}</span>
+        <span data-status="IN_PROGRESS">
+          In progress · {statusCount('IN_PROGRESS')}
+        </span>
+        <span data-status="QUALITY_CHECK">
+          Quality check · {statusCount('QUALITY_CHECK')}
+        </span>
+      </div>
       <div className="job-queue">
-        {active.map((job) => (
-          <GlassPanel className="job-card" key={job._id}>
-            <small>{job.requestNumber}</small>
-            <h2>{job.vehicleName}</h2>
+        {active.map((job, index) => (
+          <GlassPanel
+            className="job-card mechanic-enter"
+            key={job._id}
+            style={{ animationDelay: `${index * 50}ms` }}
+          >
+            <small className="job-id">
+              <Tag size={14} aria-hidden="true" />
+              {job.requestNumber}
+            </small>
+            <div className="job-title">
+              <Wrench size={17} aria-hidden="true" />
+              <h2>{job.vehicleName}</h2>
+              <span className="job-status" data-status={job.status}>
+                {statusName(job.status)}
+              </span>
+            </div>
             <span>{job.customerId?.displayName || 'Walk-in customer'}</span>
-            <progress
-              aria-label="Repairs completed"
-              value={job.faults.filter((f) => f.completed).length}
-              max={job.faults.length || 1}
-            />
-            <span>
+            <div className="job-progress" aria-label="Repairs completed">
+              <i
+                style={{
+                  width: `${job.faults.length ? Math.min(100, Math.max(0, (job.faults.filter((f) => f.completed).length / job.faults.length) * 100)) : 0}%`,
+                }}
+              />
+            </div>
+            <span className="job-repair-count">
               {job.faults.filter((f) => f.completed).length}/{job.faults.length}{' '}
-              repairs complete · {job.status.replaceAll('_', ' ')}
+              repairs complete
             </span>
-            <Link href={`/mechanic/jobs/${job._id}`}>Open job →</Link>
+            <Link className="job-open" href={`/mechanic/jobs/${job._id}`}>
+              Open job <ArrowRight size={15} aria-hidden="true" />
+            </Link>
           </GlassPanel>
         ))}
       </div>
@@ -165,6 +235,11 @@ function Capture({
   }, []);
   const [busy, setBusy] = useMinimumBusy();
   const [error, setError] = useState('');
+  const [closing, setClosing] = useState(false);
+  function close() {
+    setClosing(true);
+    window.setTimeout(onClose, 180);
+  }
   async function read(file?: File) {
     if (!file) return;
     setBusy(true);
@@ -177,7 +252,7 @@ function Capture({
       const photo = results[0].value;
       triggerHaptic('capture');
       onSave(photo);
-      onClose();
+      close();
     } catch (e) {
       triggerHaptic('error');
       setError(e instanceof Error ? e.message : 'Photo could not be loaded.');
@@ -188,37 +263,46 @@ function Capture({
   return (
     <dialog
       ref={dialog}
-      className="capture-screen"
+      className={`capture-screen ${closing ? 'is-closing' : ''}`}
       aria-label={label}
-      onCancel={onClose}
+      onCancel={(event) => {
+        event.preventDefault();
+        close();
+      }}
     >
       <h2>{label}</h2>
       <p>Take a clear photo or select one from your library.</p>
-      <label>
-        Open camera
-        <input
-          type="file"
-          accept="image/*"
-          capture="environment"
-          disabled={busy}
-          onChange={(e) => void read(e.target.files?.[0])}
-        />
-      </label>
-      <label>
-        Choose from photos
-        <input
-          type="file"
-          accept="image/*"
-          disabled={busy}
-          onChange={(e) => void read(e.target.files?.[0])}
-        />
-      </label>
+      <div className="capture-tiles" aria-busy={busy}>
+        <label className="upload-tile">
+          <Camera aria-hidden="true" />
+          <span>Open camera</span>
+          <small>Capture a fresh intake photo</small>
+          <input
+            type="file"
+            accept="image/*"
+            capture="environment"
+            disabled={busy}
+            onChange={(e) => void read(e.target.files?.[0])}
+          />
+        </label>
+        <label className="upload-tile">
+          <Images aria-hidden="true" />
+          <span>Choose from library</span>
+          <small>Select an existing vehicle photo</small>
+          <input
+            type="file"
+            accept="image/*"
+            disabled={busy}
+            onChange={(e) => void read(e.target.files?.[0])}
+          />
+        </label>
+      </div>
       {busy && <Loader size="button" />}
       {error && <p role="alert">{error}</p>}
       <button
         onClick={() => {
           triggerHaptic('light');
-          onClose();
+          close();
         }}
       >
         Cancel
@@ -274,8 +358,9 @@ export function MechanicJobEditor({ initial }: { initial: MechanicBooking }) {
     onSave: (photo: string) => void,
   ) {
     return (
-      <div>
+      <div className="photo-slot">
         <button
+          className="mechanic-action"
           type="button"
           disabled={busy || locked}
           onClick={() => {
@@ -293,11 +378,24 @@ export function MechanicJobEditor({ initial }: { initial: MechanicBooking }) {
   }
   return (
     <>
-      <Link href="/mechanic">← Job queue</Link>
-      <h1>{job.vehicleName}</h1>
-      <p>
-        {job.requestNumber} · {job.status.replaceAll('_', ' ')}
-      </p>
+      <section className="job-detail-heading" aria-label="Job details">
+        <Link className="mechanic-back" href="/mechanic">
+          <ArrowLeft size={16} aria-hidden="true" /> Job queue
+        </Link>
+        <div className="job-detail-title">
+          <Wrench size={20} aria-hidden="true" />
+          <h1>{job.vehicleName}</h1>
+        </div>
+        <div className="job-detail-meta">
+          <span className="job-id">
+            <Tag size={14} aria-hidden="true" />
+            {job.requestNumber}
+          </span>
+          <span className="job-status" data-status={job.status}>
+            {job.status.replaceAll('_', ' ')}
+          </span>
+        </div>
+      </section>
       <GlassPanel className="job-editor">
         {message && (
           <p role="status" className="console-message">
@@ -319,6 +417,7 @@ export function MechanicJobEditor({ initial }: { initial: MechanicBooking }) {
         </div>
         {!locked && (
           <button
+            className="mechanic-action"
             disabled={busy || photos.some((p) => !p)}
             onClick={() => {
               triggerHaptic('light');
@@ -349,6 +448,7 @@ export function MechanicJobEditor({ initial }: { initial: MechanicBooking }) {
                   />
                 </label>
                 <button
+                  className="mechanic-action"
                   disabled={busy || !text.trim()}
                   onClick={() => triggerHaptic('light')}
                 >
@@ -358,7 +458,7 @@ export function MechanicJobEditor({ initial }: { initial: MechanicBooking }) {
             )}
             {job.faults.map((fault, index) => (
               <GlassPanel className="job-editor" key={index}>
-                <label>
+                <label className="repair-toggle">
                   <input
                     type="checkbox"
                     checked={fault.completed}
@@ -372,7 +472,10 @@ export function MechanicJobEditor({ initial }: { initial: MechanicBooking }) {
                       });
                     }}
                   />
-                  {fault.text}
+                  <span className="repair-check" aria-hidden="true">
+                    <Check size={14} />
+                  </span>
+                  <span>{fault.text}</span>
                 </label>
                 <div className="photo-controls">
                   {photoButton(
@@ -394,6 +497,7 @@ export function MechanicJobEditor({ initial }: { initial: MechanicBooking }) {
             ))}
             {!locked && (
               <button
+                className="mechanic-action"
                 disabled={
                   busy ||
                   !job.faults.length ||

@@ -8,12 +8,17 @@ export function InternalFeedback() {
       if (event.pointerType !== 'touch') return;
       const target = event.target;
       if (!(target instanceof Element)) return;
-      if (
-        target.closest(
-          'button:not(:disabled), a[href], summary, [role="button"], [role="switch"], input[type="checkbox"]:not(:disabled)',
-        )
-      )
+      const control = target.closest<HTMLElement>(
+        'button:not(:disabled), a[href], summary, [role="button"], [role="switch"], input[type="checkbox"]:not(:disabled)',
+      );
+      if (control) {
+        const bounds = control.getBoundingClientRect();
+        control.style.setProperty('--ripple-x', `${event.clientX - bounds.left}px`);
+        control.style.setProperty('--ripple-y', `${event.clientY - bounds.top}px`);
+        control.classList.remove('liquid-ripple');
+        requestAnimationFrame(() => control.classList.add('liquid-ripple'));
         triggerHaptic('light');
+      }
     };
     document.addEventListener('invalid', invalid, true);
     document.addEventListener('pointerdown', tap, { passive: true });

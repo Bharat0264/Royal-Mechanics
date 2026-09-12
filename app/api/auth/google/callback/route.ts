@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { ADMIN_EMAIL, issueSession } from '@/lib/auth';
 import { connectMongo } from '@/lib/mongodb';
 import { User } from '@/lib/models';
+import { roleHomePath } from '@/lib/role-redirect';
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const jar = await cookies();
@@ -12,7 +13,7 @@ export async function GET(request: Request) {
   ) => {
     console.error('[auth/google] callback failed', { reason });
     const result = NextResponse.redirect(
-      new URL(`/sign-in?error=google-${reason}`, request.url),
+      new URL(`/login?error=google-${reason}`, request.url),
     );
     result.cookies.set('rm_oauth_state', '', {
       path: '/api/auth/google',
@@ -76,13 +77,7 @@ export async function GET(request: Request) {
     }
     const result = NextResponse.redirect(
       new URL(
-        user.role === 'ADMIN'
-          ? '/admin'
-          : user.role === 'MECHANIC'
-            ? user.mustChangePassword
-              ? '/mechanic/set-password'
-              : '/mechanic'
-            : '/dashboard',
+        roleHomePath(user.role),
         request.url,
       ),
     );

@@ -4,25 +4,35 @@ import { requestWithMinimum as fetch } from '@/lib/minimum-request';
 import { Loader, useMinimumBusy } from './loader';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type Dispatch,
+  type ReactNode,
+  type SetStateAction,
+} from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Activity,
   ArrowDownUp,
-  ArrowLeft,
   ArrowRight,
   Bell,
   Bike,
+  Camera,
   CalendarDays,
   Check,
   ChevronDown,
-  ChevronsLeft,
   CircleDollarSign,
   Clock3,
   LayoutDashboard,
+  Images,
   LogOut,
   Menu,
   Plus,
+  Power,
   Search,
   Settings,
   ShieldCheck,
@@ -121,6 +131,7 @@ type Data = {
 };
 type Values = Record<string, string | number | boolean | string[]>;
 type Editor = { section: string; id?: string; title: string; values: Values };
+type MechanicCredentials = { id: string; email: string; password: string };
 const nav = [
   ['overview', 'Dashboard', LayoutDashboard],
   ['bookings', 'Bookings', CalendarDays],
@@ -140,6 +151,54 @@ const money = (n: number) =>
   }).format(n);
 const date = (s: string) =>
   new Date(s).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+
+function GaugeKpi({
+  Icon,
+  label,
+  value,
+  caption,
+  progress,
+  alert = false,
+  accent,
+}: {
+  Icon: typeof CalendarDays;
+  label: string;
+  value: string | number;
+  caption: string;
+  progress: number;
+  alert?: boolean;
+  accent: string;
+}) {
+  const safeProgress = Math.min(100, Math.max(0, progress));
+  const style = {
+    '--gauge-offset': String(251 - (251 * safeProgress) / 100),
+    '--needle-turn': `${safeProgress * 3.6}deg`,
+    '--gauge-color': accent,
+    '--needle-opacity': safeProgress > 0 ? '1' : '0',
+  } as CSSProperties;
+  return (
+    <article className={`admin-widget admin-kpi ${alert ? 'is-alert' : ''}`}>
+      <span className="admin-kpi-label">{label}</span>
+      <div className="admin-gauge" style={style}>
+        <svg viewBox="0 0 100 100" aria-hidden="true">
+          <circle className="admin-gauge-track" cx="50" cy="50" r="40" />
+          <circle
+            className="admin-gauge-value"
+            cx="50"
+            cy="50"
+            r="40"
+          />
+        </svg>
+        <i className="admin-gauge-needle" />
+        <span className="admin-gauge-hub"><Icon aria-hidden="true" /></span>
+      </div>
+      <div className="admin-kpi-copy">
+        <strong>{value}</strong>
+        <small>{caption}</small>
+      </div>
+    </article>
+  );
+}
 export function AdminPortal({
   viewer,
   section,
@@ -147,14 +206,16 @@ export function AdminPortal({
   viewer: Viewer;
   section: string;
 }) {
+  const guest = viewer.isGuest;
   const { isHapticsEnabled, isReducedMotion, toggleHaptics } = useHaptics();
   const router = useRouter();
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const [mechanicCredentials, setMechanicCredentials] =
+    useState<MechanicCredentials | null>(null);
   const [loading, setLoading] = useMinimumBusy(true);
   const [busy, setBusy] = useMinimumBusy();
-  const [collapsed, setCollapsed] = useState(false);
   const [mobile, setMobile] = useState(false);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('all');
@@ -162,6 +223,7 @@ export function AdminPortal({
   const [period, setPeriod] = useState('week');
   const [popover, setPopover] = useState('');
   const [editor, setEditor] = useState<Editor | null>(null);
+  const [shopLights, setShopLights] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);
   const load = useCallback(async () => {
     setLoading(true);
@@ -202,6 +264,10 @@ export function AdminPortal({
     id?: string,
     action = 'save',
   ) {
+    if (guest) {
+      setNotice('Sign in to do this. Guest view never saves changes.');
+      return;
+    }
     triggerHaptic('medium');
     setBusy(true);
     setError('');
@@ -265,9 +331,24 @@ export function AdminPortal({
       if (!response.ok) throw new Error(result.error);
       triggerHaptic('success');
       setEditor(null);
+      if (
+        section === 'createMechanic' &&
+        result.invitationDelivered === false &&
+        typeof result.userId === 'string' &&
+        typeof result.email === 'string' &&
+        typeof result.temporaryPassword === 'string'
+      ) {
+        setMechanicCredentials({
+          id: result.userId,
+          email: result.email,
+          password: result.temporaryPassword,
+        });
+      }
       setNotice(
         section === 'createMechanic'
-          ? 'Mechanic added successfully. Login credentials have been emailed.'
+          ? result.invitationDelivered === false
+            ? 'Mechanic added. Email delivery is pending; copy the temporary credentials.'
+            : 'Mechanic added successfully. Login credentials have been emailed.'
           : action === 'delete'
             ? 'Service removed from the public menu.'
             : 'Changes saved successfully.',
@@ -494,29 +575,28 @@ export function AdminPortal({
   }
   return (
     <div
-      className={`admin-shell ${collapsed ? 'is-collapsed' : ''} ${mobile ? 'mobile-open' : ''}`}
+      className={`admin-shell ${mobile ? 'mobile-open' : ''} ${shopLights ? 'lights-on' : ''}`}
+      onClickCapture={(event) => {
+        if (!guest) return;
+        const action = (event.target as HTMLElement).closest('button, a');
+        if (!action || action.textContent?.includes('Sign out')) return;
+        event.preventDefault();
+        event.stopPropagation();
+        setNotice('Sign in to do this. Guest view never saves changes.');
+      }}
     >
+      {guest && (
+        <output className="guest-banner">
+          Viewing as Guest · Sign in for full access
+        </output>
+      )}
       <AdminSidebar>
-        <Link className="admin-brand" href="/admin">
-          <Image
-            src="/royal-mechanics-logo-alpha.png"
-            width={49}
-            height={49}
-            alt="Royal Mechanics"
-          />
-          <span>
-            ROYAL<small>MECHANICS</small>
-          </span>
-        </Link>
-        <div className="admin-workspace-label">
-          <i /> WORKSHOP ADMIN
-        </div>
-        <p className="admin-nav-caption">WORKSPACE</p>
         <nav aria-label="Admin navigation">
           {nav.map(([id, label, Icon]) => (
             <Link
               key={id}
-              title={label}
+              aria-label={label}
+              data-tooltip={label}
               className={section === id ? 'active' : ''}
               aria-current={section === id ? 'page' : undefined}
               href={
@@ -529,33 +609,12 @@ export function AdminPortal({
               onClick={() => setMobile(false)}
             >
               <Icon size={18} />
-              <span>{label}</span>
               {id === 'reviews' && pendingReviews > 0 && (
                 <b>{pendingReviews}</b>
               )}
             </Link>
           ))}
         </nav>
-        <div className="admin-sidebar-bottom">
-          <div className="admin-standard">
-            <ShieldCheck size={22} />
-            <strong>The Royal standard.</strong>
-            <p>Every detail. Every day.</p>
-          </div>
-          <button
-            onClick={() => {
-              triggerHaptic('light');
-              return setCollapsed(!collapsed);
-            }}
-          >
-            <ChevronsLeft size={16} />
-            <span>Collapse sidebar</span>
-          </button>
-          <Link href="/">
-            <ArrowLeft size={16} />
-            <span>View public website</span>
-          </Link>
-        </div>
       </AdminSidebar>
       {mobile && (
         <button
@@ -684,6 +743,21 @@ export function AdminPortal({
           </div>
           <div className="admin-popover-anchor">
             <button
+              className={`admin-ignition ${shopLights ? 'is-on' : ''}`}
+              type="button"
+              aria-label={shopLights ? 'Dim workshop lights' : 'Turn workshop lights on'}
+              aria-pressed={shopLights}
+              onClick={() => {
+                triggerHaptic('medium');
+                return setShopLights(!shopLights);
+              }}
+            >
+              <Power size={15} />
+              <i aria-hidden="true" />
+            </button>
+          </div>
+          <div className="admin-popover-anchor">
+            <button
               className="admin-icon notification-bell"
               aria-label="Notifications"
               aria-expanded={popover === 'notifications'}
@@ -790,6 +864,59 @@ export function AdminPortal({
               {notice}
             </output>
           )}
+          {mechanicCredentials && (
+            <aside className="admin-credentials" role="alert">
+              <div>
+                <p className="admin-eyebrow">EMAIL DELIVERY PENDING</p>
+                <strong>Share these one-time credentials securely.</strong>
+                <span>Email: <code>{mechanicCredentials.email}</code></span>
+                <span>Temporary password: <code>{mechanicCredentials.password}</code></span>
+              </div>
+              <div>
+                <button
+                  className="admin-secondary"
+                  type="button"
+                  onClick={() => {
+                    void navigator.clipboard?.writeText(
+                      `Royal Mechanics mechanic portal\nEmail: ${mechanicCredentials.email}\nTemporary password: ${mechanicCredentials.password}`,
+                    );
+                    setNotice('Temporary credentials copied.');
+                  }}
+                >
+                  Copy credentials
+                </button>
+                <button
+                  className="admin-secondary"
+                  type="button"
+                  onClick={async () => {
+                    const response = await fetch(
+                      `/api/mechanics/${mechanicCredentials.id}/resend`,
+                      { method: 'POST' },
+                    );
+                    const result = await response.json();
+                    if (response.ok) {
+                      triggerHaptic('success');
+                      setNotice('Invitation email sent successfully.');
+                      setMechanicCredentials(null);
+                    } else {
+                      triggerHaptic('error');
+                      setNotice(result.error || 'Unable to resend the invitation.');
+                    }
+                  }}
+                >
+                  Resend invite
+                </button>
+                <button
+                  className="admin-icon"
+                  type="button"
+                  aria-label="Hide temporary credentials"
+                  onClick={() => setMechanicCredentials(null)}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            </aside>
+          )}
           {error && !editor && (
             <div className="admin-error" role="alert">
               {error}
@@ -805,7 +932,14 @@ export function AdminPortal({
           )}
           {loading && !data ? (
             <div className="admin-loading">
-              <Loader size="skeleton" label="Loading workshop data" />
+              <div
+                className="admin-speedometer-loader"
+                role="status"
+                aria-label="Loading workshop data"
+              >
+                <i />
+                <span>IGNITION CHECK</span>
+              </div>
             </div>
           ) : (
             data && (
@@ -820,24 +954,36 @@ export function AdminPortal({
                           data.bookings.filter((b) => isToday(b.createdAt))
                             .length,
                           'Scheduled today',
+                          Math.min(100, data.bookings.filter((b) => isToday(b.createdAt)).length * 20),
+                          false,
+                          '#e9ad55',
                         ],
                         [
                           Wrench,
                           'Active jobs',
                           active.length,
                           'In the workshop',
+                          Math.min(100, active.length * 16),
+                          false,
+                          '#e08a5d',
                         ],
                         [
                           CircleDollarSign,
                           'Revenue',
                           money(revenue),
                           `Paid · this ${period}`,
+                          Math.min(100, (revenue / 100000) * 100),
+                          false,
+                          '#dbb258',
                         ],
                         [
                           Star,
                           'Average rating',
                           rating,
                           `${approvedReviews.length} approved reviews`,
+                          Number(rating) * 20,
+                          false,
+                          '#8ebeb1',
                         ],
                         [
                           Clock3,
@@ -846,21 +992,23 @@ export function AdminPortal({
                             (b) => b.status === 'AWAITING_APPROVAL',
                           ).length,
                           'Estimates to review',
+                          Math.min(100, data.bookings.filter((b) => b.status === 'AWAITING_APPROVAL').length * 25),
+                          data.bookings.some((b) => b.status === 'AWAITING_APPROVAL'),
+                          '#d98568',
                         ],
-                      ].map(([Icon, label, value, caption]) => {
+                      ].map(([Icon, label, value, caption, progress, alert, accent]) => {
                         const Glyph = Icon as typeof CalendarDays;
                         return (
-                          <article
-                            className="admin-widget admin-kpi"
+                          <GaugeKpi
                             key={String(label)}
-                          >
-                            <div>
-                              <span>{String(label)}</span>
-                              <Glyph size={18} />
-                            </div>
-                            <strong>{String(value)}</strong>
-                            <small>{String(caption)}</small>
-                          </article>
+                            Icon={Glyph}
+                            label={String(label)}
+                            value={String(value)}
+                            caption={String(caption)}
+                            progress={Number(progress)}
+                            alert={Boolean(alert)}
+                            accent={String(accent)}
+                          />
                         );
                       })}
                     </div>
@@ -871,15 +1019,27 @@ export function AdminPortal({
                             <h2>Momentum, measured.</h2>
                             <p>Revenue & bookings</p>
                           </div>
-                          <select
-                            aria-label="Chart period"
-                            value={period}
-                            onChange={(e) => setPeriod(e.target.value)}
-                          >
-                            <option value="day">Today</option>
-                            <option value="week">Last 7 days</option>
-                            <option value="month">Last 30 days</option>
-                          </select>
+                          <div className="admin-period-tabs" role="tablist" aria-label="Chart period">
+                            {[
+                              ['day', 'Today'],
+                              ['week', 'Week'],
+                              ['month', 'Month'],
+                            ].map(([id, name]) => (
+                              <button
+                                key={id}
+                                type="button"
+                                role="tab"
+                                aria-selected={period === id}
+                                className={period === id ? 'is-active' : ''}
+                                onClick={() => {
+                                  triggerHaptic('light');
+                                  setPeriod(id);
+                                }}
+                              >
+                                {name}
+                              </button>
+                            ))}
+                          </div>
                         </div>
                         <div className="admin-chart-legend">
                           <span>
@@ -903,6 +1063,28 @@ export function AdminPortal({
                               }}
                             >
                               <defs>
+                                <filter
+                                  id="heat-shimmer"
+                                  x="-10%"
+                                  y="-20%"
+                                  width="120%"
+                                  height="140%"
+                                >
+                                  <feTurbulence
+                                    type="turbulence"
+                                    baseFrequency="0.012 0.04"
+                                    numOctaves="2"
+                                    seed="8"
+                                    result="noise"
+                                  />
+                                  <feDisplacementMap
+                                    in="SourceGraphic"
+                                    in2="noise"
+                                    scale="3"
+                                    xChannelSelector="R"
+                                    yChannelSelector="G"
+                                  />
+                                </filter>
                                 <linearGradient
                                   id="revenue-gold"
                                   x1="0"
@@ -961,6 +1143,7 @@ export function AdminPortal({
                                 stroke="#d5ae67"
                                 strokeWidth={2}
                                 fill="url(#revenue-gold)"
+                                filter="url(#heat-shimmer)"
                               />
                               <Area
                                 yAxisId="count"
@@ -1478,6 +1661,36 @@ export function AdminPortal({
                 initial={editor.values}
                 busy={busy}
                 users={data?.users}
+                footer={
+                  editor.section === 'bookings' &&
+                  !data?.invoices.some(
+                    (invoice) => invoice.bookingId === editor.values.bookingId,
+                  ) ? (
+                    <button
+                      className="admin-secondary"
+                      type="button"
+                      disabled={busy}
+                      onClick={() => {
+                        triggerHaptic('light');
+                        setEditor({
+                          section: 'billing',
+                          title: 'Generate booking bill',
+                          values: {
+                            bookingId: String(editor.values.bookingId),
+                            serviceName: String(editor.values.serviceCategory),
+                            servicePrice: Number(editor.values.estimate || 0),
+                            partsPrice: 0,
+                            laborPrice: 0,
+                            extraPrice: 0,
+                            taxRate: 0,
+                          },
+                        });
+                      }}
+                    >
+                      Generate bill
+                    </button>
+                  ) : null
+                }
                 onSave={(v) =>
                   void save(
                     editor.section,
@@ -1544,29 +1757,7 @@ export function AdminPortal({
                       Collect cash ₹{bill.total.toLocaleString('en-IN')}
                     </button>
                   )
-                ) : (
-                  <button
-                    className="admin-gold"
-                    onClick={() => {
-                      triggerHaptic('light');
-                      return setEditor({
-                        section: 'billing',
-                        title: 'Generate booking bill',
-                        values: {
-                          bookingId: String(editor.values.bookingId),
-                          serviceName: String(editor.values.serviceCategory),
-                          servicePrice: Number(editor.values.estimate || 0),
-                          partsPrice: 0,
-                          laborPrice: 0,
-                          extraPrice: 0,
-                          taxRate: 0,
-                        },
-                      });
-                    }}
-                  >
-                    Generate bill
-                  </button>
-                );
+                ) : null;
               })()}
             {editor.section === 'services' &&
               (editor.id || editor.values.originalName) && (
@@ -1598,17 +1789,132 @@ export function AdminPortal({
   );
 }
 
+async function prepareInspectionPhoto(file: File) {
+  if (!file.type.startsWith('image/') || file.size > 20_000_000)
+    throw new Error('Choose an image smaller than 20 MB.');
+  const source = URL.createObjectURL(file);
+  try {
+    const image = new window.Image();
+    await new Promise<void>((resolve, reject) => {
+      image.onload = () => resolve();
+      image.onerror = () => reject(new Error('Unable to read this image.'));
+      image.src = source;
+    });
+    const scale = Math.min(1, 1000 / Math.max(image.width, image.height));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(image.width * scale);
+    canvas.height = Math.round(image.height * scale);
+    canvas.getContext('2d')!.drawImage(image, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL('image/jpeg', 0.65);
+  } finally {
+    URL.revokeObjectURL(source);
+  }
+}
+
+function InspectionPhotoCapture({
+  values,
+  onChange,
+}: {
+  values: Values;
+  onChange: Dispatch<SetStateAction<Values>>;
+}) {
+  const photos = Array.isArray(values.inspectionPhotos)
+    ? values.inspectionPhotos
+    : [];
+  async function addPhoto(file?: File) {
+    if (!file) return;
+    try {
+      const photo = await prepareInspectionPhoto(file);
+      onChange((current) => ({
+        ...current,
+        inspectionPhotos: [
+          ...(Array.isArray(current.inspectionPhotos)
+            ? current.inspectionPhotos
+            : []),
+          photo,
+        ].slice(0, 12),
+      }));
+      triggerHaptic('capture');
+    } catch (error) {
+      triggerHaptic('error');
+      window.alert(error instanceof Error ? error.message : 'Photo could not be added.');
+    }
+  }
+  return (
+    <section className="admin-inspection-capture" aria-label="Inspection photos">
+      <div>
+        <strong>Inspection photos</strong>
+        <small>Capture the vehicle condition before work begins.</small>
+      </div>
+      <div className="admin-capture-tiles">
+        <label>
+          <Camera size={19} aria-hidden="true" />
+          <span>Take photo</span>
+          <small>Use your camera</small>
+          <input
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={(event) => {
+              void addPhoto(event.target.files?.[0]);
+              event.target.value = '';
+            }}
+          />
+        </label>
+        <label>
+          <Images size={19} aria-hidden="true" />
+          <span>Upload photo</span>
+          <small>Choose from library</small>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(event) => {
+              void addPhoto(event.target.files?.[0]);
+              event.target.value = '';
+            }}
+          />
+        </label>
+      </div>
+      {photos.length > 0 && (
+        <div className="admin-photo-grid">
+          {photos.map((src, index) => (
+            <div className="admin-inspection-preview" key={`${src.slice(-24)}-${index}`}>
+              <Image src={src} width={180} height={130} unoptimized alt={`Inspection photo ${index + 1}`} />
+              <button
+                type="button"
+                aria-label={`Remove inspection photo ${index + 1}`}
+                onClick={() =>
+                  onChange((current) => ({
+                    ...current,
+                    inspectionPhotos: (current.inspectionPhotos as string[]).filter(
+                      (_, photoIndex) => photoIndex !== index,
+                    ),
+                  }))
+                }
+              >
+                <X size={14} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
 function ManagementForm({
   section,
   initial,
   busy,
   onSave,
+  footer,
   users = [],
 }: {
   section: string;
   initial: Values;
   busy: boolean;
   onSave: (v: Values) => void;
+  footer?: ReactNode;
   users?: Person[];
 }) {
   const [v, setV] = useState<Values>(initial);
@@ -1718,27 +2024,7 @@ function ManagementForm({
             {input('estimate', 'Estimate (₹)', 'number')}
             {checkbox('estimateApproved', 'Estimate approved')}
             {textarea('notes', 'Workshop notes')}
-            {textarea(
-              'inspectionPhotos',
-              'Inspection photo URLs (HTTPS, one per line)',
-            )}
-            {Array.isArray(v.inspectionPhotos) && (
-              <div className="admin-photo-grid">
-                {v.inspectionPhotos
-                  .filter((s) => s.startsWith('https://'))
-                  .map((src, i) => (
-                    <a key={i} href={src} target="_blank" rel="noreferrer">
-                      <Image
-                        src={src}
-                        width={180}
-                        height={130}
-                        unoptimized
-                        alt={`Inspection photo ${i + 1}`}
-                      />
-                    </a>
-                  ))}
-              </div>
-            )}
+            <InspectionPhotoCapture values={v} onChange={setV} />
           </>
         )}
         {section === 'walkin' && (
@@ -1842,6 +2128,7 @@ function ManagementForm({
         )}
         <button
           className="admin-gold"
+          style={{ display: 'none' }}
           type="submit"
           onClick={() => triggerHaptic('light')}
         >
@@ -1849,6 +2136,17 @@ function ManagementForm({
           {busy ? 'Saving…' : 'Save changes'}
         </button>
       </fieldset>
+      <footer className="admin-dialog-footer">
+        <button
+          className="admin-gold"
+          type="submit"
+          disabled={busy}
+          onClick={() => triggerHaptic('light')}
+        >
+          {busy ? <Loader size="button" /> : <Check size={15} />} Save changes
+        </button>
+        {footer}
+      </footer>
     </form>
   );
 }

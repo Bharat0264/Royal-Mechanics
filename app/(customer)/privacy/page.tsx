@@ -28,7 +28,7 @@ export default function Page() {
           corrections, or request account removal.
         </p>
         <Link href="/contact">Contact the workshop</Link> ·{' '}
-        <Link href="/sign-in">Back to sign in</Link>
+        <Link href="/login">Back to login</Link>
       </article>
     </main>
   );

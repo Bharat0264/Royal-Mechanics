@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { SESSION_COOKIE, hashSession, sameOrigin } from '@/lib/auth';
+import { GUEST_COOKIE, SESSION_COOKIE, hashSession, sameOrigin } from '@/lib/auth';
 import { connectMongo } from '@/lib/mongodb';
 import { Session } from '@/lib/models';
 export async function POST(request: Request) {
@@ -25,5 +25,6 @@ export async function POST(request: Request) {
     maxAge: 0,
   });
   response.cookies.set('royal_mechanics_role', '', { path: '/', maxAge: 0 });
+  response.cookies.set(GUEST_COOKIE, '', { httpOnly: true, path: '/', maxAge: 0 });
   return response;
 }

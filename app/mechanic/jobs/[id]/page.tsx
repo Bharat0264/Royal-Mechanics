@@ -3,13 +3,16 @@ import { isValidObjectId } from 'mongoose';
 import { getViewer } from '@/lib/auth';
 import { ServiceRequest } from '@/lib/models';
 import { MechanicJobEditor } from '@/app/components/mechanic-portal';
+import { roleHomePath } from '@/lib/role-redirect';
 export default async function JobPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const viewer = await getViewer();
-  if (viewer?.role !== 'MECHANIC') redirect('/');
+  if (!viewer) redirect(roleHomePath());
+  if (viewer.role !== 'MECHANIC' || viewer.isGuest)
+    redirect(roleHomePath(viewer.role));
   if (viewer.mustChangePassword) redirect('/mechanic/set-password');
   const { id } = await params;
   if (!isValidObjectId(id)) notFound();

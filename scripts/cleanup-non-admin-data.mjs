@@ -22,6 +22,7 @@ try {
     db.collection('reviews').deleteMany({ customerId: { $in: userIds } }),
     db.collection('invoices').deleteMany({ $or: [{ customerId: { $in: userIds } }, { bookingId: { $in: bookingIds } }] }),
     db.collection('servicerequests').deleteMany({ _id: { $in: bookingIds } }),
+    db.collection('mechanicinvites').deleteMany({}),
     db.collection('mechanicinivites').deleteMany({}),
     users.deleteMany({ _id: { $in: userIds } }),
   ]);

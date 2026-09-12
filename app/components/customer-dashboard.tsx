@@ -170,7 +170,7 @@ export function CustomerDashboard({
             onClick={async () => {
               triggerHaptic('light');
               await fetch('/api/auth/signout', { method: 'POST' });
-              window.location.assign('/');
+              window.location.assign('/login');
             }}
           >
             <LogOut size={14} /> Sign out

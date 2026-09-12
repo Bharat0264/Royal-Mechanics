@@ -134,6 +134,23 @@ export function AuthExperience({
       setBusy(false);
     }
   }
+  async function continueAsGuest() {
+    triggerHaptic('light');
+    setBusy(true);
+    setError('');
+    try {
+      const response = await fetch('/api/auth/guest', { method: 'POST' });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Unable to start guest view.');
+      router.replace(data.redirect || '/');
+      router.refresh();
+    } catch (e) {
+      triggerHaptic('error');
+      setError(e instanceof Error ? e.message : 'Unable to start guest view.');
+    } finally {
+      setBusy(false);
+    }
+  }
   function field(
     key: keyof typeof fields,
     label: string,
@@ -142,6 +159,7 @@ export function AuthExperience({
   ) {
     const password = key === 'password' || key === 'confirm';
     const invalid = touched[key] && errors[key];
+    const isLoginEmail = mode === 'login' && key === 'email';
     return (
       <div className="auth-field">
         <label htmlFor={`auth-${key}`}>{label}</label>
@@ -183,6 +201,25 @@ export function AuthExperience({
               {visible ? <EyeOff size={17} /> : <Eye size={17} />}
             </button>
           )}
+          {isLoginEmail && (
+            <button
+              className="auth-email-next"
+              type="button"
+              aria-label="Continue to password"
+              disabled={!fields.email.trim()}
+              onClick={() => {
+                setTouched({ ...touched, email: true });
+                if (errors.email) {
+                  triggerHaptic('error');
+                  return;
+                }
+                triggerHaptic('light');
+                document.getElementById('auth-password')?.focus();
+              }}
+            >
+              <ArrowRight size={16} aria-hidden="true" />
+            </button>
+          )}
         </div>
         {invalid && (
           <span className="auth-field-error" id={`${key}-error`}>
@@ -193,7 +230,7 @@ export function AuthExperience({
     );
   }
   return (
-    <main className="auth-page">
+    <main className="auth-page" data-mode={mode}>
       <section className="auth-brand-panel">
         <Link className="auth-wordmark" href="/">
           <Image
@@ -247,6 +284,14 @@ export function AuthExperience({
           <ArrowLeft size={14} /> Back to the workshop
         </Link>
         <div className="auth-card">
+          <Image
+            className="auth-card-crest"
+            src="/royal-mechanics-logo-alpha.png"
+            width={72}
+            height={72}
+            priority
+            alt="Royal Mechanics"
+          />
           <div className="auth-lock">
             <LockKeyhole size={19} />
           </div>
@@ -294,9 +339,7 @@ export function AuthExperience({
               {signup
                 ? 'Welcome to the family.'
                 : mode === 'login'
-                  ? portal === 'mechanic'
-                    ? 'Mechanic portal.'
-                    : 'Good to see you again.'
+                  ? 'Welcome back'
                   : mode === 'forgot'
                     ? 'Let’s get you back.'
                     : mode === 'reset'
@@ -309,9 +352,7 @@ export function AuthExperience({
               {signup
                 ? 'Create your account. We’ll take care of the ride.'
                 : mode === 'login'
-                  ? portal === 'mechanic'
-                    ? 'Use the credentials sent by the workshop to access your jobs.'
-                    : 'Sign in for a little peace of mind, every mile.'
+                  ? 'Sign in to your account'
                   : mode === 'forgot'
                     ? 'Enter your email and we’ll send a password reset link.'
                     : mode === 'reset'
@@ -467,6 +508,15 @@ export function AuthExperience({
                     </span>
                     {busy ? <Loader size="button" /> : <ArrowRight size={18} />}
                   </button>
+                  {mode === 'login' && (
+                    <button
+                      className="auth-guest-link"
+                      type="button"
+                      onClick={() => void continueAsGuest()}
+                    >
+                      Continue as guest
+                    </button>
+                  )}
                 </fieldset>
               </form>
             ) : (
@@ -511,7 +561,27 @@ export function AuthExperience({
             )}
           </div>
           <div className="auth-card-footer">
-            <ShieldCheck size={13} /> Your account. Safely in your hands.
+            {mode === 'login' && portal === 'customer' ? (
+              <>
+                <span>Don&apos;t have an account?</span>
+                <button
+                  className="auth-footer-link"
+                  type="button"
+                  onClick={() => {
+                    triggerHaptic('light');
+                    changeMode('signup');
+                  }}
+                >
+                  Sign up
+                </button>
+              </>
+            ) : portal === 'mechanic' && mode === 'login' ? (
+              <span>Contact your administrator for access.</span>
+            ) : (
+              <>
+                <ShieldCheck size={13} /> Your account. Safely in your hands.
+              </>
+            )}
           </div>
         </div>
         <p className="auth-help">

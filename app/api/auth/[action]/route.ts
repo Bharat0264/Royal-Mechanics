@@ -3,6 +3,7 @@ import {
   hashPassword,
   hashSession,
   issueSession,
+  issueGuestSession,
   sameOrigin,
   throttle,
   validPassword,
@@ -19,10 +20,11 @@ export async function POST(
   if (!sameOrigin(request)) return error('Request origin is not allowed.', 403);
   const { action } = await params;
   if (
-    !['login', 'signup', 'forgot-password', 'reset-password'].includes(action)
+    !['login', 'signup', 'forgot-password', 'reset-password', 'guest'].includes(action)
   )
     return error('Not found.', 404);
   const body = await request.json().catch(() => ({}));
+  if (action === 'guest') return issueGuestSession(request);
   const email =
     typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
   if (
