@@ -232,7 +232,7 @@ export function CustomerDashboard({
   }
   return (
     <div className="admin-shell customer-garage-shell">
-      <main className="admin-main" style={{ width: '100%', maxWidth: 1100 }}>
+      <main className="admin-main">
         <div className="admin-title-row">
           <div>
             <p className="admin-eyebrow">YOUR ROYAL MECHANICS ACCOUNT</p>

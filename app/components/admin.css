@@ -1654,6 +1654,14 @@ body:has(.admin-shell)::-webkit-scrollbar-button,
 .customer-progress-details .admin-list-item { margin:10px 0; }
 .customer-progress-details details > .booking-tracker { margin-top:13px; }
 .customer-garage-shell .admin-widget > .admin-list-item { margin:12px 18px; }
+.customer-garage-shell {
+  display: block;
+}
+.customer-garage-shell .admin-main {
+  width: min(1440px, calc(100% - 72px));
+  max-width: none;
+  margin-inline: auto;
+}
 .customer-garage-shell .admin-list-item { overflow:hidden; border:1px solid #ffffff10; border-radius:11px; background:#ffffff025; transition:border-color .22s var(--ease-liquid),background .22s var(--ease-liquid),transform .22s var(--ease-liquid); }
 .customer-garage-shell .admin-list-item:hover { border-color:#e8b84b66; background:linear-gradient(100deg,#e8b84b12,#ffffff025); transform:translateY(-1px); }
 .customer-garage-shell .admin-list-item:active { border-color:#f3c76799; background:#e8b84b18; }
@@ -1673,7 +1681,7 @@ details[open] > .customer-expandable-summary::after { transform:rotate(225deg); 
 @keyframes booking-stage-pulse { 50% { box-shadow:0 0 0 9px #f6b3470d,0 0 28px #f4a64195; } }
 @keyframes booking-notice-in { from { opacity:0; transform:translateY(12px); } }
 @media (max-width:700px) { .booking-tracker:not(.booking-tracker-compact) ol { grid-template-columns:1fr; min-width:0; gap:11px; padding-left:28px; } .booking-tracker:not(.booking-tracker-compact) li { grid-template-columns:36px 1fr; justify-items:start; text-align:left; } .booking-tracker:not(.booking-tracker-compact) li b { max-width:none; padding-top:11px; } .booking-tracker:not(.booking-tracker-compact) .booking-tracker-line { top:28px; bottom:20px; left:21px; right:auto; width:4px; height:auto; } .booking-tracker:not(.booking-tracker-compact) .booking-tracker-line i { width:100%; height:var(--progress); transition:height 1.05s var(--ease-liquid); } .booking-tracker-compact { width:220px; } }
-@media (max-width:700px) { .customer-garage-shell .admin-table-wrap { overflow:hidden; } .customer-garage-shell .admin-table-wrap table,.customer-garage-shell .admin-table-wrap tbody,.customer-garage-shell .admin-table-wrap tr { display:block; width:100%; } .customer-garage-shell .admin-table-wrap thead { display:none; } .customer-garage-shell .admin-table-wrap tr { padding:11px 18px; border-bottom:1px solid #ffffff0d; } .customer-garage-shell .admin-table-wrap td { display:grid; grid-template-columns:78px minmax(0,1fr); gap:10px; align-items:start; padding:5px 0; border:0; color:#d8d7cf; font-size:11px; overflow-wrap:anywhere; } .customer-garage-shell .admin-table-wrap td:before { content:attr(data-label); color:#8d987f; font-size:9px; } .customer-garage-shell .admin-table-wrap td .booking-tracker-compact { width:100%; max-width:190px; } .customer-garage-shell .booking-tracker-compact ol { min-width:0; } .customer-garage-shell .booking-tracker-compact .booking-tracker-icon { width:15px; height:15px; } .customer-garage-shell .booking-tracker-compact .booking-tracker-line { top:15px; } }
+@media (max-width:700px) { .customer-garage-shell .admin-main { width:100%; } .customer-garage-shell .admin-table-wrap { overflow:hidden; } .customer-garage-shell .admin-table-wrap table,.customer-garage-shell .admin-table-wrap tbody,.customer-garage-shell .admin-table-wrap tr { display:block; width:100%; } .customer-garage-shell .admin-table-wrap thead { display:none; } .customer-garage-shell .admin-table-wrap tr { padding:11px 18px; border-bottom:1px solid #ffffff0d; } .customer-garage-shell .admin-table-wrap td { display:grid; grid-template-columns:78px minmax(0,1fr); gap:10px; align-items:start; padding:5px 0; border:0; color:#d8d7cf; font-size:11px; overflow-wrap:anywhere; } .customer-garage-shell .admin-table-wrap td:before { content:attr(data-label); color:#8d987f; font-size:9px; } .customer-garage-shell .admin-table-wrap td .booking-tracker-compact { width:100%; max-width:190px; } .customer-garage-shell .booking-tracker-compact ol { min-width:0; } .customer-garage-shell .booking-tracker-compact .booking-tracker-icon { width:15px; height:15px; } .customer-garage-shell .booking-tracker-compact .booking-tracker-line { top:15px; } }
 @media (prefers-reduced-motion:reduce) { .booking-tracker *, .booking-progress-notice { animation:none!important; transition-duration:0s!important; } }
 
 /* Customer booking cards and status gauges. */
