@@ -216,6 +216,7 @@ export function AdminPortal({
   const [loading, setLoading] = useMinimumBusy(true);
   const [busy, setBusy] = useMinimumBusy();
   const [mobile, setMobile] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('all');
   const [ascending, setAscending] = useState(false);
@@ -626,7 +627,8 @@ export function AdminPortal({
         />
       )}
       <div className="admin-workspace">
-        <header className="admin-topbar">
+        <header className={`admin-topbar ${mobileSearchOpen ? 'mobile-search-open' : ''}`}>
+          <div className="admin-topbar-controls">
           <button
             className="admin-menu admin-icon"
             aria-label="Toggle navigation"
@@ -637,10 +639,6 @@ export function AdminPortal({
           >
             <Menu size={20} />
           </button>
-          <span className="admin-breadcrumb">
-            Workspace <span>/</span>{' '}
-            <b>{nav.find((n) => n[0] === section)?.[1]}</b>
-          </span>
           <div className="admin-global-search-wrap">
             <label className="admin-global-search">
               <Search size={15} />
@@ -651,6 +649,14 @@ export function AdminPortal({
                 onChange={(e) => setQuery(e.target.value)}
               />
             </label>
+            <button
+              className="admin-mobile-search-close"
+              type="button"
+              aria-label="Close search"
+              onClick={() => setMobileSearchOpen(false)}
+            >
+              <X size={16} />
+            </button>
             {query && data && (
               <div className="admin-search-results" aria-label="Search results">
                 <b>Across your workshop</b>
@@ -740,6 +746,15 @@ export function AdminPortal({
               </div>
             )}
           </div>
+          <button
+            className="admin-mobile-search-toggle admin-icon"
+            type="button"
+            aria-label="Open search"
+            aria-expanded={mobileSearchOpen}
+            onClick={() => setMobileSearchOpen(true)}
+          >
+            <Search size={18} />
+          </button>
           <div className="admin-popover-anchor">
             <button
               className={`admin-ignition ${shopLights ? 'is-on' : ''}`}
@@ -808,6 +823,7 @@ export function AdminPortal({
             {popover === 'profile' && (
               <div className="admin-popover">
                 <b>{viewer.email}</b>
+                <p className="admin-profile-role">Administrator</p>
                 <Link href="/admin/settings">Account settings</Link>
                 <button
                   onClick={() => {
@@ -820,6 +836,11 @@ export function AdminPortal({
               </div>
             )}
           </div>
+          </div>
+          <span className="admin-breadcrumb">
+            Workspace <span>/</span>{' '}
+            <b>{nav.find((n) => n[0] === section)?.[1]}</b>
+          </span>
         </header>
         <main className="admin-main" key={section}>
           <div className="admin-title-row">

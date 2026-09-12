@@ -2114,6 +2114,17 @@ body:has(.admin-shell) {
   background: linear-gradient(90deg, transparent, rgb(232 184 75 / 48%), transparent);
 }
 .admin-shell .admin-topbar > * { position: relative; z-index: 1; }
+.admin-shell .admin-topbar-controls {
+  order: 2;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 20px;
+  min-width: 0;
+}
+.admin-shell .admin-topbar .admin-breadcrumb { order: 1; }
+.admin-mobile-search-toggle,
+.admin-mobile-search-close { display: none; }
 
 .admin-shell .admin-breadcrumb { color: #7f8994; }
 .admin-shell .admin-breadcrumb span { color: #4e5864; }
@@ -2197,4 +2208,116 @@ body:has(.admin-shell) {
 
 @media (max-width: 850px) {
   .admin-shell .admin-global-search { width: min(276px, 42vw); }
+}
+
+/* Mobile is a separate pill-bar composition, not a compressed desktop header. */
+@media (max-width: 768px) {
+  .admin-shell .admin-topbar {
+    display: grid;
+    gap: 9px;
+    min-height: 0;
+    padding: 12px 14px 10px;
+    border-bottom-color: rgb(255 255 255 / 7%);
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .admin-shell .admin-topbar::before,
+  .admin-shell .admin-topbar::after { display: none; }
+  .admin-shell .admin-topbar-controls {
+    order: 1;
+    width: max-content;
+    max-width: 100%;
+    min-height: 56px;
+    margin: 0 auto;
+    padding: 5px;
+    gap: 7px;
+    border: 1px solid rgb(235 244 255 / 18%);
+    border-top-color: rgb(255 255 255 / 28%);
+    border-radius: 999px;
+    background: linear-gradient(145deg, rgb(225 237 250 / 13%), rgb(154 176 202 / 6%));
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 12%), 0 12px 30px rgb(0 0 0 / 22%);
+    backdrop-filter: blur(22px) saturate(125%);
+    -webkit-backdrop-filter: blur(22px) saturate(125%);
+  }
+  .admin-shell .admin-topbar .admin-breadcrumb {
+    display: block;
+    order: 2;
+    width: 100%;
+    padding: 0 6px;
+    font-size: 9px;
+    line-height: 1.25;
+  }
+  .admin-shell .admin-topbar .admin-menu,
+  .admin-shell .admin-mobile-search-toggle,
+  .admin-shell .admin-topbar .notification-bell,
+  .admin-shell .admin-topbar .admin-profile {
+    display: grid;
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    flex: 0 0 44px;
+    place-items: center;
+    padding: 0;
+  }
+  .admin-shell .admin-topbar .admin-menu,
+  .admin-shell .admin-mobile-search-toggle {
+    border: 0;
+    border-radius: 50%;
+    color: #c7d0da;
+    background: transparent;
+    box-shadow: none;
+  }
+  .admin-shell .admin-topbar .admin-menu:hover,
+  .admin-shell .admin-mobile-search-toggle:hover { color: var(--admin-gold); background: rgb(232 184 75 / 10%); }
+  .admin-shell .admin-topbar .admin-ignition,
+  .admin-shell .admin-global-search-wrap { display: none; }
+  .admin-shell .admin-topbar .admin-profile {
+    margin: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+  }
+  .admin-shell .admin-topbar .admin-profile > span:nth-child(2),
+  .admin-shell .admin-topbar .admin-profile > svg { display: none; }
+  .admin-shell .admin-topbar .admin-avatar { width: 36px; height: 36px; }
+  .admin-shell .admin-topbar .admin-popover-anchor { flex: 0 0 auto; }
+  .admin-shell .admin-topbar .admin-popover {
+    top: calc(100% + 9px);
+    right: 0;
+    width: min(260px, calc(100vw - 28px));
+  }
+  .admin-shell .admin-topbar.mobile-search-open .admin-topbar-controls { position: relative; }
+  .admin-shell .admin-topbar.mobile-search-open .admin-global-search-wrap {
+    position: absolute;
+    z-index: 5;
+    inset: 3px;
+    display: block;
+    margin: 0;
+  }
+  .admin-shell .admin-topbar.mobile-search-open .admin-global-search {
+    width: 100%;
+    min-height: 48px;
+    padding-right: 44px;
+  }
+  .admin-shell .admin-topbar.mobile-search-open .admin-mobile-search-close {
+    position: absolute;
+    z-index: 1;
+    top: 50%;
+    right: 7px;
+    display: grid;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    border: 0;
+    border-radius: 50%;
+    color: var(--admin-gold);
+    background: rgb(232 184 75 / 10%);
+    transform: translateY(-50%);
+  }
+  .admin-shell .admin-topbar.mobile-search-open .admin-search-results {
+    top: calc(100% + 8px);
+    right: 0;
+    width: min(330px, calc(100vw - 28px));
+  }
 }
