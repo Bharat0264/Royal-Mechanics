@@ -25,10 +25,12 @@ export function AuthExperience({
   initialMode = 'login',
   token = '',
   initialError = '',
+  portal = 'customer',
 }: {
   initialMode?: Mode;
   token?: string;
   initialError?: string;
+  portal?: 'customer' | 'mechanic';
 }) {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>(initialMode);
@@ -248,7 +250,7 @@ export function AuthExperience({
           <div className="auth-lock">
             <LockKeyhole size={19} />
           </div>
-          {(mode === 'login' || signup) && (
+          {portal === 'customer' && (mode === 'login' || signup) && (
             <div
               className="auth-tabs"
               role="tablist"
@@ -292,7 +294,9 @@ export function AuthExperience({
               {signup
                 ? 'Welcome to the family.'
                 : mode === 'login'
-                  ? 'Good to see you again.'
+                  ? portal === 'mechanic'
+                    ? 'Mechanic portal.'
+                    : 'Good to see you again.'
                   : mode === 'forgot'
                     ? 'Let’s get you back.'
                     : mode === 'reset'
@@ -305,7 +309,9 @@ export function AuthExperience({
               {signup
                 ? 'Create your account. We’ll take care of the ride.'
                 : mode === 'login'
-                  ? 'Sign in for a little peace of mind, every mile.'
+                  ? portal === 'mechanic'
+                    ? 'Use the credentials sent by the workshop to access your jobs.'
+                    : 'Sign in for a little peace of mind, every mile.'
                   : mode === 'forgot'
                     ? 'Enter your email and we’ll send a password reset link.'
                     : mode === 'reset'

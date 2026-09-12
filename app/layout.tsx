@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { InternalFeedback } from './components/internal-feedback';
+import { HapticsProvider } from '@/lib/haptics';
 
 export const metadata: Metadata = {
   title: 'Royal Mechanics | Two-Wheeler Service & Repair',
@@ -22,8 +23,10 @@ export default function RootLayout({
   return (
     <html lang="en" data-scroll-behavior="smooth">
       <body>
-        <InternalFeedback />
-        {children}
+        <HapticsProvider>
+          <InternalFeedback />
+          {children}
+        </HapticsProvider>
         <script
           id="royal-mechanics-local-business"
           type="application/ld+json"

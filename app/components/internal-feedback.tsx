@@ -4,24 +4,22 @@ import { triggerHaptic } from '@/lib/haptics';
 export function InternalFeedback() {
   useEffect(() => {
     const invalid = () => triggerHaptic('error');
-    const click = (event: MouseEvent) => {
-      if ((event.target as Element)?.closest('a,button,summary'))
+    const tap = (event: PointerEvent) => {
+      if (event.pointerType !== 'touch') return;
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (
+        target.closest(
+          'button:not(:disabled), a[href], summary, [role="button"], [role="switch"], input[type="checkbox"]:not(:disabled)',
+        )
+      )
         triggerHaptic('light');
     };
-    const change = (event: Event) => {
-      if ((event.target as Element)?.matches('input[type="checkbox"]'))
-        triggerHaptic('medium');
-    };
-    const submit = () => triggerHaptic('medium');
     document.addEventListener('invalid', invalid, true);
-    document.addEventListener('click', click);
-    document.addEventListener('change', change);
-    document.addEventListener('submit', submit);
+    document.addEventListener('pointerdown', tap, { passive: true });
     return () => {
       document.removeEventListener('invalid', invalid, true);
-      document.removeEventListener('click', click);
-      document.removeEventListener('change', change);
-      document.removeEventListener('submit', submit);
+      document.removeEventListener('pointerdown', tap);
     };
   }, []);
   return null;

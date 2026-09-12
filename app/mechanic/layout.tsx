@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
 import { getViewer } from '@/lib/auth';
 import '../components/internal-portals.css';
 import { MechanicSignout } from '../components/mechanic-portal';
@@ -9,7 +8,7 @@ export default async function MechanicLayout({
   children: React.ReactNode;
 }) {
   const viewer = await getViewer();
-  if (viewer?.role !== 'MECHANIC') redirect('/');
+  if (viewer?.role !== 'MECHANIC') return children;
   return (
     <div className="mechanic-console">
       <header>

@@ -1,5 +1,5 @@
 'use client';
-import { triggerHaptic } from '@/lib/haptics';
+import { triggerHaptic, useHaptics } from '@/lib/haptics';
 import { requestWithMinimum as fetch } from '@/lib/minimum-request';
 import { Loader, useMinimumBusy } from './loader';
 import Image from 'next/image';
@@ -147,6 +147,7 @@ export function AdminPortal({
   viewer: Viewer;
   section: string;
 }) {
+  const { isHapticsEnabled, isReducedMotion, toggleHaptics } = useHaptics();
   const router = useRouter();
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState('');
@@ -265,9 +266,11 @@ export function AdminPortal({
       triggerHaptic('success');
       setEditor(null);
       setNotice(
-        action === 'delete'
-          ? 'Service removed from the public menu.'
-          : 'Changes saved successfully.',
+        section === 'createMechanic'
+          ? 'Mechanic added successfully. Login credentials have been emailed.'
+          : action === 'delete'
+            ? 'Service removed from the public menu.'
+            : 'Changes saved successfully.',
       );
       await load();
     } catch (e) {
@@ -548,6 +551,10 @@ export function AdminPortal({
             <ChevronsLeft size={16} />
             <span>Collapse sidebar</span>
           </button>
+          <Link href="/">
+            <ArrowLeft size={16} />
+            <span>View public website</span>
+          </Link>
         </div>
       </AdminSidebar>
       {mobile && (
@@ -1323,6 +1330,27 @@ export function AdminPortal({
                 )}
                 {section === 'settings' && (
                   <>
+                    <GlassPanel className="admin-widget admin-haptics-setting">
+                      <div>
+                        <p className="admin-eyebrow">INTERACTION PREFERENCES</p>
+                        <h2>Haptic feedback</h2>
+                        <p>
+                          {isReducedMotion
+                            ? 'Disabled while Reduce Motion is enabled on this device.'
+                            : 'Use subtle vibration feedback for controls and completed actions.'}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        className={`admin-haptic-switch ${isHapticsEnabled ? 'is-on' : ''}`}
+                        role="switch"
+                        aria-checked={isHapticsEnabled}
+                        onClick={toggleHaptics}
+                      >
+                        <span aria-hidden="true" />
+                        {isHapticsEnabled ? 'Enabled' : 'Disabled'}
+                      </button>
+                    </GlassPanel>
                     <GlassPanel className="admin-widget admin-content-editor">
                       <div className="admin-widget-heading">
                         <h2>Business details</h2>
