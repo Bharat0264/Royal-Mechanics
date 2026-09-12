@@ -5,7 +5,7 @@ import { Loader, useMinimumBusy } from './loader';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
-import { ArrowRight, Bike, CheckCircle2, Circle, Hash, IndianRupee, LogOut, ShieldCheck, Star, Wrench } from 'lucide-react';
+import { ArrowRight, Bike, CheckCircle2, Circle, Hash, IndianRupee, ShieldCheck, Star, Wrench } from 'lucide-react';
 import type { Viewer } from '@/lib/auth';
 import { statusLabel } from '@/lib/site-defaults';
 import { BookingStatusTracker, bookingStageIndex, bookingStageLabel } from './booking-status-tracker';
@@ -233,26 +233,6 @@ export function CustomerDashboard({
   return (
     <div className="admin-shell customer-garage-shell">
       <main className="admin-main" style={{ width: '100%', maxWidth: 1100 }}>
-        <div className="admin-title-row">
-          <Link href="/">
-            <Image
-              src="/royal-mechanics-logo-alpha.png"
-              width={78}
-              height={78}
-              alt="Royal Mechanics home"
-            />
-          </Link>
-          <button
-            className="admin-secondary"
-            onClick={async () => {
-              triggerHaptic('light');
-              await fetch('/api/auth/signout', { method: 'POST' });
-              window.location.assign('/login');
-            }}
-          >
-            <LogOut size={14} /> Sign out
-          </button>
-        </div>
         <div className="admin-title-row">
           <div>
             <p className="admin-eyebrow">YOUR ROYAL MECHANICS ACCOUNT</p>
