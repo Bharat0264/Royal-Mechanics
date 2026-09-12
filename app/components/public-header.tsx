@@ -4,7 +4,7 @@ import { roleHomePath } from '@/lib/role-redirect';
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ArrowRight, ChevronDown, LogOut, Menu, X } from 'lucide-react';
 import styles from './public-header.module.css';
@@ -148,6 +148,7 @@ function NavLinks({
 
 export function PublicHeader() {
   const pathname = usePathname();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [viewer, setViewer] = useState<{
@@ -171,6 +172,9 @@ export function PublicHeader() {
     ? roleHomePath(viewer.role as 'ADMIN' | 'MECHANIC' | 'CUSTOMER')
     : '/login';
   const customer = viewer?.role === 'CUSTOMER';
+  useEffect(() => {
+    if (customer) router.prefetch('/garage');
+  }, [customer, router]);
   const authenticated = Boolean(viewer);
   const accountLabel = customer ? 'My garage' : 'Account';
   const initials = (viewer?.displayName || viewer?.email || 'RM')

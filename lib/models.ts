@@ -99,6 +99,10 @@ serviceRequestSchema.add({
   estimateApproved: { type: Boolean, default: false },
   inspectionPhotos: [String],
 });
+// Dominant portal reads filter by owner/assignee/status and order newest first.
+serviceRequestSchema.index({ customerId: 1, createdAt: -1 });
+serviceRequestSchema.index({ mechanicId: 1, createdAt: -1 });
+serviceRequestSchema.index({ status: 1, createdAt: -1 });
 export const ServiceRequest =
   models.ServiceRequest || model('ServiceRequest', serviceRequestSchema);
 
@@ -146,6 +150,7 @@ const invoiceSchema = new Schema(
   },
   { timestamps: true },
 );
+invoiceSchema.index({ customerId: 1, createdAt: -1 });
 export const ServiceCatalog =
   models.ServiceCatalog || model('ServiceCatalog', serviceCatalogSchema);
 export const Invoice = models.Invoice || model('Invoice', invoiceSchema);

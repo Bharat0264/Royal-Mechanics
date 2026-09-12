@@ -15,8 +15,14 @@ export default async function GaragePage() {
   if (!viewer || viewer.isGuest || viewer.role !== 'CUSTOMER')
     redirect(roleHomePath(viewer?.role));
   const [bookings, invoices] = await Promise.all([
-    ServiceRequest.find({ customerId: viewer.id }).sort({ createdAt: -1 }).lean(),
-    Invoice.find({ customerId: viewer.id }).sort({ createdAt: -1 }).lean(),
+    ServiceRequest.find({ customerId: viewer.id })
+      .select('requestNumber vehicleName serviceCategory status estimate estimateApproved inspectionPhotos intakePhotos faults createdAt')
+      .sort({ createdAt: -1 })
+      .lean(),
+    Invoice.find({ customerId: viewer.id })
+      .select('bookingId invoiceNumber vehicleName items total tax paymentStatus deliveredAt createdAt')
+      .sort({ createdAt: -1 })
+      .lean(),
   ]);
   return (
     <CustomerDashboard

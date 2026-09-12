@@ -40,10 +40,10 @@ export function BookingStatusTracker({ booking, compact = false, transitionKey =
         <use className="booking-gauge-track" href={`#${arcId}`} />
         <use className="booking-gauge-fill" href={`#${arcId}`} style={{ '--gauge-progress': progress } as React.CSSProperties} />
         {stages.map((label, index) => {
-          const tick = point(index, 84), outer = point(index, 92), text = point(index, 110);
+          const tick = point(index, 84), outer = point(index, 92), text = point(index, 100);
           return <g className={index <= current ? 'is-reached' : ''} key={label}>
             <line x1={tick.x} y1={tick.y} x2={outer.x} y2={outer.y} />
-            {!compact && <text x={text.x} y={text.y} textAnchor={index === 0 ? 'start' : index === stages.length - 1 ? 'end' : 'middle'}>{label}</text>}
+            {!compact && <text x={text.x} y={text.y} textAnchor={index === 0 ? 'end' : index === stages.length - 1 ? 'start' : 'middle'}>{label}</text>}
           </g>;
         })}
         {current < stages.length - 1 && (
