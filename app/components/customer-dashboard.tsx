@@ -5,10 +5,11 @@ import { Loader, useMinimumBusy } from './loader';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
-import { ArrowRight, Bike, LogOut, Star } from 'lucide-react';
+import { ArrowRight, Bike, CheckCircle2, Circle, Hash, IndianRupee, LogOut, ShieldCheck, Star, Wrench } from 'lucide-react';
 import type { Viewer } from '@/lib/auth';
 import { statusLabel } from '@/lib/site-defaults';
-import { BookingStatusTracker, bookingStageLabel } from './booking-status-tracker';
+import { BookingStatusTracker, bookingStageIndex, bookingStageLabel } from './booking-status-tracker';
+import { DetailRow } from './detail-row';
 import './admin.css';
 type Booking = {
   _id: string;
@@ -81,16 +82,20 @@ export function CustomerDashboard({
             `${booking.status}:${booking.estimateApproved === true}`,
           ]),
         );
-        const advanced = next.filter(
-          (booking) =>
-            knownProgress.current.has(booking._id) &&
-            knownProgress.current.get(booking._id) !== nextKnown.get(booking._id),
-        );
+        const priorProgress = knownProgress.current;
+        const advanced = next.flatMap((booking) => {
+          const previous = priorProgress.get(booking._id);
+          if (!previous || previous === nextKnown.get(booking._id)) return [];
+          const [status, approved] = previous.split(':');
+          return [{ booking, from: bookingStageIndex({ status, estimateApproved: approved === 'true' }) }];
+        });
         knownProgress.current = nextKnown;
         setLiveBookings(next);
         if (advanced.length) {
-          const latest = advanced[0];
-          triggerHaptic('light');
+          const { booking: latest, from } = advanced[0];
+          const crossed = Math.max(1, bookingStageIndex(latest) - from);
+          for (let tick = 0; tick < crossed; tick += 1)
+            window.setTimeout(() => triggerHaptic('light'), tick * 150);
           setTransitions((current) => ({
             ...current,
             [latest._id]: (current[latest._id] || 0) + 1,
@@ -283,43 +288,36 @@ export function CustomerDashboard({
             <Bike size={20} />
           </div>
           {liveBookings.length ? (
-            <div className="admin-table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Booking</th>
-                    <th>Vehicle</th>
-                    <th>Service</th>
-                    <th>Status</th>
-                    <th>Estimate</th>
-                  </tr>
-                </thead>
-                <tbody>
+            <div className="booking-card-grid">
                   {liveBookings.map((b) => (
-                    <tr key={b._id}>
-                      <td data-label="Booking">{b.requestNumber}</td>
-                      <td data-label="Vehicle">{b.vehicleName}</td>
-                      <td data-label="Service">{b.serviceCategory}</td>
-                      <td data-label="Status">
-                        <span className={`admin-status status-${b.status}`}>
-                          {statusLabel(b.status)}
-                        </span>
+                    <article className="booking-detail-card" key={b._id}>
+                      <div className="booking-card-details">
+                        <DetailRow icon={Hash} label="Booking">{b.requestNumber}</DetailRow>
+                        <DetailRow icon={Bike} label="Vehicle">{b.vehicleName}</DetailRow>
+                        <DetailRow icon={Wrench} label="Service">{b.serviceCategory}</DetailRow>
+                        <DetailRow icon={IndianRupee} label="Estimate">
+                          {b.estimate ? `₹${b.estimate.toLocaleString('en-IN')}` : 'Awaiting inspection'}
+                        </DetailRow>
+                        <DetailRow icon={ShieldCheck} label="Approved">
+                          {b.estimateApproved ? 'Approved' : 'Awaiting approval'}
+                        </DetailRow>
+                      </div>
+                      <div className="booking-card-status">
+                        <span className={`admin-status status-${b.status}`}>{statusLabel(b.status)}</span>
                         <BookingStatusTracker
                           booking={b}
                           compact
                           transitionKey={transitions[b._id]}
                         />
-                      </td>
-                      <td data-label="Estimate">
+                      </div>
+                      <div className="booking-card-legacy-estimate">
                         {b.estimate
                           ? `₹${b.estimate.toLocaleString('en-IN')}`
                           : 'Not yet estimated'}
                         {b.estimateApproved && <small>Approved</small>}
-                      </td>
-                    </tr>
+                      </div>
+                    </article>
                   ))}
-                </tbody>
-              </table>
             </div>
           ) : (
             <div className="admin-empty">
@@ -409,7 +407,7 @@ export function CustomerDashboard({
                     {b.faults?.map((fault) => (
                       <div key={fault.text}>
                         <p>
-                          {fault.completed ? '✓' : '•'} {fault.text}
+                          {fault.completed ? <CheckCircle2 aria-hidden="true" /> : <Circle aria-hidden="true" />} {fault.text}
                         </p>
                         <div className="admin-photo-grid">
                           {[fault.beforePhoto, fault.afterPhoto]

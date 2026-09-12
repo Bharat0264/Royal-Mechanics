@@ -1,31 +1,8 @@
 'use client';
 
-import {
-  Check,
-  ClipboardCheck,
-  CreditCard,
-  Gauge,
-  ShieldCheck,
-  UserCheck,
-  Wrench,
-} from 'lucide-react';
+export type TrackableBooking = { status: string; estimateApproved?: boolean };
+const stages = ['Confirmed', 'Assigned', 'Inspecting', 'Awaiting approval', 'In progress', 'Ready', 'Completed'];
 
-export type TrackableBooking = {
-  status: string;
-  estimateApproved?: boolean;
-};
-
-const stages = [
-  { label: 'Booking Confirmed', icon: Check },
-  { label: 'Mechanic Assigned', icon: UserCheck },
-  { label: 'Inspection in Progress', icon: ClipboardCheck },
-  { label: 'Awaiting Your Approval', icon: ShieldCheck },
-  { label: 'Work in Progress', icon: Wrench },
-  { label: 'Vehicle Ready', icon: Gauge },
-  { label: 'Paid & Completed', icon: CreditCard },
-] as const;
-
-/** Maps persisted job state and approval data to the customer journey. */
 export function bookingStageIndex(booking: TrackableBooking) {
   switch (booking.status) {
     case 'BOOKED': return 0;
@@ -37,55 +14,36 @@ export function bookingStageIndex(booking: TrackableBooking) {
     default: return 0;
   }
 }
-
 export function bookingStageLabel(booking: TrackableBooking) {
-  return booking.status === 'CANCELLED'
-    ? 'Booking cancelled'
-    : stages[bookingStageIndex(booking)].label;
+  return booking.status === 'CANCELLED' ? 'Booking cancelled' : stages[bookingStageIndex(booking)];
+}
+function point(index: number, radius: number) {
+  const angle = (-150 + index * 50) * (Math.PI / 180);
+  return { x: 100 + Math.cos(angle) * radius, y: 105 + Math.sin(angle) * radius };
 }
 
-export function BookingStatusTracker({
-  booking,
-  compact = false,
-  transitionKey = 0,
-}: {
-  booking: TrackableBooking;
-  compact?: boolean;
-  transitionKey?: number;
-}) {
+/** A speedometer driven by the persisted booking state. */
+export function BookingStatusTracker({ booking, compact = false, transitionKey = 0 }: { booking: TrackableBooking; compact?: boolean; transitionKey?: number }) {
   const current = bookingStageIndex(booking);
-  const cancelled = booking.status === 'CANCELLED';
+  const turn = -60 + current * 20;
+  const progress = (current / 6) * 236;
   return (
-    <div
-      className={`booking-tracker ${compact ? 'booking-tracker-compact' : ''} ${transitionKey ? 'is-advancing' : ''}`}
-      aria-label={`Service status: ${bookingStageLabel(booking)}`}
-    >
-      <div className="booking-tracker-line" aria-hidden="true">
-        <i
-          style={
-            { '--progress': `${(current / (stages.length - 1)) * 100}%` } as React.CSSProperties
-          }
-        />
-      </div>
-      <ol>
-        {stages.map(({ label, icon: Icon }, index) => {
-          const state = cancelled
-            ? 'is-upcoming'
-            : index < current
-              ? 'is-complete'
-              : index === current
-                ? 'is-current'
-                : 'is-upcoming';
-          return (
-            <li className={state} key={label}>
-              <span className="booking-tracker-icon" key={`${transitionKey}-${label}`}>
-                {index < current ? <Check aria-hidden="true" /> : <Icon aria-hidden="true" />}
-              </span>
-              <b>{label}</b>
-            </li>
-          );
+    <figure className={`booking-gauge ${compact ? 'booking-gauge-compact' : ''} ${transitionKey ? 'is-advancing' : ''}`} aria-label={`Service status: ${bookingStageLabel(booking)}.`}>
+      <svg viewBox="0 0 200 132" aria-hidden="true">
+        <path className="booking-gauge-track" d="M 22 105 A 84 84 0 0 1 178 105" pathLength="236" />
+        <path className="booking-gauge-fill" d="M 22 105 A 84 84 0 0 1 178 105" pathLength="236" style={{ '--gauge-progress': progress } as React.CSSProperties} />
+        {stages.map((label, index) => {
+          const tick = point(index, 84), outer = point(index, 92), text = point(index, 110);
+          return <g className={index <= current ? 'is-reached' : ''} key={label}>
+            <line x1={tick.x} y1={tick.y} x2={outer.x} y2={outer.y} />
+            {!compact && <text x={text.x} y={text.y}>{label}</text>}
+          </g>;
         })}
-      </ol>
-    </div>
+        <g className="booking-gauge-needle" style={{ '--needle-turn': `${turn}deg` } as React.CSSProperties}>
+          <line x1="100" y1="105" x2="100" y2="43" /><circle cx="100" cy="105" r="7" />
+        </g>
+      </svg>
+      {!compact && <figcaption><span>{bookingStageLabel(booking)}</span><small>Live booking status</small></figcaption>}
+    </figure>
   );
 }
