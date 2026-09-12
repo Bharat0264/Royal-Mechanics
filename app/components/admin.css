@@ -1692,7 +1692,7 @@ details[open] > .customer-expandable-summary::after { transform:rotate(225deg); 
 .booking-gauge svg { display:block; width:100%; overflow:visible; }
 .booking-gauge-track,.booking-gauge-fill { fill:none; stroke-linecap:round; stroke-width:8; }
 .booking-gauge-track { stroke:#ffffff13; }
-.booking-gauge-fill { stroke:url(#none); stroke:#e8b84b; stroke-dasharray:236; stroke-dashoffset:calc(236 - var(--gauge-progress)); filter:drop-shadow(0 0 5px #e8b84b99); transition:stroke-dashoffset 1.15s cubic-bezier(.16,1,.3,1); }
+.booking-gauge-fill { stroke:#e8b84b; stroke-dasharray:1; stroke-dashoffset:calc(1 - var(--gauge-progress)); filter:drop-shadow(0 0 6px #e8b84b99); transition:stroke-dashoffset 1.15s cubic-bezier(.16,1,.3,1); }
 .booking-gauge g > line { stroke:#4d504d; stroke-width:2; transition:stroke .35s ease; }
 .booking-gauge g.is-reached > line { stroke:#f0bd59; }
 .booking-gauge text { fill:#7f877e; font:700 5px Arial,sans-serif; text-anchor:middle; letter-spacing:.03em; }

@@ -1,5 +1,7 @@
 'use client';
 
+import { useId } from 'react';
+
 export type TrackableBooking = { status: string; estimateApproved?: boolean };
 const stages = ['Confirmed', 'Assigned', 'Inspecting', 'Awaiting approval', 'In progress', 'Ready', 'Completed'];
 
@@ -18,20 +20,25 @@ export function bookingStageLabel(booking: TrackableBooking) {
   return booking.status === 'CANCELLED' ? 'Booking cancelled' : stages[bookingStageIndex(booking)];
 }
 function point(index: number, radius: number) {
-  const angle = (-150 + index * 50) * (Math.PI / 180);
+  // Seven evenly spaced stage boundaries across the upper 180-degree arc.
+  const angle = (180 + index * (180 / (stages.length - 1))) * (Math.PI / 180);
   return { x: 100 + Math.cos(angle) * radius, y: 105 + Math.sin(angle) * radius };
 }
 
 /** A speedometer driven by the persisted booking state. */
 export function BookingStatusTracker({ booking, compact = false, transitionKey = 0 }: { booking: TrackableBooking; compact?: boolean; transitionKey?: number }) {
+  const arcId = `booking-gauge-arc-${useId().replaceAll(':', '')}`;
   const current = bookingStageIndex(booking);
-  const turn = -60 + current * 20;
-  const progress = (current / 6) * 236;
+  const turn = -90 + current * (180 / (stages.length - 1));
+  const progress = current / (stages.length - 1);
   return (
     <figure className={`booking-gauge ${compact ? 'booking-gauge-compact' : ''} ${transitionKey ? 'is-advancing' : ''}`} aria-label={`Service status: ${bookingStageLabel(booking)}.`}>
       <svg viewBox="0 0 200 132" aria-hidden="true">
-        <path className="booking-gauge-track" d="M 22 105 A 84 84 0 0 1 178 105" pathLength="236" />
-        <path className="booking-gauge-fill" d="M 22 105 A 84 84 0 0 1 178 105" pathLength="236" style={{ '--gauge-progress': progress } as React.CSSProperties} />
+        <defs>
+          <path id={arcId} d="M 16 105 A 84 84 0 0 1 184 105" pathLength="1" />
+        </defs>
+        <use className="booking-gauge-track" href={`#${arcId}`} />
+        <use className="booking-gauge-fill" href={`#${arcId}`} style={{ '--gauge-progress': progress } as React.CSSProperties} />
         {stages.map((label, index) => {
           const tick = point(index, 84), outer = point(index, 92), text = point(index, 110);
           return <g className={index <= current ? 'is-reached' : ''} key={label}>
@@ -40,7 +47,7 @@ export function BookingStatusTracker({ booking, compact = false, transitionKey =
           </g>;
         })}
         <g className="booking-gauge-needle" style={{ '--needle-turn': `${turn}deg` } as React.CSSProperties}>
-          <line x1="100" y1="105" x2="100" y2="43" /><circle cx="100" cy="105" r="7" />
+          <line x1="100" y1="105" x2="100" y2="21" /><circle cx="100" cy="21" r="4" />
         </g>
       </svg>
       {!compact && <figcaption><span>{bookingStageLabel(booking)}</span><small>Live booking status</small></figcaption>}
