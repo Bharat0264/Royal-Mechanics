@@ -4,10 +4,11 @@ import { requestWithMinimum as fetch } from '@/lib/minimum-request';
 import { Loader, useMinimumBusy } from './loader';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ArrowRight, Bike, LogOut, Star } from 'lucide-react';
 import type { Viewer } from '@/lib/auth';
 import { statusLabel } from '@/lib/site-defaults';
+import { BookingStatusTracker, bookingStageLabel } from './booking-status-tracker';
 import './admin.css';
 type Booking = {
   _id: string;
@@ -17,6 +18,7 @@ type Booking = {
   status: string;
   estimate?: number;
   estimateApproved?: boolean;
+  inspectionPhotos?: string[];
   intakePhotos?: string[];
   faults?: {
     text: string;
@@ -39,6 +41,7 @@ type Invoice = {
   tax?: number;
   paymentStatus: 'UNPAID' | 'PAID';
   deliveredAt?: string;
+  bookingId?: string;
 };
 export function CustomerDashboard({
   viewer,
@@ -49,8 +52,77 @@ export function CustomerDashboard({
   bookings: Booking[];
   invoices: Invoice[];
 }) {
+  const [liveBookings, setLiveBookings] = useState(bookings);
+  const [transitions, setTransitions] = useState<Record<string, number>>({});
+  const [progressNotice, setProgressNotice] = useState('');
+  const knownProgress = useRef(
+    new Map(
+      bookings.map((booking) => [
+        booking._id,
+        `${booking.status}:${booking.estimateApproved === true}`,
+      ]),
+    ),
+  );
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useMinimumBusy();
+  useEffect(() => {
+    let active = true;
+    const refreshBookings = async () => {
+      try {
+        const response = await fetch('/api/customer/bookings', {
+          cache: 'no-store',
+        });
+        const data = await response.json();
+        if (!active || !response.ok || !Array.isArray(data.bookings)) return;
+        const next = data.bookings as Booking[];
+        const nextKnown = new Map(
+          next.map((booking) => [
+            booking._id,
+            `${booking.status}:${booking.estimateApproved === true}`,
+          ]),
+        );
+        const advanced = next.filter(
+          (booking) =>
+            knownProgress.current.has(booking._id) &&
+            knownProgress.current.get(booking._id) !== nextKnown.get(booking._id),
+        );
+        knownProgress.current = nextKnown;
+        setLiveBookings(next);
+        if (advanced.length) {
+          const latest = advanced[0];
+          triggerHaptic('light');
+          setTransitions((current) => ({
+            ...current,
+            [latest._id]: (current[latest._id] || 0) + 1,
+          }));
+          setProgressNotice(
+            bookingStageLabel(latest) === 'Vehicle Ready'
+              ? 'Your bike is ready for pickup.'
+              : `Service update: ${bookingStageLabel(latest)}.`,
+          );
+        }
+      } catch {
+        // Keep the last known state visible during a temporary connection loss.
+      }
+    };
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') void refreshBookings();
+    };
+    const interval = window.setInterval(() => void refreshBookings(), 15000);
+    window.addEventListener('focus', refreshBookings);
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+      window.removeEventListener('focus', refreshBookings);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, []);
+  useEffect(() => {
+    if (!progressNotice) return;
+    const timeout = window.setTimeout(() => setProgressNotice(''), 6000);
+    return () => window.clearTimeout(timeout);
+  }, [progressNotice]);
   async function pay(invoiceId: string) {
     setBusy(true);
     setMessage('');
@@ -198,6 +270,11 @@ export function CustomerDashboard({
             <span className="admin-date">MECHANIC CONSOLE</span>
           )}
         </div>
+        {progressNotice && (
+          <output className="booking-progress-notice">
+            <Bike size={16} /> {progressNotice}
+          </output>
+        )}
         <section className="admin-widget">
           <div className="admin-widget-heading">
             <h2>
@@ -205,7 +282,7 @@ export function CustomerDashboard({
             </h2>
             <Bike size={20} />
           </div>
-          {bookings.length ? (
+          {liveBookings.length ? (
             <div className="admin-table-wrap">
               <table>
                 <thead>
@@ -218,7 +295,7 @@ export function CustomerDashboard({
                   </tr>
                 </thead>
                 <tbody>
-                  {bookings.map((b) => (
+                  {liveBookings.map((b) => (
                     <tr key={b._id}>
                       <td>{b.requestNumber}</td>
                       <td>{b.vehicleName}</td>
@@ -227,6 +304,11 @@ export function CustomerDashboard({
                         <span className={`admin-status status-${b.status}`}>
                           {statusLabel(b.status)}
                         </span>
+                        <BookingStatusTracker
+                          booking={b}
+                          compact
+                          transitionKey={transitions[b._id]}
+                        />
                       </td>
                       <td>
                         {b.estimate
@@ -250,13 +332,53 @@ export function CustomerDashboard({
             </div>
           )}
         </section>
+        {viewer.role === 'CUSTOMER' && liveBookings.length > 0 && (
+          <section className="admin-widget customer-progress-details" style={{ marginTop: 25 }}>
+            <div className="admin-widget-heading">
+              <h2>Service progress</h2>
+              <Bike size={20} />
+            </div>
+            {liveBookings.map((booking) => {
+              const invoice = invoices.find((item) => item.bookingId === booking._id);
+              return (
+                <details className="admin-list-item" key={`progress-${booking._id}`}>
+                  <summary>{booking.vehicleName} — {bookingStageLabel(booking)}</summary>
+                  <BookingStatusTracker
+                    booking={booking}
+                    transitionKey={transitions[booking._id]}
+                  />
+                  {booking.inspectionPhotos?.length ? (
+                    <div className="admin-photo-grid">
+                      {booking.inspectionPhotos.map((src, index) => (
+                        <a key={src} href={src} target="_blank" rel="noreferrer">
+                          <Image
+                            src={src}
+                            width={180}
+                            height={130}
+                            unoptimized
+                            alt={`Inspection ${index + 1}`}
+                          />
+                        </a>
+                      ))}
+                    </div>
+                  ) : null}
+                  {invoice ? (
+                    <p className="admin-muted">
+                      Bill {invoice.invoiceNumber} · ₹{invoice.total.toLocaleString('en-IN')} · {invoice.paymentStatus}
+                    </p>
+                  ) : null}
+                </details>
+              );
+            })}
+          </section>
+        )}
         {viewer.role === 'CUSTOMER' &&
-          bookings.some((b) => b.intakePhotos?.length || b.faults?.length) && (
+          liveBookings.some((b) => b.intakePhotos?.length || b.faults?.length) && (
             <section className="admin-widget" style={{ marginTop: 25 }}>
               <div className="admin-widget-heading">
                 <h2>Service evidence</h2>
               </div>
-              {bookings
+              {liveBookings
                 .filter((b) => b.intakePhotos?.length || b.faults?.length)
                 .map((b) => (
                   <details

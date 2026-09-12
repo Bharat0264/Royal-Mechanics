@@ -1630,6 +1630,36 @@ body:has(.admin-shell)::-webkit-scrollbar-button,
 @keyframes sonar-ping { 70% { border-color:#65c8bb88; transform:scale(1.08); opacity:0; } 100% { opacity:0; } }
 @keyframes wet-chrome-sheen { to { background-position:-260% 0; } }
 @keyframes ignition-pulse { to { transform:scale(1.35); opacity:0; } }
+
+/* Customer service progress: persisted status becomes a molten-gold journey. */
+.booking-tracker { position:relative; padding:14px 4px 4px; overflow-x:auto; }
+.booking-tracker ol { position:relative; z-index:1; display:grid; grid-template-columns:repeat(7,minmax(82px,1fr)); gap:4px; min-width:650px; margin:0; padding:0; list-style:none; }
+.booking-tracker li { display:grid; justify-items:center; gap:7px; color:#73766f; font-size:9px; line-height:1.2; text-align:center; transition:color .42s var(--ease-liquid); }
+.booking-tracker li b { max-width:11ch; font-weight:700; }
+.booking-tracker-line { position:absolute; top:30px; right:calc(7.14% + 4px); left:calc(7.14% + 4px); height:4px; border-radius:999px; background:#ffffff15; overflow:hidden; }
+.booking-tracker-line i { display:block; width:var(--progress); height:100%; border-radius:inherit; background:linear-gradient(90deg,#b56d1d,#ffd36d 45%,#f49a2e); box-shadow:0 0 13px #f5a33c99; transition:width 1.05s var(--ease-liquid); }
+.booking-tracker-icon { position:relative; display:grid; place-items:center; width:36px; height:36px; border:1px solid #ffffff1a; border-radius:50%; background:#111215; color:#777b77; box-shadow:inset 0 1px #fff1; transition:background .42s var(--ease-liquid),color .42s var(--ease-liquid),box-shadow .42s var(--ease-liquid); }
+.booking-tracker-icon svg { width:15px; height:15px; }
+.booking-tracker .is-complete,.booking-tracker .is-current { color:#f8dfaa; }
+.booking-tracker .is-complete .booking-tracker-icon { border-color:#efb456a8; background:linear-gradient(145deg,#ffdb7b,#d67a20); color:#241308; box-shadow:inset 0 1px #fff9,0 0 12px #e9a23c66; }
+.booking-tracker .is-current .booking-tracker-icon { border-color:#ffd982; background:radial-gradient(circle,#f6b84c55,#1c1710 64%); color:#ffe4a8; box-shadow:0 0 0 5px #f6b34718,0 0 22px #f4a64175; animation:booking-stage-pulse 1.8s ease-in-out infinite; }
+.booking-tracker.is-advancing .is-current .booking-tracker-icon { animation:booking-stage-wash .78s var(--ease-liquid),booking-stage-pulse 1.8s .78s ease-in-out infinite; }
+.booking-tracker.is-advancing .booking-tracker-line i { animation:booking-line-sweep 1.05s var(--ease-liquid); }
+.booking-tracker-compact { width:min(340px,42vw); padding:8px 0 2px; }
+.booking-tracker-compact ol { min-width:250px; grid-template-columns:repeat(7,1fr); gap:0; }
+.booking-tracker-compact li b { display:none; }
+.booking-tracker-compact .booking-tracker-icon { width:17px; height:17px; }
+.booking-tracker-compact .booking-tracker-icon svg { width:9px; height:9px; }
+.booking-tracker-compact .booking-tracker-line { top:16px; right:7%; left:7%; height:2px; }
+.customer-progress-details .admin-list-item { margin:10px 0; }
+.customer-progress-details details > .booking-tracker { margin-top:13px; }
+.booking-progress-notice { position:fixed; z-index:40; right:22px; bottom:22px; display:flex; align-items:center; gap:9px; max-width:min(360px,calc(100vw - 44px)); border:1px solid #f7c866a8; border-radius:12px; padding:13px 16px; background:linear-gradient(135deg,#31200f,#17130e); box-shadow:0 14px 34px #0008,0 0 22px #edaa4544; color:#ffe3ad; font-size:12px; font-weight:700; animation:booking-notice-in .42s var(--ease-liquid); }
+@keyframes booking-line-sweep { from { filter:brightness(2.1); } to { filter:brightness(1); } }
+@keyframes booking-stage-wash { 0% { background:#fff1c0; color:#2b1608; transform:scale(.72); } 100% { transform:scale(1); } }
+@keyframes booking-stage-pulse { 50% { box-shadow:0 0 0 9px #f6b3470d,0 0 28px #f4a64195; } }
+@keyframes booking-notice-in { from { opacity:0; transform:translateY(12px); } }
+@media (max-width:700px) { .booking-tracker:not(.booking-tracker-compact) ol { grid-template-columns:1fr; min-width:0; gap:11px; padding-left:28px; } .booking-tracker:not(.booking-tracker-compact) li { grid-template-columns:36px 1fr; justify-items:start; text-align:left; } .booking-tracker:not(.booking-tracker-compact) li b { max-width:none; padding-top:11px; } .booking-tracker:not(.booking-tracker-compact) .booking-tracker-line { top:28px; bottom:20px; left:21px; right:auto; width:4px; height:auto; } .booking-tracker:not(.booking-tracker-compact) .booking-tracker-line i { width:100%; height:var(--progress); transition:height 1.05s var(--ease-liquid); } .booking-tracker-compact { width:220px; } }
+@media (prefers-reduced-motion:reduce) { .booking-tracker *, .booking-progress-notice { animation:none!important; transition-duration:0s!important; } }
 @keyframes speedometer-sweep { to { transform:rotate(70deg); } }
 @media (max-width: 1200px) { .admin-kpi { min-height:214px; } }
 @media (max-width: 850px) {
