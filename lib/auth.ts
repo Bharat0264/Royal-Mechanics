@@ -67,7 +67,18 @@ export async function throttle(key: string, max = 10) {
 export async function getViewer(): Promise<Viewer | null> {
   const jar = await cookies();
   const token = jar.get(SESSION_COOKIE)?.value;
-  if (!token) return null;
+  if (!token) {
+    if (jar.get(GUEST_COOKIE)?.value === '1')
+      return {
+        id: 'guest',
+        email: '',
+        displayName: 'Guest',
+        role: 'CUSTOMER',
+        mustChangePassword: false,
+        isGuest: true,
+      };
+    return null;
+  }
   await connectMongo();
   const session = await Session.findOne({
     tokenHash: await hashSession(token),

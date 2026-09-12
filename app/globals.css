@@ -59,12 +59,16 @@
 }
 html {
   scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
+  tap-highlight-color: transparent;
 }
 body {
   margin: 0;
   background: var(--ink);
   color: var(--paper);
   font-family: Arial, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  tap-highlight-color: transparent;
 }
 button,
 input,
@@ -74,6 +78,23 @@ textarea {
 }
 button {
   cursor: pointer;
+}
+/* Native mobile highlights fight the liquid feedback below. Keep a clear,
+   intentional keyboard focus treatment while suppressing browser tap flashes. */
+:is(button, a, [role='button'], [role='switch'], summary, input[type='checkbox']) {
+  -webkit-tap-highlight-color: transparent;
+  tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+:is(button, a, [role='button'], [role='switch'], summary, input[type='checkbox']):focus {
+  outline: none;
+}
+:is(button, a, [role='button'], [role='switch'], summary, input[type='checkbox']):active {
+  outline: none;
+}
+:is(button, a, [role='button'], [role='switch'], summary, input[type='checkbox']):focus-visible {
+  outline: 2px solid #ffd47b;
+  outline-offset: 3px;
 }
 .public-main {
   min-height: calc(100vh - 76px);
@@ -409,6 +430,8 @@ button {
   align-items: center;
   gap: 15px;
   padding: 23px;
+  color: #fff5e8;
+  text-decoration: none;
   transition:
     transform 0.25s ease,
     border-color 0.25s ease;
@@ -424,7 +447,7 @@ button {
   color: #c4b9af;
   font-size: 11px;
 }
-.service-card a {
+.service-card .service-card-arrow {
   display: grid;
   width: 28px;
   height: 28px;
@@ -926,9 +949,7 @@ button {
     grid-template-columns: 38px 1fr auto;
     gap: 13px;
   }
-  .service-card a {
-    display: none;
-  }
+  .service-card .service-card-arrow { display: none; }
   .service-card > b {
     grid-column: 2;
   }
@@ -1086,35 +1107,11 @@ button {
   background-size: 220% 100%;
   animation: molten-sheen var(--duration-slow) var(--ease-liquid) infinite;
 }
-.liquid-ripple {
-  isolation: isolate;
-}
-.liquid-ripple:after {
-  content: '';
-  pointer-events: none;
-  position: absolute;
-  z-index: 0;
-  left: var(--ripple-x, 50%);
-  top: var(--ripple-y, 50%);
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: #ffd47b80;
-  transform: translate(-50%, -50%) scale(0);
-  animation: molten-ripple var(--duration-medium) var(--ease-liquid);
-}
 @keyframes molten-sheen {
   to {
     background-position: -220% 0;
   }
 }
-@keyframes molten-ripple {
-  to {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(20);
-  }
-}
-
 /* Prevent route shells from inheriting a coloured browser-edge seam. */
 html:has(.mechanic-console),
 html:has(.admin-shell),

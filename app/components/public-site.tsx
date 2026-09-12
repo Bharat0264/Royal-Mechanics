@@ -215,20 +215,22 @@ export function ServicesPage() {
         />
         <section className="service-full-grid">
           {services.map(([name, desc, price, Icon]) => (
-            <article className="glass-card service-card" key={name}>
+            <Link
+              className="glass-card service-card"
+              href={`/book-service?service=${encodeURIComponent(name)}`}
+              key={name}
+              aria-label={`Book ${name}`}
+            >
               <Icon />
               <div>
                 <h2>{name}</h2>
                 <p>{desc}</p>
               </div>
               <b>From {price}</b>
-              <Link
-                href={`/book-service?service=${encodeURIComponent(name)}`}
-                aria-label={`Book ${name}`}
-              >
+              <span className="service-card-arrow" aria-hidden="true">
                 <ArrowRight size={18} />
-              </Link>
-            </article>
+              </span>
+            </Link>
           ))}
         </section>
       </main>
@@ -518,6 +520,7 @@ export function BookingPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           vehicleName: form.get('vehicleName'),
+          vehicleNumber: form.get('vehicleNumber'),
           phone: form.get('phone'),
           serviceCategory: form.get('serviceCategory'),
           serviceMode: form.get('serviceMode'),
@@ -616,6 +619,16 @@ export function BookingPage() {
                   required
                   name="vehicleName"
                   placeholder="e.g. Honda Activa 6G"
+                />
+              </label>
+              <label>
+                Vehicle number{' '}
+                <input
+                  required
+                  name="vehicleNumber"
+                  autoCapitalize="characters"
+                  maxLength={20}
+                  placeholder="e.g. MH 46 AB 1234"
                 />
               </label>
               <label>

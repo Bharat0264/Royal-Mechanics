@@ -44,6 +44,7 @@ const serviceRequestSchema = new Schema(
       index: true,
     },
     vehicleName: { type: String, required: true, trim: true },
+    vehicleNumber: { type: String, required: true, trim: true, uppercase: true },
     serviceCategory: { type: String, required: true, trim: true },
     serviceMode: {
       type: String,

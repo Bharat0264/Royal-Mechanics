@@ -16,6 +16,10 @@ export async function POST(request: Request) {
   > | null;
   const vehicleName =
     typeof body?.vehicleName === 'string' ? body.vehicleName.trim() : '';
+  const vehicleNumber =
+    typeof body?.vehicleNumber === 'string'
+      ? body.vehicleNumber.trim().toUpperCase()
+      : '';
   const serviceCategory =
     typeof body?.serviceCategory === 'string'
       ? body.serviceCategory.trim()
@@ -27,9 +31,9 @@ export async function POST(request: Request) {
         ? 'SELF_DROP'
         : '';
   const phone = typeof body?.phone === 'string' ? body.phone.trim() : '';
-  if (!vehicleName || !serviceCategory || !serviceMode)
+  if (!vehicleName || !vehicleNumber || !serviceCategory || !serviceMode)
     return reply(
-      { error: 'Vehicle, service category, and service mode are required.' },
+      { error: 'Vehicle, vehicle number, service category, and service mode are required.' },
       400,
     );
   if (!/^\+?[\d\s()-]{10,20}$/.test(phone))
@@ -62,6 +66,7 @@ export async function POST(request: Request) {
     requestNumber: `RM-${Date.now().toString(36).toUpperCase()}-${crypto.randomUUID().slice(0, 4).toUpperCase()}`,
     customerId: viewer.id,
     vehicleName,
+    vehicleNumber,
     serviceCategory,
     serviceMode,
     notes:
@@ -113,6 +118,7 @@ export async function GET() {
       id: String(item._id),
       requestNumber: item.requestNumber,
       vehicleName: item.vehicleName,
+      vehicleNumber: item.vehicleNumber,
       serviceCategory: item.serviceCategory,
       serviceMode: item.serviceMode,
       status: item.status,
