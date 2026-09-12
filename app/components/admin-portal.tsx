@@ -938,7 +938,6 @@ export function AdminPortal({
                 aria-label="Loading workshop data"
               >
                 <i />
-                <span>IGNITION CHECK</span>
               </div>
             </div>
           ) : (
