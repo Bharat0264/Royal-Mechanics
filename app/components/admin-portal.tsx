@@ -16,7 +16,6 @@ import {
 } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  Activity,
   ArrowDownUp,
   ArrowRight,
   Bell,
@@ -421,32 +420,6 @@ export function AdminPortal({
   // These workshop-wide metrics deliberately ignore the table's search and
   // filter state, so the dashboard always reports the actual operation.
   const allCustomers = (data?.users || []).filter((p) => p.role === 'CUSTOMER');
-  const availableMechanics = (data?.users || []).filter(
-    (p) => p.role === 'MECHANIC' && p.isAllowed,
-  );
-  const utilization = availableMechanics.length
-    ? Math.round((active.length / availableMechanics.length) * 100)
-    : null;
-  const completedInLastWeek = (data?.bookings || []).filter((booking) => {
-    if (booking.status !== 'COMPLETED' || !booking.completedAt) return false;
-    return now - new Date(booking.completedAt).getTime() <= 7 * 86400000;
-  });
-  const averageTurnaroundHours = completedInLastWeek.length
-    ? completedInLastWeek.reduce(
-        (total, booking) =>
-          total +
-          (new Date(booking.completedAt!).getTime() -
-            new Date(booking.createdAt).getTime()) /
-            3600000,
-        0,
-      ) / completedInLastWeek.length
-    : null;
-  const turnaroundValue =
-    averageTurnaroundHours === null
-      ? '—'
-      : averageTurnaroundHours < 48
-        ? `${averageTurnaroundHours.toFixed(1)} hrs`
-        : `${(averageTurnaroundHours / 24).toFixed(1)} days`;
   const approvedReviews = data?.reviews.filter((r) => r.approved) || [];
   const rating = approvedReviews.length
     ? (
@@ -454,22 +427,6 @@ export function AdminPortal({
         approvedReviews.length
       ).toFixed(1)
     : '—';
-  const activity = [
-    ...(data?.bookings || []).map((b) => ({
-      id: b._id,
-      title: `${b.requestNumber} · ${statusLabel(b.status)}`,
-      detail: `${b.customerId?.displayName || 'Customer'} · ${b.serviceCategory}`,
-      time: b.createdAt,
-    })),
-    ...(data?.reviews || []).map((r) => ({
-      id: r._id,
-      title: `New ${r.rating}-star review`,
-      detail: r.name,
-      time: r.createdAt,
-    })),
-  ]
-    .sort((a, b) => b.time.localeCompare(a.time))
-    .slice(0, 7);
   const trend = Array.from(
     { length: period === 'month' ? 30 : period === 'day' ? 1 : 7 },
     (_, i) => {
@@ -1074,28 +1031,6 @@ export function AdminPortal({
                           Math.min(100, allCustomers.length * 5),
                           false,
                         ],
-                        [
-                          Clock3,
-                          'Avg. turnaround time',
-                          turnaroundValue,
-                          averageTurnaroundHours === null
-                            ? 'No completed jobs in last 7 days'
-                            : 'Last 7 days',
-                          averageTurnaroundHours === null
-                            ? 0
-                            : Math.min(100, (averageTurnaroundHours / 72) * 100),
-                          false,
-                        ],
-                        [
-                          Wrench,
-                          'Mechanic utilization',
-                          utilization === null ? '—' : `${utilization}%`,
-                          availableMechanics.length
-                            ? 'Right now'
-                            : 'No available mechanics',
-                          Math.min(100, utilization || 0),
-                          false,
-                        ],
                       ].map(([Icon, label, value, caption, progress, alert]) => {
                         const Glyph = Icon as typeof CalendarDays;
                         return (
@@ -1234,26 +1169,6 @@ export function AdminPortal({
                             </AreaChart>
                           </ResponsiveContainer>
                         </div>
-                      </GlassPanel>
-                      <GlassPanel className="admin-widget admin-activity">
-                        <div className="admin-widget-heading">
-                          <h2>Recent activity</h2>
-                          <Activity size={17} />
-                        </div>
-                        {activity.length
-                          ? activity.map((a) => (
-                              <div className="admin-activity-item" key={a.id}>
-                                <span>
-                                  <Check size={11} />
-                                </span>
-                                <div>
-                                  <strong>{a.title}</strong>
-                                  <p>{a.detail}</p>
-                                  <small>{date(a.time)}</small>
-                                </div>
-                              </div>
-                            ))
-                          : empty('A fresh page')}
                       </GlassPanel>
                     </div>
                     <GlassPanel className="admin-widget">

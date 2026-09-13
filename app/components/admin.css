@@ -386,7 +386,7 @@
 }
 .admin-overview-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.8fr) minmax(250px, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 22px;
   margin-bottom: 24px;
 }
@@ -2654,3 +2654,14 @@ body:has(.admin-shell) {
 .admin-shell.lights-on .recharts-cartesian-grid line { stroke: rgb(58 69 82 / 12%); }
 .admin-shell.lights-on .recharts-text tspan { fill: #687684; }
 .admin-shell.lights-on .recharts-default-tooltip { background: #fff !important; border-color: rgb(185 120 24 / 34%) !important; color: #18212b !important; }
+
+/* Seven operational KPIs use complete rows at every non-mobile breakpoint. */
+@media (min-width: 1201px) {
+  .admin-kpis { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+  .admin-kpi { grid-column: span 3; }
+  .admin-kpi:nth-child(n + 5) { grid-column: span 4; }
+}
+@media (min-width: 769px) and (max-width: 1200px) {
+  .admin-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .admin-kpi:nth-child(7) { grid-column: 1 / -1; }
+}
