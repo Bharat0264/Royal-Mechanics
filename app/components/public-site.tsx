@@ -89,7 +89,7 @@ export function PublicFooter() {
             src="/royal-mechanics-logo-alpha.png"
             width={180}
             height={180}
-            quality={100}
+            unoptimized
             sizes="74px"
             alt="Royal Mechanics crest"
           />
@@ -157,7 +157,7 @@ export function HomePage() {
               src="/royal-mechanics-logo-alpha.png"
               width={620}
               height={620}
-              quality={100}
+              unoptimized
               sizes="(max-width: 700px) 280px, 410px"
               priority
               alt="Royal Mechanics crest"
@@ -574,7 +574,7 @@ export function BookingPage() {
             src="/royal-mechanics-logo-alpha.png"
             width={320}
             height={320}
-            quality={100}
+            unoptimized
             sizes="(max-width: 700px) 105px, 280px"
             priority
             alt="Royal Mechanics crest"

@@ -23,7 +23,7 @@ export default async function MechanicLayout({
             alt="Royal Mechanics"
             width={38}
             height={38}
-            quality={100}
+            unoptimized
             sizes="38px"
             priority
           />

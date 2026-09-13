@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { InternalFeedback } from './components/internal-feedback';
 import { HapticsProvider } from '@/lib/haptics';
@@ -13,6 +13,13 @@ export const metadata: Metadata = {
     'two-wheeler workshop',
     'Royal Mechanics',
   ],
+};
+
+// Controls the browser chrome as well as the document background. Keeping this
+// charcoal prevents a browser-provided purple theme strip above the app.
+export const viewport: Viewport = {
+  themeColor: '#090b0f',
+  colorScheme: 'dark',
 };
 
 export default function RootLayout({
