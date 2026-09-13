@@ -2526,3 +2526,131 @@ body:has(.admin-shell) {
   .admin-shell .admin-kpi-copy { grid-column: 2; grid-row: 2; gap: 5px; }
   .admin-shell .admin-kpi-copy small { max-width: none; }
 }
+
+/*
+ * Daylight is a real theme, not a white sheet over the night dashboard.
+ * These rules intentionally sit after the legacy experimental treatments so
+ * the `.lights-on` class replaces every canvas/material token in one pass.
+ */
+.admin-shell.lights-on {
+  --admin-gold: #b97818;
+  --admin-glass: rgb(255 255 255 / 82%);
+  --admin-glass-edge: rgb(58 69 82 / 18%);
+  --admin-glass-shadow: rgb(42 51 63 / 14%);
+  --chrome-copy: #18212b;
+  --chrome-muted: #617080;
+  color: #18212b;
+  background:
+    radial-gradient(920px 580px at 100% -12%, rgb(244 205 134 / 28%), transparent 65%),
+    radial-gradient(820px 580px at -12% 100%, rgb(167 198 222 / 25%), transparent 67%),
+    #f4f6f8;
+}
+
+.admin-shell.lights-on .admin-topbar {
+  color: #18212b;
+  border-color: rgb(58 69 82 / 16%);
+  border-top-color: rgb(255 255 255 / 92%);
+  border-left-color: rgb(255 255 255 / 78%);
+  background: rgb(249 251 253 / 82%);
+  box-shadow: inset 1px 1px 0 rgb(255 255 255 / 94%), 0 16px 38px rgb(42 51 63 / 11%);
+  backdrop-filter: blur(22px) saturate(115%);
+  -webkit-backdrop-filter: blur(22px) saturate(115%);
+}
+.admin-shell.lights-on .admin-topbar::before { background: radial-gradient(85% 125% at 48% -70%, rgb(255 255 255 / 80%), transparent 62%); }
+.admin-shell.lights-on .admin-topbar::after { background: linear-gradient(90deg, transparent, rgb(185 120 24 / 40%), transparent); }
+.admin-shell.lights-on .admin-breadcrumb { color: #687684; }
+.admin-shell.lights-on .admin-breadcrumb span { color: #9ba5af; }
+.admin-shell.lights-on .admin-breadcrumb b { color: #18212b; }
+
+.admin-shell.lights-on .admin-sidebar {
+  color: #24303c;
+  background: rgb(247 249 251 / 84%);
+  border-color: rgb(58 69 82 / 16%);
+  border-left-color: rgb(255 255 255 / 90%);
+  box-shadow: inset 1px 1px 0 rgb(255 255 255 / 95%), 0 18px 46px rgb(42 51 63 / 12%);
+  backdrop-filter: blur(24px) saturate(115%);
+  -webkit-backdrop-filter: blur(24px) saturate(115%);
+}
+.admin-shell.lights-on .admin-sidebar nav a { color: #596776; }
+.admin-shell.lights-on .admin-sidebar nav a:hover {
+  color: #18212b;
+  border-color: rgb(58 69 82 / 16%);
+  background: rgb(255 255 255 / 64%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 92%), 0 7px 17px rgb(42 51 63 / 9%);
+}
+.admin-shell.lights-on .admin-sidebar nav a.active {
+  color: #75490d;
+  border-color: rgb(185 120 24 / 43%);
+  background: rgb(239 194 111 / 30%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 90%), 0 0 0 5px rgb(185 120 24 / 7%), 0 9px 22px rgb(185 120 24 / 16%);
+}
+
+.admin-shell.lights-on :is(.admin-widget, .internal-admin .glass-panel, .admin-dialog-content) {
+  color: #18212b;
+  border-color: var(--admin-glass-edge);
+  border-top-color: rgb(255 255 255 / 94%);
+  border-left-color: rgb(255 255 255 / 80%);
+  border-right-color: rgb(58 69 82 / 13%);
+  border-bottom-color: rgb(58 69 82 / 17%);
+  background: rgb(255 255 255 / 78%);
+  box-shadow: inset 1px 1px 0 rgb(255 255 255 / 95%), inset -1px -1px 0 rgb(58 69 82 / 6%), 0 18px 46px var(--admin-glass-shadow);
+  backdrop-filter: blur(20px) saturate(112%);
+  -webkit-backdrop-filter: blur(20px) saturate(112%);
+}
+/* No decorative overlay is allowed above daylight content. */
+.admin-shell.lights-on :is(.admin-widget, .internal-admin .glass-panel, .admin-dialog-content)::before { display: none; }
+.admin-shell.lights-on :is(.admin-title-row h1, .admin-widget h1, .admin-widget h2, .admin-widget h3, .internal-admin h1, .internal-admin h2, .internal-admin h3) {
+  color: #18212b;
+  text-shadow: none;
+}
+.admin-shell.lights-on :is(.admin-widget p, .admin-widget small, .admin-kpi-label, .admin-muted, .admin-widget-heading p) { color: #647282; }
+.admin-shell.lights-on :is(.admin-widget strong, .admin-kpi-copy strong, .admin-table-wrap td, .admin-table-wrap th, .admin-record) { color: #18212b; }
+.admin-shell.lights-on .admin-kpi-copy strong { text-shadow: none; }
+
+.admin-shell.lights-on .admin-gauge-track { stroke: #d5dce4; }
+.admin-shell.lights-on .admin-gauge-value { stroke: var(--admin-gold); }
+.admin-shell.lights-on .admin-gauge-hub {
+  color: var(--admin-gold);
+  border-color: rgb(185 120 24 / 42%);
+  background: #f8fafc;
+  box-shadow: inset 0 1px rgb(255 255 255 / 96%), 0 0 0 4px rgb(244 246 248 / 90%);
+}
+.admin-shell.lights-on .admin-gauge-needle:after { box-shadow: 0 0 0 3px #f8fafc; }
+.admin-shell.lights-on .admin-kpi.is-alert .admin-kpi-copy strong { color: #8a560c; }
+
+.admin-shell.lights-on :is(.glass-button, .admin-secondary, .admin-icon, .admin-period-tabs, .admin-global-search, .admin-date, .admin-ignition, .notification-bell) {
+  color: #435160;
+  border-color: rgb(58 69 82 / 18%);
+  border-top-color: rgb(255 255 255 / 94%);
+  background: rgb(255 255 255 / 72%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 96%), 0 8px 20px rgb(42 51 63 / 10%);
+  backdrop-filter: blur(16px) saturate(110%);
+  -webkit-backdrop-filter: blur(16px) saturate(110%);
+}
+.admin-shell.lights-on .admin-global-search > svg,
+.admin-shell.lights-on .admin-topbar :is(.admin-ignition, .notification-bell):hover,
+.admin-shell.lights-on .admin-topbar .admin-ignition.is-on { color: var(--admin-gold); }
+.admin-shell.lights-on .admin-global-search input { color: #18212b; }
+.admin-shell.lights-on .admin-global-search input::placeholder { color: #718090; }
+.admin-shell.lights-on .admin-global-search:focus-within {
+  border-color: rgb(185 120 24 / 64%);
+  background: rgb(255 255 255 / 88%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 98%), 0 0 0 4px rgb(185 120 24 / 12%), 0 10px 26px rgb(42 51 63 / 12%);
+}
+.admin-shell.lights-on .admin-topbar .admin-profile { color: #18212b; }
+.admin-shell.lights-on .admin-topbar .admin-profile small { color: #687684; }
+.admin-shell.lights-on .admin-topbar .admin-avatar {
+  color: #7a4d0e;
+  border-color: rgb(185 120 24 / 58%);
+  background: #fff8e8;
+  box-shadow: inset 0 1px rgb(255 255 255 / 96%), 0 0 0 3px rgb(185 120 24 / 7%);
+}
+.admin-shell.lights-on .admin-period-tabs .glass-button { color: #596776; background: transparent; box-shadow: none; }
+.admin-shell.lights-on .admin-period-tabs .glass-button.is-active { color: #382405; background: linear-gradient(135deg, #f6cf77, #dda63e); }
+.admin-shell.lights-on .admin-status { color: #75490d; border-color: rgb(185 120 24 / 34%); background: rgb(239 194 111 / 22%); }
+.admin-shell.lights-on .admin-activity-item { border-color: rgb(58 69 82 / 12%); background: rgb(255 255 255 / 42%); }
+.admin-shell.lights-on .admin-activity-item > span { color: var(--admin-gold); border-color: rgb(185 120 24 / 34%); background: rgb(239 194 111 / 20%); }
+.admin-shell.lights-on .admin-activity-item:hover { background: rgb(239 194 111 / 16%); }
+.admin-shell.lights-on .recharts-cartesian-grid line { stroke: rgb(58 69 82 / 12%); }
+.admin-shell.lights-on .recharts-text tspan { fill: #687684; }
+.admin-shell.lights-on .recharts-default-tooltip { background: #fff !important; border-color: rgb(185 120 24 / 34%) !important; color: #18212b !important; }

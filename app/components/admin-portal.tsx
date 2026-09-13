@@ -779,7 +779,9 @@ export function AdminPortal({
               aria-pressed={shopLights}
               onClick={() => {
                 triggerHaptic('medium');
-                return setShopLights(!shopLights);
+                // A functional update makes rapid dark → light → dark taps
+                // deterministic; the shell can only ever have one theme class.
+                return setShopLights((isLight) => !isLight);
               }}
             >
               <Power size={15} />
