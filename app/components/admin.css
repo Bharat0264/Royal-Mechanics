@@ -2744,6 +2744,35 @@ body:has(.admin-shell) {
   white-space: nowrap;
 }
 
+/* Keep the value, its digital sub-readout, and its caption as one unit. */
+.admin-kpi .admin-kpi-copy {
+  display:grid;
+  grid-template-columns:minmax(0, 1fr) minmax(108px, auto);
+  grid-template-areas:
+    "value caption"
+    "readout caption"
+    "trend caption";
+  align-items:center;
+  align-content:start;
+  column-gap:14px;
+  row-gap:4px;
+}
+.admin-kpi-copy > strong { grid-area:value; align-self:end; }
+.admin-kpi-copy > small:not(.admin-kpi-readout) { grid-area:caption; align-self:center; max-width:18ch; }
+.admin-kpi-copy > .admin-kpi-readout {
+  grid-area:readout;
+  width:132px;
+  min-width:132px;
+  max-width:100%;
+  margin-top:0;
+}
+.admin-kpi-copy > .admin-kpi-trend { grid-area:trend; margin-top:0; }
+.admin-kpi-copy:not(:has(.admin-kpi-readout)) {
+  grid-template-areas:
+    "value caption"
+    "trend caption";
+}
+
 /* Premium instrument-cluster details within the existing glass card shell. */
 .admin-kpi-header { display:flex; align-items:center; justify-content:space-between; gap:8px; min-width:0; }
 .admin-kpi-header .admin-kpi-label { min-width:0; }
