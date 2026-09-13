@@ -162,7 +162,6 @@ function GaugeKpi({
   label,
   value,
   caption,
-  readout,
   progress,
   alert = false,
   trend,
@@ -172,7 +171,6 @@ function GaugeKpi({
   label: string;
   value: string | number;
   caption: string;
-  readout?: string;
   progress: number;
   alert?: boolean;
   trend?: { label: string; direction: 'up' | 'down' } | null;
@@ -236,7 +234,6 @@ function GaugeKpi({
         <strong>{value}</strong>
         <small>{caption}</small>
         {trend && <span className={`admin-kpi-trend is-${trend.direction}`}>{trend.direction === 'up' ? '▲' : '▼'} {trend.label}</span>}
-        {readout && <small className="admin-kpi-readout">{readout}</small>}
       </div>
     </GlassPanel>
   );
@@ -457,9 +454,6 @@ export function AdminPortal({
   const todayRevenue = paidInvoices
     .filter((invoice) => isToday(paymentDate(invoice)))
     .reduce((sum, invoice) => sum + invoice.total, 0);
-  const monthRevenue = paidInvoices
-    .filter((invoice) => now - new Date(paymentDate(invoice)).getTime() < 30 * 86400000)
-    .reduce((sum, invoice) => sum + invoice.total, 0);
   const totalRevenue = paidInvoices.reduce((sum, invoice) => sum + invoice.total, 0);
   const unpaidInvoices = invoices.filter(
     (invoice) => invoice.paymentStatus !== 'PAID',
@@ -503,19 +497,6 @@ export function AdminPortal({
     };
   };
   const todayBookingsCount = data?.bookings.filter((b) => isToday(b.createdAt)).length || 0;
-  const currentMonth = new Date(now).toLocaleDateString('en-CA', {
-    year: 'numeric',
-    month: '2-digit',
-    timeZone: 'Asia/Kolkata',
-  });
-  const monthBookings = (data?.bookings || []).filter(
-    (booking) =>
-      new Date(booking.createdAt).toLocaleDateString('en-CA', {
-        year: 'numeric',
-        month: '2-digit',
-        timeZone: 'Asia/Kolkata',
-      }) === currentMonth,
-  ).length;
   const bookingsTrend = comparison(todayBookingsCount, yesterdayBookings);
   const revenueTrend = comparison(todayRevenue, yesterdayRevenue);
   // These workshop-wide metrics deliberately ignore the table's search and
@@ -1080,7 +1061,6 @@ export function AdminPortal({
                           data.bookings.filter((b) => isToday(b.createdAt))
                             .length,
                           'Scheduled today',
-                          `MONTH: ${monthBookings}`,
                           Math.min(100, data.bookings.filter((b) => isToday(b.createdAt)).length * 20),
                           false,
                         ],
@@ -1089,7 +1069,6 @@ export function AdminPortal({
                           'Active jobs',
                           active.length,
                           'In the workshop',
-                          null,
                           Math.min(100, active.length * 16),
                           false,
                         ],
@@ -1098,7 +1077,6 @@ export function AdminPortal({
                           "Today's revenue",
                           money(todayRevenue),
                           'Paid · today',
-                          `MTD: ${money(monthRevenue)}`,
                           Math.min(100, (todayRevenue / 100000) * 100),
                           false,
                         ],
@@ -1107,7 +1085,6 @@ export function AdminPortal({
                           'Average rating',
                           rating,
                           `${approvedReviews.length} approved reviews`,
-                          null,
                           rating === '—' ? 0 : Number(rating) * 20,
                           false,
                         ],
@@ -1118,7 +1095,6 @@ export function AdminPortal({
                             (b) => b.status === 'AWAITING_APPROVAL',
                           ).length,
                           'Estimates to review',
-                          null,
                           Math.min(100, data.bookings.filter((b) => b.status === 'AWAITING_APPROVAL').length * 25),
                           data.bookings.some((b) => b.status === 'AWAITING_APPROVAL'),
                         ],
@@ -1127,7 +1103,6 @@ export function AdminPortal({
                           'Total revenue',
                           money(totalRevenue),
                           'All time',
-                          `PAID INVOICES: ${paidInvoices.length}`,
                           Math.min(100, (totalRevenue / 100000) * 100),
                           false,
                         ],
@@ -1136,7 +1111,6 @@ export function AdminPortal({
                           'Total customers',
                           allCustomers.length,
                           'All time',
-                          null,
                           Math.min(100, allCustomers.length * 5),
                           false,
                         ],
@@ -1145,11 +1119,10 @@ export function AdminPortal({
                           'Outstanding dues',
                           money(outstandingDues),
                           'Unpaid across all jobs',
-                          `TOTAL BILLED: ${money(totalBilled)}`,
                           outstandingProgress,
                           false,
                         ],
-                      ].map(([Icon, label, value, caption, readout, progress, alert]) => {
+                      ].map(([Icon, label, value, caption, progress, alert]) => {
                         const Glyph = Icon as typeof CalendarDays;
                         const cardTrend = String(label).startsWith('Today')
                           ? String(label).includes('revenue')
@@ -1169,7 +1142,6 @@ export function AdminPortal({
                             label={String(label)}
                             value={String(value)}
                             caption={String(caption)}
-                            readout={typeof readout === 'string' ? readout : undefined}
                             progress={Number(progress)}
                             alert={Boolean(alert)}
                             trend={cardTrend}
