@@ -7,6 +7,7 @@ import Link from 'next/link';
 import {
   useCallback,
   useEffect,
+  useId,
   useRef,
   useState,
   type CSSProperties,
@@ -164,6 +165,8 @@ function GaugeKpi({
   readout,
   progress,
   alert = false,
+  trend,
+  status,
 }: {
   Icon: typeof CalendarDays;
   label: string;
@@ -172,6 +175,8 @@ function GaugeKpi({
   readout: string;
   progress: number;
   alert?: boolean;
+  trend?: { label: string; direction: 'up' | 'down' } | null;
+  status?: string;
 }) {
   const safeProgress = Math.min(100, Math.max(0, progress));
   const style = {
@@ -181,17 +186,29 @@ function GaugeKpi({
     '--needle-opacity': safeProgress > 0 ? '1' : '0',
   } as CSSProperties;
   const tickCount = 16;
+  const gradientId = `kpi-gauge-${useId().replaceAll(':', '')}`;
   return (
     <GlassPanel className={`admin-widget admin-kpi ${alert ? 'is-alert' : ''}`}>
-      <span className="admin-kpi-label">{label}</span>
+      <div className="admin-kpi-header">
+        <span className="admin-kpi-label">{label}</span>
+        {status && <span className="admin-kpi-status"><i />{status}</span>}
+      </div>
       <div className="admin-gauge" style={style}>
         <svg viewBox="0 0 100 100" aria-hidden="true">
+          <defs>
+            <linearGradient id={gradientId} x1="7%" y1="85%" x2="88%" y2="12%">
+              <stop offset="0%" stopColor="#68c9d5" />
+              <stop offset="55%" stopColor="#d9bd5a" />
+              <stop offset="100%" stopColor="#f0bd59" />
+            </linearGradient>
+          </defs>
           <circle className="admin-gauge-track" cx="50" cy="50" r="40" />
           <circle
             className="admin-gauge-value"
             cx="50"
             cy="50"
             r="40"
+            style={{ stroke: `url(#${gradientId})` }}
           />
           <g className="admin-gauge-ticks">
             {Array.from({ length: tickCount }, (_, index) => {
@@ -218,6 +235,7 @@ function GaugeKpi({
       <div className="admin-kpi-copy">
         <strong>{value}</strong>
         <small>{caption}</small>
+        {trend && <span className={`admin-kpi-trend is-${trend.direction}`}>{trend.direction === 'up' ? '▲' : '▼'} {trend.label}</span>}
         <small className="admin-kpi-readout">{readout}</small>
       </div>
     </GlassPanel>
@@ -460,6 +478,33 @@ export function AdminPortal({
   const active = (data?.bookings || []).filter(
     (b) => !['COMPLETED', 'CANCELLED'].includes(b.status),
   );
+  const yesterday = new Date(now - 86400000).toLocaleDateString('en-CA', {
+    timeZone: 'Asia/Kolkata',
+  });
+  const yesterdayBookings = (data?.bookings || []).filter(
+    (booking) =>
+      new Date(booking.createdAt).toLocaleDateString('en-CA', {
+        timeZone: 'Asia/Kolkata',
+      }) === yesterday,
+  ).length;
+  const yesterdayRevenue = paidInvoices
+    .filter(
+      (invoice) =>
+        new Date(paymentDate(invoice)).toLocaleDateString('en-CA', {
+          timeZone: 'Asia/Kolkata',
+        }) === yesterday,
+    )
+    .reduce((sum, invoice) => sum + invoice.total, 0);
+  const comparison = (current: number, previous: number) => {
+    if (!previous || current === previous) return null;
+    return {
+      direction: current > previous ? ('up' as const) : ('down' as const),
+      label: `${Math.abs(((current - previous) / previous) * 100).toFixed(0)}% vs yesterday`,
+    };
+  };
+  const todayBookingsCount = data?.bookings.filter((b) => isToday(b.createdAt)).length || 0;
+  const bookingsTrend = comparison(todayBookingsCount, yesterdayBookings);
+  const revenueTrend = comparison(todayRevenue, yesterdayRevenue);
   // These workshop-wide metrics deliberately ignore the table's search and
   // filter state, so the dashboard always reports the actual operation.
   const allCustomers = (data?.users || []).filter((p) => p.role === 'CUSTOMER');
@@ -1093,6 +1138,17 @@ export function AdminPortal({
                         ],
                       ].map(([Icon, label, value, caption, readout, progress, alert]) => {
                         const Glyph = Icon as typeof CalendarDays;
+                        const cardTrend = String(label).startsWith('Today')
+                          ? String(label).includes('revenue')
+                            ? revenueTrend
+                            : bookingsTrend
+                          : null;
+                        const cardStatus =
+                          String(label) === 'Pending approvals' && Number(value) > 0
+                            ? 'Attention'
+                            : String(label) === 'Outstanding dues' && outstandingDues > 0
+                              ? 'Due'
+                              : undefined;
                         return (
                           <GaugeKpi
                             key={String(label)}
@@ -1103,6 +1159,8 @@ export function AdminPortal({
                             readout={String(readout)}
                             progress={Number(progress)}
                             alert={Boolean(alert)}
+                            trend={cardTrend}
+                            status={cardStatus}
                           />
                         );
                       })}
