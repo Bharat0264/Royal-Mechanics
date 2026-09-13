@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getViewer } from '@/lib/auth';
@@ -12,12 +13,26 @@ export default async function MechanicLayout({
   const viewer = await getViewer();
   if (!viewer || viewer.isGuest || viewer.role !== 'MECHANIC')
     redirect(roleHomePath(viewer?.role));
+
   return (
     <div className="mechanic-console">
-      <header>
-        <Link href="/mechanic">♛ ROYAL MECHANICS / WORKSHOP</Link>
-        <span>{viewer.displayName}</span>
-        <MechanicSignout />
+      <header className="mechanic-topbar">
+        <Link className="mechanic-brand" href="/mechanic">
+          <Image
+            src="/royal-mechanics-logo-alpha.png"
+            alt="Royal Mechanics"
+            width={38}
+            height={38}
+            priority
+          />
+          <span>
+            ROYAL MECHANICS <small>WORKSHOP</small>
+          </span>
+        </Link>
+        <div className="mechanic-account">
+          <span>{viewer.displayName}</span>
+          <MechanicSignout />
+        </div>
       </header>
       <main>{children}</main>
     </div>

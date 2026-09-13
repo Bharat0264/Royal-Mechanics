@@ -45,6 +45,53 @@
     0 14px 34px #0004;
   backdrop-filter: blur(20px);
 }
+.mechanic-console,
+html:has(.mechanic-console),
+body:has(.mechanic-console) { background: #090b0f !important; }
+.mechanic-console .mechanic-topbar {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: 68px;
+  margin-bottom: 28px;
+  padding: 10px 16px;
+  border: 1px solid rgb(235 244 255 / 16%);
+  border-top-color: rgb(255 255 255 / 27%);
+  border-left-color: rgb(255 255 255 / 20%);
+  border-radius: 28px;
+  background: linear-gradient(145deg, rgb(225 237 250 / 11%), rgb(143 164 190 / 5%));
+  box-shadow: inset 1px 1px 0 rgb(255 255 255 / 10%), inset -1px -1px 0 rgb(0 0 0 / 16%), 0 18px 46px rgb(0 0 0 / 30%);
+  backdrop-filter: blur(24px) saturate(125%);
+  -webkit-backdrop-filter: blur(24px) saturate(125%);
+}
+.mechanic-topbar::before {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(100% 90% at 42% -52%, rgb(255 255 255 / 18%), transparent 62%);
+}
+.mechanic-topbar > * { position: relative; z-index: 1; }
+.mechanic-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: #eff2f5 !important;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .13em;
+}
+.mechanic-brand img {
+  border: 1px solid rgb(232 184 75 / 40%);
+  border-radius: 50%;
+  background: rgb(232 184 75 / 7%);
+  box-shadow: 0 0 0 3px rgb(232 184 75 / 5%);
+}
+.mechanic-brand small { display: block; margin-top: 2px; color: #e8b84b; font-size: 7px; letter-spacing: .2em; }
+.mechanic-account { display: flex; align-items: center; gap: 12px; color: #c6ced7; font-size: 11px; }
+.mechanic-account > div { display: contents; }
+.mechanic-account button { min-height: 38px !important; padding: 8px 12px !important; border-radius: 999px !important; }
 .mechanic-console a {
   color: #edbf70;
   text-decoration: none;
