@@ -5,7 +5,7 @@ export function AdminSidebar({ children }: { children: ReactNode }) {
   return (
     <aside className="admin-sidebar" aria-label="Workshop administration">
       <Link className="admin-sidebar-crest" href="/admin" aria-label="Royal Mechanics admin dashboard">
-        <Image src="/royal-mechanics-logo-alpha.png" alt="" width={44} height={44} priority />
+        <Image src="/royal-mechanics-logo-alpha.png" alt="" width={44} height={44} quality={100} sizes="44px" priority />
       </Link>
       {children}
     </aside>

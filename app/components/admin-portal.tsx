@@ -628,9 +628,6 @@ export function AdminPortal({
       )}
       <div className="admin-workspace">
         <header className={`admin-topbar ${mobileSearchOpen ? 'mobile-search-open' : ''}`}>
-          <Link className="admin-topbar-brand" href="/admin" aria-label="Royal Mechanics admin dashboard">
-            <Image src="/royal-mechanics-logo-alpha.png" alt="" width={34} height={34} priority />
-          </Link>
           <div className="admin-topbar-controls">
           <button
             className="admin-menu admin-icon"

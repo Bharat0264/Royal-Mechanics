@@ -238,6 +238,8 @@ export function AuthExperience({
             alt="Royal Mechanics"
             width={54}
             height={54}
+            quality={100}
+            sizes="54px"
           />
           <span>
             ROYAL <small>MECHANICS</small>
@@ -253,6 +255,8 @@ export function AuthExperience({
               src="/royal-mechanics-logo-alpha.png"
               width={430}
               height={430}
+              quality={100}
+              sizes="(max-width: 800px) 220px, 430px"
               priority
               alt="Royal Mechanics golden crest"
             />
@@ -289,6 +293,8 @@ export function AuthExperience({
             src="/royal-mechanics-logo-alpha.png"
             width={72}
             height={72}
+            quality={100}
+            sizes="72px"
             priority
             alt="Royal Mechanics"
           />

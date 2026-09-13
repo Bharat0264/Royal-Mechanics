@@ -285,6 +285,8 @@ export function PublicHeader() {
           src="/royal-mechanics-logo-alpha.png"
           width={74}
           height={74}
+          quality={100}
+          sizes="74px"
           priority
           alt=""
         />
