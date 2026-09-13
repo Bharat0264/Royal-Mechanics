@@ -76,6 +76,8 @@ const serviceRequestSchema = new Schema(
       default: [],
     },
     readyAt: Date,
+    // Immutable lifecycle marker used for real intake-to-completion reporting.
+    completedAt: Date,
     sentAt: Date,
     status: {
       type: String,

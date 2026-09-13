@@ -95,6 +95,7 @@ export async function POST(request: Request) {
             inspectionPhotos: urls(data.inspectionPhotos),
             mechanicId: mechanic ? mechanic._id : null,
             mechanicEmail: mechanic ? mechanic.email : null,
+            completedAt: data.status === 'COMPLETED' ? new Date() : null,
           },
         },
         { runValidators: true },

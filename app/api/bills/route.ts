@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     const method = ['CASH', 'UPI', 'CARD'].includes(body.paymentMethod) ? body.paymentMethod : 'CASH';
     bill.paymentStatus = 'PAID'; bill.paymentMethod = method; bill.paymentConfirmedAt = new Date();
     await bill.save();
-    if (bill.bookingId) await ServiceRequest.findByIdAndUpdate(bill.bookingId, { status: 'COMPLETED' });
+    if (bill.bookingId) await ServiceRequest.findByIdAndUpdate(bill.bookingId, { status: 'COMPLETED', completedAt: new Date() });
     return reply({ ok: true, message: `${method === 'CASH' ? 'Cash' : method} payment collected. The paid bill is now in the customer portal.` });
   }
   if (body.action === 'send') {

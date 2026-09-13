@@ -83,6 +83,7 @@ type Booking = {
   mechanicEmail?: string;
   status: string;
   createdAt: string;
+  completedAt?: string;
   preferredSlot?: string;
   notes?: string;
   estimate?: number;
@@ -417,6 +418,35 @@ export function AdminPortal({
   const active = (data?.bookings || []).filter(
     (b) => !['COMPLETED', 'CANCELLED'].includes(b.status),
   );
+  // These workshop-wide metrics deliberately ignore the table's search and
+  // filter state, so the dashboard always reports the actual operation.
+  const allCustomers = (data?.users || []).filter((p) => p.role === 'CUSTOMER');
+  const availableMechanics = (data?.users || []).filter(
+    (p) => p.role === 'MECHANIC' && p.isAllowed,
+  );
+  const utilization = availableMechanics.length
+    ? Math.round((active.length / availableMechanics.length) * 100)
+    : null;
+  const completedInLastWeek = (data?.bookings || []).filter((booking) => {
+    if (booking.status !== 'COMPLETED' || !booking.completedAt) return false;
+    return now - new Date(booking.completedAt).getTime() <= 7 * 86400000;
+  });
+  const averageTurnaroundHours = completedInLastWeek.length
+    ? completedInLastWeek.reduce(
+        (total, booking) =>
+          total +
+          (new Date(booking.completedAt!).getTime() -
+            new Date(booking.createdAt).getTime()) /
+            3600000,
+        0,
+      ) / completedInLastWeek.length
+    : null;
+  const turnaroundValue =
+    averageTurnaroundHours === null
+      ? '—'
+      : averageTurnaroundHours < 48
+        ? `${averageTurnaroundHours.toFixed(1)} hrs`
+        : `${(averageTurnaroundHours / 24).toFixed(1)} days`;
   const approvedReviews = data?.reviews.filter((r) => r.approved) || [];
   const rating = approvedReviews.length
     ? (
@@ -1027,6 +1057,44 @@ export function AdminPortal({
                           'Estimates to review',
                           Math.min(100, data.bookings.filter((b) => b.status === 'AWAITING_APPROVAL').length * 25),
                           data.bookings.some((b) => b.status === 'AWAITING_APPROVAL'),
+                        ],
+                        [
+                          CircleDollarSign,
+                          'Total profit',
+                          'Coming soon',
+                          `This ${period} · cost input needed`,
+                          0,
+                          false,
+                        ],
+                        [
+                          Users,
+                          'Total customers',
+                          allCustomers.length,
+                          'All time',
+                          Math.min(100, allCustomers.length * 5),
+                          false,
+                        ],
+                        [
+                          Clock3,
+                          'Avg. turnaround time',
+                          turnaroundValue,
+                          averageTurnaroundHours === null
+                            ? 'No completed jobs in last 7 days'
+                            : 'Last 7 days',
+                          averageTurnaroundHours === null
+                            ? 0
+                            : Math.min(100, (averageTurnaroundHours / 72) * 100),
+                          false,
+                        ],
+                        [
+                          Wrench,
+                          'Mechanic utilization',
+                          utilization === null ? '—' : `${utilization}%`,
+                          availableMechanics.length
+                            ? 'Right now'
+                            : 'No available mechanics',
+                          Math.min(100, utilization || 0),
+                          false,
                         ],
                       ].map(([Icon, label, value, caption, progress, alert]) => {
                         const Glyph = Icon as typeof CalendarDays;
