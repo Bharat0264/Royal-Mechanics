@@ -2655,13 +2655,12 @@ body:has(.admin-shell) {
 .admin-shell.lights-on .recharts-text tspan { fill: #687684; }
 .admin-shell.lights-on .recharts-default-tooltip { background: #fff !important; border-color: rgb(185 120 24 / 34%) !important; color: #18212b !important; }
 
-/* Seven operational KPIs use complete rows at every non-mobile breakpoint. */
+/* Eight operational KPIs use two complete rows at every non-mobile breakpoint. */
 @media (min-width: 1201px) {
-  .admin-kpis { grid-template-columns: repeat(12, minmax(0, 1fr)); }
-  .admin-kpi { grid-column: span 3; }
-  .admin-kpi:nth-child(n + 5) { grid-column: span 4; }
+  .admin-kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .admin-kpi { grid-column: auto; }
 }
 @media (min-width: 769px) and (max-width: 1200px) {
   .admin-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .admin-kpi:nth-child(7) { grid-column: 1 / -1; }
+  .admin-kpi { grid-column: auto; }
 }

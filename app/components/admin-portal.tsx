@@ -32,6 +32,7 @@ import {
   Menu,
   Plus,
   Power,
+  Receipt,
   Search,
   Settings,
   ShieldCheck,
@@ -414,6 +415,23 @@ export function AdminPortal({
         (period === 'day' ? 1 : period === 'week' ? 7 : 30) * 86400000,
     )
     .reduce((sum, i) => sum + i.total, 0);
+  // Costs are not recorded yet, so current profit is revenue less a real
+  // zero-cost baseline. The caption makes that limitation explicit.
+  const totalProfit = revenue;
+  const unpaidInvoices = (data?.invoices || []).filter(
+    (invoice) => invoice.paymentStatus !== 'PAID',
+  );
+  const outstandingDues = unpaidInvoices.reduce(
+    (sum, invoice) => sum + invoice.total,
+    0,
+  );
+  const totalBilled = (data?.invoices || []).reduce(
+    (sum, invoice) => sum + invoice.total,
+    0,
+  );
+  const outstandingProgress = totalBilled
+    ? Math.min(100, (outstandingDues / totalBilled) * 100)
+    : 0;
   const active = (data?.bookings || []).filter(
     (b) => !['COMPLETED', 'CANCELLED'].includes(b.status),
   );
@@ -1018,9 +1036,9 @@ export function AdminPortal({
                         [
                           CircleDollarSign,
                           'Total profit',
-                          'Coming soon',
-                          `This ${period} · cost input needed`,
-                          0,
+                          money(totalProfit),
+                          `This ${period} · costs not yet tracked`,
+                          Math.min(100, (totalProfit / 100000) * 100),
                           false,
                         ],
                         [
@@ -1029,6 +1047,14 @@ export function AdminPortal({
                           allCustomers.length,
                           'All time',
                           Math.min(100, allCustomers.length * 5),
+                          false,
+                        ],
+                        [
+                          Receipt,
+                          'Outstanding dues',
+                          money(outstandingDues),
+                          'Unpaid across all jobs',
+                          outstandingProgress,
                           false,
                         ],
                       ].map(([Icon, label, value, caption, progress, alert]) => {
