@@ -217,6 +217,8 @@ export function AdminPortal({
   const [busy, setBusy] = useMinimumBusy();
   const [mobile, setMobile] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const topbarRef = useRef<HTMLElement>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('all');
   const [ascending, setAscending] = useState(false);
@@ -253,6 +255,16 @@ export function AdminPortal({
     const timer = setTimeout(() => setNotice(''), 4500);
     return () => clearTimeout(timer);
   }, [notice]);
+  useEffect(() => {
+    if (!popover) return;
+    const closeOnOutsideTap = (event: PointerEvent) => {
+      const target = event.target as Node;
+      const anchor = popover === 'profile' ? profileRef.current : topbarRef.current;
+      if (!anchor?.contains(target)) setPopover('');
+    };
+    document.addEventListener('pointerdown', closeOnOutsideTap);
+    return () => document.removeEventListener('pointerdown', closeOnOutsideTap);
+  }, [popover]);
   async function signout() {
     await fetch('/api/auth/signout', { method: 'POST' });
     router.replace('/');
@@ -590,7 +602,7 @@ export function AdminPortal({
           Viewing as Guest · Sign in for full access
         </output>
       )}
-      <AdminSidebar>
+      <AdminSidebar onClose={() => setMobile(false)}>
         <nav aria-label="Admin navigation">
           {nav.map(([id, label, Icon]) => (
             <Link
@@ -609,6 +621,7 @@ export function AdminPortal({
               onClick={() => setMobile(false)}
             >
               <Icon size={18} />
+              <span>{label}</span>
               {id === 'reviews' && pendingReviews > 0 && (
                 <b>{pendingReviews}</b>
               )}
@@ -627,7 +640,7 @@ export function AdminPortal({
         />
       )}
       <div className="admin-workspace">
-        <header className={`admin-topbar ${mobileSearchOpen ? 'mobile-search-open' : ''}`}>
+        <header ref={topbarRef} className={`admin-topbar ${mobileSearchOpen ? 'mobile-search-open' : ''}`}>
           <div className="admin-topbar-controls">
           <button
             className="admin-menu admin-icon"
@@ -639,6 +652,9 @@ export function AdminPortal({
           >
             <Menu size={20} />
           </button>
+          <Link className="admin-mobile-brand" href="/admin" aria-label="Royal Mechanics admin dashboard">
+            <Image src="/royal-mechanics-logo-alpha.png" alt="" width={34} height={34} sizes="34px" unoptimized priority />
+          </Link>
           <div className="admin-global-search-wrap">
             <label className="admin-global-search">
               <Search size={15} />
@@ -802,7 +818,7 @@ export function AdminPortal({
               </div>
             )}
           </div>
-          <div className="admin-popover-anchor">
+          <div className="admin-popover-anchor" ref={profileRef}>
             <button
               className="admin-profile"
               onClick={() => {
@@ -821,7 +837,7 @@ export function AdminPortal({
               <ChevronDown size={13} />
             </button>
             {popover === 'profile' && (
-              <div className="admin-popover">
+              <div className="admin-popover admin-profile-popover">
                 <b>{viewer.email}</b>
                 <p className="admin-profile-role">Administrator</p>
                 <Link href="/admin/settings">Account settings</Link>
