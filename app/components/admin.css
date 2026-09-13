@@ -2664,3 +2664,91 @@ body:has(.admin-shell) {
   .admin-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .admin-kpi { grid-column: auto; }
 }
+
+/* KPI dials: a recessed instrument face, scale ticks, and machined hub. */
+.admin-kpi { grid-template-rows: auto 96px auto; }
+.admin-gauge {
+  width: 96px;
+  height: 96px;
+  isolation: isolate;
+}
+.admin-gauge svg { overflow: visible; }
+.admin-gauge :is(.admin-gauge-track, .admin-gauge-value) { stroke-width: 4.5; }
+.admin-gauge-track { stroke: rgb(213 222 233 / 18%); }
+.admin-gauge-value {
+  stroke: var(--gauge-color);
+  filter: drop-shadow(0 0 4px rgb(232 184 75 / 62%));
+}
+.admin-gauge-ticks line {
+  stroke: rgb(226 233 240 / 38%);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  transition: stroke .4s var(--ease-liquid), opacity .4s var(--ease-liquid);
+}
+.admin-gauge-ticks line:nth-child(4n + 1) { stroke-width: 2.1; }
+.admin-gauge-ticks line.is-reached {
+  stroke: #f0bd59;
+  filter: drop-shadow(0 0 2px rgb(232 184 75 / 56%));
+}
+.admin-gauge-needle {
+  z-index: 2;
+  width: 2px;
+  height: 33px;
+  border-radius: 999px;
+  background: linear-gradient(to top, #835613, #ffe5a4);
+  box-shadow: 0 0 7px rgb(232 184 75 / 76%);
+}
+.admin-gauge-needle:after {
+  width: 9px;
+  height: 9px;
+  background: #f3c35e;
+  box-shadow: 0 0 0 3px #0b0f14, 0 0 7px rgb(232 184 75 / 70%);
+}
+.admin-gauge-hub {
+  z-index: 3;
+  width: 38px;
+  height: 38px;
+  overflow: hidden;
+  border: 1px solid rgb(236 240 242 / 72%);
+  background:
+    conic-gradient(from 18deg, #eceff0, #58616a 12%, #bdc3c6 25%, #4c555e 39%, #eef0ee 52%, #5a626b 66%, #c6cbcc 79%, #565f67 91%, #eceff0);
+  color: #f1c15b;
+  box-shadow: inset 0 0 0 2px rgb(8 11 15 / 78%), inset 0 0 0 4px rgb(228 234 237 / 20%), 0 0 0 4px rgb(7 10 14 / 82%), 0 4px 11px rgb(0 0 0 / 55%);
+}
+.admin-gauge-hub::before {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  inset: 5px;
+  border: 1px solid rgb(226 232 235 / 20%);
+  border-radius: inherit;
+  background: radial-gradient(circle at 35% 30%, #28313a, #080b0f 72%);
+  box-shadow: inset 0 1px rgb(255 255 255 / 10%);
+}
+.admin-gauge-hub svg { position: relative; z-index: 1; width: 15px; height: 15px; filter: drop-shadow(0 1px 1px rgb(0 0 0 / 70%)); }
+.admin-kpi-readout {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin-top: 5px;
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 3px;
+  padding: 3px 5px;
+  color: #e4bd69 !important;
+  background: #090c11;
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 70%);
+  font: 700 8px/1 ui-monospace, SFMono-Regular, Consolas, monospace !important;
+  letter-spacing: .04em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (max-width: 768px) {
+  .admin-kpi { grid-template-rows: auto 78px auto; }
+  .admin-gauge { width: 78px; height: 78px; }
+  .admin-gauge-needle { height: 26px; }
+  .admin-gauge-hub { width: 32px; height: 32px; }
+  .admin-gauge-hub::before { inset: 4px; }
+  .admin-gauge-hub svg { width: 13px; height: 13px; }
+  .admin-kpi-readout { max-width: 18ch; font-size: 7px !important; }
+}

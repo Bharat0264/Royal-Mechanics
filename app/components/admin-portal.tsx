@@ -40,6 +40,7 @@ import {
   Sparkles,
   Star,
   Users,
+  WalletCards,
   Wrench,
   X,
 } from 'lucide-react';
@@ -124,6 +125,7 @@ type Data = {
     vehicleName?: string;
     total: number;
     updatedAt: string;
+    paymentConfirmedAt?: string;
     paymentStatus?: string;
     paymentMethod?: string;
     customerName?: string;
@@ -159,6 +161,7 @@ function GaugeKpi({
   label,
   value,
   caption,
+  readout,
   progress,
   alert = false,
 }: {
@@ -166,6 +169,7 @@ function GaugeKpi({
   label: string;
   value: string | number;
   caption: string;
+  readout: string;
   progress: number;
   alert?: boolean;
 }) {
@@ -176,6 +180,7 @@ function GaugeKpi({
     '--gauge-color': '#e8b84b',
     '--needle-opacity': safeProgress > 0 ? '1' : '0',
   } as CSSProperties;
+  const tickCount = 16;
   return (
     <GlassPanel className={`admin-widget admin-kpi ${alert ? 'is-alert' : ''}`}>
       <span className="admin-kpi-label">{label}</span>
@@ -188,6 +193,24 @@ function GaugeKpi({
             cy="50"
             r="40"
           />
+          <g className="admin-gauge-ticks">
+            {Array.from({ length: tickCount }, (_, index) => {
+              const angle = (index / tickCount) * Math.PI * 2 - Math.PI / 2;
+              const innerRadius = index % 4 === 0 ? 43 : 45;
+              const outerRadius = 49;
+              const reached = (index / (tickCount - 1)) * 100 <= safeProgress;
+              return (
+                <line
+                  key={index}
+                  className={reached ? 'is-reached' : undefined}
+                  x1={50 + Math.cos(angle) * innerRadius}
+                  y1={50 + Math.sin(angle) * innerRadius}
+                  x2={50 + Math.cos(angle) * outerRadius}
+                  y2={50 + Math.sin(angle) * outerRadius}
+                />
+              );
+            })}
+          </g>
         </svg>
         <i className="admin-gauge-needle" />
         <span className="admin-gauge-hub"><Icon aria-hidden="true" /></span>
@@ -195,6 +218,7 @@ function GaugeKpi({
       <div className="admin-kpi-copy">
         <strong>{value}</strong>
         <small>{caption}</small>
+        <small className="admin-kpi-readout">{readout}</small>
       </div>
     </GlassPanel>
   );
@@ -408,24 +432,25 @@ export function AdminPortal({
     new Date(s).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }) ===
     today;
   const [now] = useState(() => Date.now());
-  const revenue = (data?.invoices || [])
-    .filter(
-      (i) =>
-        now - new Date(i.updatedAt).getTime() <
-        (period === 'day' ? 1 : period === 'week' ? 7 : 30) * 86400000,
-    )
-    .reduce((sum, i) => sum + i.total, 0);
-  // Costs are not recorded yet, so current profit is revenue less a real
-  // zero-cost baseline. The caption makes that limitation explicit.
-  const totalProfit = revenue;
-  const unpaidInvoices = (data?.invoices || []).filter(
+  const invoices = data?.invoices || [];
+  const paidInvoices = invoices.filter((invoice) => invoice.paymentStatus === 'PAID');
+  const paymentDate = (invoice: (typeof invoices)[number]) =>
+    invoice.paymentConfirmedAt || invoice.updatedAt;
+  const todayRevenue = paidInvoices
+    .filter((invoice) => isToday(paymentDate(invoice)))
+    .reduce((sum, invoice) => sum + invoice.total, 0);
+  const monthRevenue = paidInvoices
+    .filter((invoice) => now - new Date(paymentDate(invoice)).getTime() < 30 * 86400000)
+    .reduce((sum, invoice) => sum + invoice.total, 0);
+  const totalRevenue = paidInvoices.reduce((sum, invoice) => sum + invoice.total, 0);
+  const unpaidInvoices = invoices.filter(
     (invoice) => invoice.paymentStatus !== 'PAID',
   );
   const outstandingDues = unpaidInvoices.reduce(
     (sum, invoice) => sum + invoice.total,
     0,
   );
-  const totalBilled = (data?.invoices || []).reduce(
+  const totalBilled = invoices.reduce(
     (sum, invoice) => sum + invoice.total,
     0,
   );
@@ -459,7 +484,8 @@ export function AdminPortal({
         revenue: (data?.invoices || [])
           .filter(
             (x) =>
-              new Date(x.updatedAt).toLocaleDateString('en-CA', {
+              x.paymentStatus === 'PAID' &&
+              new Date(paymentDate(x)).toLocaleDateString('en-CA', {
                 timeZone: 'Asia/Kolkata',
               }) === day,
           )
@@ -996,6 +1022,7 @@ export function AdminPortal({
                           data.bookings.filter((b) => isToday(b.createdAt))
                             .length,
                           'Scheduled today',
+                          `Total ${data.bookings.length}`,
                           Math.min(100, data.bookings.filter((b) => isToday(b.createdAt)).length * 20),
                           false,
                         ],
@@ -1004,15 +1031,17 @@ export function AdminPortal({
                           'Active jobs',
                           active.length,
                           'In the workshop',
+                          `Open ${active.length}`,
                           Math.min(100, active.length * 16),
                           false,
                         ],
                         [
                           CircleDollarSign,
-                          'Revenue',
-                          money(revenue),
-                          `Paid · this ${period}`,
-                          Math.min(100, (revenue / 100000) * 100),
+                          "Today's revenue",
+                          money(todayRevenue),
+                          'Paid · today',
+                          `This month ${money(monthRevenue)}`,
+                          Math.min(100, (todayRevenue / 100000) * 100),
                           false,
                         ],
                         [
@@ -1020,7 +1049,8 @@ export function AdminPortal({
                           'Average rating',
                           rating,
                           `${approvedReviews.length} approved reviews`,
-                          Number(rating) * 20,
+                          `Reviews ${approvedReviews.length}`,
+                          rating === '—' ? 0 : Number(rating) * 20,
                           false,
                         ],
                         [
@@ -1030,15 +1060,17 @@ export function AdminPortal({
                             (b) => b.status === 'AWAITING_APPROVAL',
                           ).length,
                           'Estimates to review',
+                          `Open ${active.length}`,
                           Math.min(100, data.bookings.filter((b) => b.status === 'AWAITING_APPROVAL').length * 25),
                           data.bookings.some((b) => b.status === 'AWAITING_APPROVAL'),
                         ],
                         [
-                          CircleDollarSign,
-                          'Total profit',
-                          money(totalProfit),
-                          `This ${period} · costs not yet tracked`,
-                          Math.min(100, (totalProfit / 100000) * 100),
+                          WalletCards,
+                          'Total revenue',
+                          money(totalRevenue),
+                          'All time',
+                          `Paid invoices ${paidInvoices.length}`,
+                          Math.min(100, (totalRevenue / 100000) * 100),
                           false,
                         ],
                         [
@@ -1046,6 +1078,7 @@ export function AdminPortal({
                           'Total customers',
                           allCustomers.length,
                           'All time',
+                          `Bookings ${data.bookings.length}`,
                           Math.min(100, allCustomers.length * 5),
                           false,
                         ],
@@ -1054,10 +1087,11 @@ export function AdminPortal({
                           'Outstanding dues',
                           money(outstandingDues),
                           'Unpaid across all jobs',
+                          `Billed ${money(totalBilled)}`,
                           outstandingProgress,
                           false,
                         ],
-                      ].map(([Icon, label, value, caption, progress, alert]) => {
+                      ].map(([Icon, label, value, caption, readout, progress, alert]) => {
                         const Glyph = Icon as typeof CalendarDays;
                         return (
                           <GaugeKpi
@@ -1066,6 +1100,7 @@ export function AdminPortal({
                             label={String(label)}
                             value={String(value)}
                             caption={String(caption)}
+                            readout={String(readout)}
                             progress={Number(progress)}
                             alert={Boolean(alert)}
                           />
