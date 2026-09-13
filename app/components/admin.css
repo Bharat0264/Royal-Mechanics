@@ -2296,9 +2296,13 @@ body:has(.admin-shell) {
     width: min(260px, calc(100vw - 28px));
   }
   .admin-shell .admin-topbar.mobile-search-open .admin-topbar-controls { position: relative; }
+  .admin-shell .admin-topbar.mobile-search-open .admin-topbar-controls > :not(.admin-global-search-wrap) {
+    visibility: hidden;
+    pointer-events: none;
+  }
   .admin-shell .admin-topbar.mobile-search-open .admin-global-search-wrap {
     position: absolute;
-    z-index: 5;
+    z-index: 10;
     inset: 3px;
     display: block;
     margin: 0;
@@ -2306,13 +2310,16 @@ body:has(.admin-shell) {
   .admin-shell .admin-topbar.mobile-search-open .admin-global-search {
     width: 100%;
     min-height: 48px;
-    padding-right: 44px;
+    padding-left: 48px;
+    padding-right: 14px;
   }
+  .admin-shell .admin-topbar.mobile-search-open .admin-global-search > svg { display: none; }
   .admin-shell .admin-topbar.mobile-search-open .admin-mobile-search-close {
     position: absolute;
     z-index: 1;
     top: 50%;
-    right: 7px;
+    left: 7px;
+    right: auto;
     display: grid;
     width: 34px;
     height: 34px;
