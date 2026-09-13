@@ -2665,86 +2665,101 @@ body:has(.admin-shell) {
   .admin-kpi { grid-column: auto; }
 }
 
-/* KPI dials: a recessed instrument face, scale ticks, and machined hub. */
-.admin-kpi { grid-template-rows: auto 96px auto; }
+/* Gold-on-steel HUD KPI panels. The outer glass silhouette stays shared with the portal. */
+.admin-kpi {
+  grid-template-rows: auto minmax(128px, 1fr);
+  min-height: 208px;
+  gap: 9px;
+  padding: 17px;
+  border-color: rgb(169 183 195 / 31%);
+  background-color: #0a0e13;
+  background-image:
+    radial-gradient(circle at 18% 55%, rgb(217 164 65 / 13%), transparent 30%),
+    repeating-linear-gradient(0deg, rgb(255 255 255 / 2.3%) 0 1px, transparent 1px 4px),
+    linear-gradient(135deg, #151c25 0%, #0c1118 43%, #080b10 100%);
+  box-shadow: inset 0 1px rgb(255 255 255 / 13%), inset 0 -1px rgb(0 0 0 / 70%), 0 13px 28px rgb(0 0 0 / 28%);
+}
+.admin-kpi-instrument {
+  display: grid !important;
+  grid-template-columns: clamp(112px, 9vw, 132px) minmax(0, 1fr);
+  min-height: 128px;
+  align-items: center;
+  gap: 17px;
+  color: inherit;
+}
 .admin-gauge {
-  width: 96px;
-  height: 96px;
+  display: grid !important;
+  place-items: center;
+  width: clamp(112px, 9vw, 132px);
+  height: clamp(112px, 9vw, 132px);
   isolation: isolate;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 28%, #2b3540 0 4%, #101821 39%, #05080c 68%, #1a232d 70% 72%, #05070a 73%);
+  box-shadow: inset 0 1px rgb(255 255 255 / 11%), inset 0 -9px 18px rgb(0 0 0 / 70%), 0 0 26px rgb(217 164 65 / 14%);
 }
-.admin-gauge svg { overflow: visible; }
-.admin-gauge :is(.admin-gauge-track, .admin-gauge-value) { stroke-width: 4.5; }
-.admin-gauge-track { stroke: rgb(213 222 233 / 18%); }
-.admin-gauge-value {
-  stroke: var(--gauge-color);
-  filter: drop-shadow(0 0 4px rgb(232 184 75 / 62%));
-}
-.admin-gauge-ticks line {
-  stroke: rgb(226 233 240 / 38%);
-  stroke-width: 1.5;
-  stroke-linecap: round;
-  transition: stroke .4s var(--ease-liquid), opacity .4s var(--ease-liquid);
-}
-.admin-gauge-ticks line:nth-child(4n + 1) { stroke-width: 2.1; }
-.admin-gauge-ticks line.is-reached {
-  stroke: #f0bd59;
-  filter: drop-shadow(0 0 2px rgb(232 184 75 / 56%));
-}
-.admin-gauge-needle {
-  z-index: 2;
-  width: 2px;
-  height: 33px;
-  border-radius: 999px;
-  background: linear-gradient(to top, #835613, #ffe5a4);
-  box-shadow: 0 0 7px rgb(232 184 75 / 76%);
-}
-.admin-gauge-needle:after {
-  width: 9px;
-  height: 9px;
-  background: #f3c35e;
-  box-shadow: 0 0 0 3px #0b0f14, 0 0 7px rgb(232 184 75 / 70%);
-}
-.admin-gauge-hub {
-  z-index: 3;
-  width: 38px;
-  height: 38px;
-  overflow: hidden;
-  border: 1px solid rgb(236 240 242 / 72%);
-  background:
-    conic-gradient(from 18deg, #eceff0, #58616a 12%, #bdc3c6 25%, #4c555e 39%, #eef0ee 52%, #5a626b 66%, #c6cbcc 79%, #565f67 91%, #eceff0);
-  color: #f1c15b;
-  box-shadow: inset 0 0 0 2px rgb(8 11 15 / 78%), inset 0 0 0 4px rgb(228 234 237 / 20%), 0 0 0 4px rgb(7 10 14 / 82%), 0 4px 11px rgb(0 0 0 / 55%);
-}
-.admin-gauge-hub::before {
-  content: '';
+.admin-gauge-bolt-ring {
   position: absolute;
   z-index: 0;
-  inset: 5px;
-  border: 1px solid rgb(226 232 235 / 20%);
+  inset: -8px;
+  display: block;
+  border: 1px solid #d8e0e4;
+  border-radius: 50%;
+  background: conic-gradient(from 20deg, #4b5359, #d9dfe0 7%, #565e65 14%, #eef0ed 22%, #30383f 32%, #bbc1c1 48%, #444c53 61%, #f0f1ed 77%, #495159 90%, #d9dfe0);
+  box-shadow: inset 2px 2px 4px rgb(255 255 255 / 32%), inset -4px -5px 8px rgb(0 0 0 / 70%), 0 2px 6px rgb(0 0 0 / 75%);
+}
+.admin-gauge-bolt-ring::before {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border: 2px solid rgb(8 11 15 / 92%);
   border-radius: inherit;
-  background: radial-gradient(circle at 35% 30%, #28313a, #080b0f 72%);
-  box-shadow: inset 0 1px rgb(255 255 255 / 10%);
+  box-shadow: inset 0 1px rgb(255 255 255 / 22%), 0 0 0 1px rgb(224 229 230 / 42%);
 }
-.admin-gauge-hub svg { position: relative; z-index: 1; width: 15px; height: 15px; filter: drop-shadow(0 1px 1px rgb(0 0 0 / 70%)); }
-/* Keep the primary value and caption as one compact visual unit. */
+.admin-gauge-bolt-ring i {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 11px;
+  height: 11px;
+  border: 1px solid #e1e5e4;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 30%, #f8f8f2 0 9%, #8c9598 18% 30%, #171d23 35% 55%, #758084 59% 68%, #11161c 73%);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 90%), inset 0 1px rgb(255 255 255 / 48%);
+  transform: rotate(calc(var(--bolt-index) * 30deg)) translateY(calc(clamp(112px, 9vw, 132px) / -2.06)) rotate(calc(var(--bolt-index) * -30deg));
+}
+.admin-gauge svg { position: relative; z-index: 2; width: 74%; height: 74%; overflow: visible; }
+.admin-gauge :is(.admin-gauge-track, .admin-gauge-value) { stroke-width: 3.7; }
+.admin-gauge-track { stroke: rgb(201 211 215 / 18%); }
+.admin-gauge-value { stroke: var(--gauge-color); filter: drop-shadow(0 0 4px rgb(217 164 65 / 80%)); }
+.admin-gauge-ticks line { stroke: rgb(185 197 202 / 27%); stroke-width: 1.45; stroke-linecap: round; }
+.admin-gauge-ticks line:nth-child(4n + 1) { stroke-width: 2.15; }
+.admin-gauge-ticks line.is-reached { stroke: #e9b54d; filter: drop-shadow(0 0 2px rgb(217 164 65 / 88%)); }
+.admin-gauge-needle { z-index: 4; width: 2px; height: 36%; background: linear-gradient(to top, #8a5715, #ffe3a0); box-shadow: 0 0 8px rgb(217 164 65 / 88%); }
+.admin-gauge-needle:after { width: 9px; height: 9px; background: #f1bd58; box-shadow: 0 0 0 3px #0b1016, 0 0 8px rgb(217 164 65 / 76%); }
+.admin-gauge-hub { z-index: 5; width: 43px; height: 43px; color: #e7ecea; border: 1px solid #e9c569; background: radial-gradient(circle at 35% 30%, #28323a, #080b0f 72%); box-shadow: inset 0 1px rgb(255 255 255 / 12%), 0 0 0 3px rgb(10 13 17 / 90%), 0 0 0 4px rgb(217 164 65 / 76%), 0 0 14px rgb(217 164 65 / 38%); }
+.admin-gauge-hub::before { inset: 5px; background: radial-gradient(circle at 34% 28%, #293440, #070a0e 72%); }
+.admin-gauge-hub svg { position: relative; z-index: 1; width: 16px; height: 16px; color: #e7ecea; filter: drop-shadow(0 1px 1px rgb(0 0 0 / 78%)); }
 .admin-kpi .admin-kpi-copy {
-  display:grid;
-  grid-template-columns:minmax(0, 1fr) minmax(108px, auto);
-  grid-template-areas:
-    "value caption"
-    "trend caption";
-  align-items:center;
-  align-content:start;
-  column-gap:14px;
-  row-gap:4px;
+  display: flex !important;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  min-width: 0;
+  min-height: 104px;
+  padding-left: 17px;
+  border-left: 1px solid rgb(202 214 220 / 12%);
+  box-shadow: -8px 0 14px -14px rgb(255 255 255 / 44%);
 }
-.admin-kpi-copy > strong { grid-area:value; align-self:end; }
-.admin-kpi-copy > small { grid-area:caption; align-self:center; max-width:18ch; }
-.admin-kpi-copy > .admin-kpi-trend { grid-area:trend; margin-top:0; }
+.admin-kpi .admin-kpi-copy > strong { margin: 0 !important; color: #fbf5e9; font: 800 clamp(35px, 3.1vw, 50px)/.94 Inter, Arial, sans-serif; letter-spacing: -.065em; text-shadow: 0 0 14px rgb(217 164 65 / 34%), 0 2px 8px rgb(0 0 0 / 74%); }
+.admin-kpi .admin-kpi-copy > small { max-width: 19ch; margin-top: 8px; color: #aab3b2; font: 700 9px/1.35 Inter, Arial, sans-serif; letter-spacing: .13em; text-transform: uppercase; }
+.admin-kpi-trend { margin-top: 5px; }
+.admin-kpi-scanline { position: relative; display: block; width: min(100%, 150px); height: 3px; margin-top: 10px; overflow: hidden; background: repeating-linear-gradient(135deg, rgb(142 90 23 / 44%) 0 5px, transparent 5px 9px); box-shadow: 0 0 0 1px rgb(255 255 255 / 5%); }
+.admin-kpi-scanline::before { content: ''; position: absolute; inset: 0 auto 0 0; width: var(--gauge-progress); min-width: 2px; background: linear-gradient(90deg, #b8791f, #f3c35e 72%, transparent); box-shadow: 0 0 8px rgb(217 164 65 / 76%); }
 
 /* Premium instrument-cluster details within the existing glass card shell. */
 .admin-kpi-header { display:flex; align-items:center; justify-content:space-between; gap:8px; min-width:0; }
 .admin-kpi-header .admin-kpi-label { min-width:0; }
+.admin-kpi-header .admin-kpi-label::after { content: ' //'; color: #e5af47; text-shadow: 0 0 8px rgb(217 164 65 / 48%); }
 .admin-kpi-status {
   display:inline-flex;
   flex:0 0 auto;
@@ -2760,32 +2775,7 @@ body:has(.admin-shell) {
   text-transform:uppercase;
 }
 .admin-kpi-status i { width:5px; height:5px; border-radius:50%; background:#f0bd59; box-shadow:0 0 6px rgb(240 189 89 / 86%); }
-.admin-gauge::before {
-  content:'';
-  position:absolute;
-  z-index:-1;
-  inset:-7px;
-  border-radius:50%;
-  background:repeating-conic-gradient(from 0deg, rgb(224 230 233 / 46%) 0deg 3deg, rgb(75 84 94 / 58%) 3deg 7deg, transparent 7deg 11.25deg);
-  -webkit-mask:radial-gradient(circle, transparent 0 61%, #000 62% 78%, transparent 79%);
-  mask:radial-gradient(circle, transparent 0 61%, #000 62% 78%, transparent 79%);
-  filter:drop-shadow(0 2px 2px rgb(0 0 0 / 64%));
-}
-.admin-gauge::after {
-  content:'';
-  position:absolute;
-  z-index:-2;
-  inset:2px;
-  border:1px solid rgb(224 232 238 / 18%);
-  border-radius:50%;
-  background:radial-gradient(circle at 36% 28%, rgb(45 54 64 / 78%), rgb(7 10 14 / 94%) 68%);
-  box-shadow:inset 0 1px rgb(255 255 255 / 9%), inset 0 -7px 12px rgb(0 0 0 / 45%);
-}
-.admin-kpi.is-alert .admin-gauge::after { animation:dash-alert 1.4s ease-in-out infinite; }
-.admin-gauge-hub { color:#e4e8e9; }
-.admin-kpi-copy strong {
-  text-shadow:0 0 10px rgb(232 184 75 / 22%), 0 2px 8px rgb(0 0 0 / 46%);
-}
+.admin-kpi.is-alert .admin-gauge { box-shadow: inset 0 1px rgb(255 255 255 / 11%), inset 0 -9px 18px rgb(0 0 0 / 70%), 0 0 29px rgb(217 164 65 / 30%); }
 .admin-kpi-trend {
   display:block;
   width:fit-content;
@@ -2796,10 +2786,22 @@ body:has(.admin-shell) {
 .admin-kpi-trend.is-up { color:#80d7ae; text-shadow:0 0 8px rgb(87 210 153 / 22%); }
 .admin-kpi-trend.is-down { color:#e88b82; text-shadow:0 0 8px rgb(232 111 101 / 18%); }
 @media (max-width: 768px) {
-  .admin-kpi { grid-template-rows: auto 78px auto; }
-  .admin-gauge { width: 78px; height: 78px; }
-  .admin-gauge-needle { height: 26px; }
-  .admin-gauge-hub { width: 32px; height: 32px; }
+  .admin-shell .admin-kpi { min-height: 166px; grid-template-columns: none; grid-template-rows: auto minmax(114px, 1fr); gap: 8px; padding: 15px; }
+  .admin-shell .admin-kpi-instrument { grid-template-columns: 104px minmax(0, 1fr); min-height: 112px; gap: 15px; }
+  .admin-shell .admin-gauge { grid-column: auto; grid-row: auto; width: 104px; height: 104px; }
+  .admin-gauge-bolt-ring i { transform: rotate(calc(var(--bolt-index) * 30deg)) translateY(-50px) rotate(calc(var(--bolt-index) * -30deg)); }
+  .admin-gauge-needle { height: 34%; }
+  .admin-gauge-hub { width: 36px; height: 36px; }
   .admin-gauge-hub::before { inset: 4px; }
   .admin-gauge-hub svg { width: 13px; height: 13px; }
+  .admin-shell .admin-kpi-copy { grid-column: auto; grid-row: auto; min-height: 92px; padding-left: 14px; gap: 0; }
+  .admin-kpi .admin-kpi-copy > strong { font-size: 39px; }
+  .admin-kpi .admin-kpi-copy > small { margin-top: 6px; font-size: 8px; }
+  .admin-kpi-scanline { margin-top: 8px; }
 }
+
+.admin-shell.lights-on .admin-kpi { border-color: rgb(68 82 96 / 20%); background-color: #edf0f3; background-image: repeating-linear-gradient(0deg, rgb(38 51 66 / 2.4%) 0 1px, transparent 1px 4px), linear-gradient(135deg, #f8fafb, #e9edf1); box-shadow: inset 0 1px #fff, 0 12px 26px rgb(49 62 76 / 12%); }
+.admin-shell.lights-on .admin-gauge { background: radial-gradient(circle at 35% 28%, #d8e0e5 0 4%, #72808b 39%, #33404a 68%, #c4cdd3 70% 72%, #55616b 73%); }
+.admin-shell.lights-on .admin-kpi .admin-kpi-copy { border-left-color: rgb(44 57 70 / 14%); }
+.admin-shell.lights-on .admin-kpi .admin-kpi-copy > strong { color: #17212b; }
+.admin-shell.lights-on .admin-kpi .admin-kpi-copy > small { color: #5c6976; }

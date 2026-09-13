@@ -180,10 +180,11 @@ function GaugeKpi({
   const style = {
     '--gauge-offset': String(251 - (251 * safeProgress) / 100),
     '--needle-turn': `${safeProgress * 3.6}deg`,
+    '--gauge-progress': `${safeProgress}%`,
     '--gauge-color': '#e8b84b',
     '--needle-opacity': safeProgress > 0 ? '1' : '0',
   } as CSSProperties;
-  const tickCount = 16;
+  const tickCount = 24;
   const gradientId = `kpi-gauge-${useId().replaceAll(':', '')}`;
   return (
     <GlassPanel className={`admin-widget admin-kpi ${alert ? 'is-alert' : ''}`}>
@@ -191,49 +192,57 @@ function GaugeKpi({
         <span className="admin-kpi-label">{label}</span>
         {status && <span className="admin-kpi-status"><i />{status}</span>}
       </div>
-      <div className="admin-gauge" style={style}>
-        <svg viewBox="0 0 100 100" aria-hidden="true">
-          <defs>
-            <linearGradient id={gradientId} x1="7%" y1="85%" x2="88%" y2="12%">
-              <stop offset="0%" stopColor="#68c9d5" />
-              <stop offset="55%" stopColor="#d9bd5a" />
-              <stop offset="100%" stopColor="#f0bd59" />
-            </linearGradient>
-          </defs>
-          <circle className="admin-gauge-track" cx="50" cy="50" r="40" />
-          <circle
-            className="admin-gauge-value"
-            cx="50"
-            cy="50"
-            r="40"
-            style={{ stroke: `url(#${gradientId})` }}
-          />
-          <g className="admin-gauge-ticks">
-            {Array.from({ length: tickCount }, (_, index) => {
-              const angle = (index / tickCount) * Math.PI * 2 - Math.PI / 2;
-              const innerRadius = index % 4 === 0 ? 43 : 45;
-              const outerRadius = 49;
-              const reached = (index / (tickCount - 1)) * 100 <= safeProgress;
-              return (
-                <line
-                  key={index}
-                  className={reached ? 'is-reached' : undefined}
-                  x1={50 + Math.cos(angle) * innerRadius}
-                  y1={50 + Math.sin(angle) * innerRadius}
-                  x2={50 + Math.cos(angle) * outerRadius}
-                  y2={50 + Math.sin(angle) * outerRadius}
-                />
-              );
-            })}
-          </g>
-        </svg>
-        <i className="admin-gauge-needle" />
-        <span className="admin-gauge-hub"><Icon aria-hidden="true" /></span>
-      </div>
-      <div className="admin-kpi-copy">
-        <strong>{value}</strong>
-        <small>{caption}</small>
-        {trend && <span className={`admin-kpi-trend is-${trend.direction}`}>{trend.direction === 'up' ? '▲' : '▼'} {trend.label}</span>}
+      <div className="admin-kpi-instrument">
+        <div className="admin-gauge" style={style}>
+          <span className="admin-gauge-bolt-ring" aria-hidden="true">
+            {Array.from({ length: 12 }, (_, index) => (
+              <i key={index} style={{ '--bolt-index': index } as CSSProperties} />
+            ))}
+          </span>
+          <svg viewBox="0 0 100 100" aria-hidden="true">
+            <defs>
+              <linearGradient id={gradientId} x1="7%" y1="85%" x2="88%" y2="12%">
+                <stop offset="0%" stopColor="#b8791f" />
+                <stop offset="55%" stopColor="#d9a441" />
+                <stop offset="100%" stopColor="#ffe19a" />
+              </linearGradient>
+            </defs>
+            <circle className="admin-gauge-track" cx="50" cy="50" r="40" />
+            <circle
+              className="admin-gauge-value"
+              cx="50"
+              cy="50"
+              r="40"
+              style={{ stroke: `url(#${gradientId})` }}
+            />
+            <g className="admin-gauge-ticks">
+              {Array.from({ length: tickCount }, (_, index) => {
+                const angle = (index / tickCount) * Math.PI * 2 - Math.PI / 2;
+                const innerRadius = index % 4 === 0 ? 43 : 45;
+                const outerRadius = 49;
+                const reached = (index / (tickCount - 1)) * 100 <= safeProgress;
+                return (
+                  <line
+                    key={index}
+                    className={reached ? 'is-reached' : undefined}
+                    x1={50 + Math.cos(angle) * innerRadius}
+                    y1={50 + Math.sin(angle) * innerRadius}
+                    x2={50 + Math.cos(angle) * outerRadius}
+                    y2={50 + Math.sin(angle) * outerRadius}
+                  />
+                );
+              })}
+            </g>
+          </svg>
+          <i className="admin-gauge-needle" />
+          <span className="admin-gauge-hub"><Icon aria-hidden="true" /></span>
+        </div>
+        <div className="admin-kpi-copy">
+          <strong>{value}</strong>
+          <small>{caption}</small>
+          {trend && <span className={`admin-kpi-trend is-${trend.direction}`}>{trend.direction === 'up' ? '▲' : '▼'} {trend.label}</span>}
+          <span className="admin-kpi-scanline" aria-hidden="true" />
+        </div>
       </div>
     </GlassPanel>
   );
