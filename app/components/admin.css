@@ -2455,6 +2455,8 @@ body:has(.admin-shell) {
     width: 40px;
     height: 40px;
     flex: 0 0 40px;
+    margin-left: 2px;
+    margin-right: 2px;
     place-items: center;
     border: 1px solid rgb(232 184 75 / 36%);
     border-radius: 50%;

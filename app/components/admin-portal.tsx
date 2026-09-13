@@ -642,6 +642,9 @@ export function AdminPortal({
       <div className="admin-workspace">
         <header ref={topbarRef} className={`admin-topbar ${mobileSearchOpen ? 'mobile-search-open' : ''}`}>
           <div className="admin-topbar-controls">
+          <Link className="admin-mobile-brand" href="/admin" aria-label="Royal Mechanics admin dashboard">
+            <Image src="/royal-mechanics-logo-alpha.png" alt="" width={34} height={34} sizes="34px" unoptimized priority />
+          </Link>
           <button
             className="admin-menu admin-icon"
             aria-label="Toggle navigation"
@@ -652,9 +655,6 @@ export function AdminPortal({
           >
             <Menu size={20} />
           </button>
-          <Link className="admin-mobile-brand" href="/admin" aria-label="Royal Mechanics admin dashboard">
-            <Image src="/royal-mechanics-logo-alpha.png" alt="" width={34} height={34} sizes="34px" unoptimized priority />
-          </Link>
           <div className="admin-global-search-wrap">
             <label className="admin-global-search">
               <Search size={15} />
