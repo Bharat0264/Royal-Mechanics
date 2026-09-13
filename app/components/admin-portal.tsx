@@ -64,6 +64,7 @@ import './admin.css';
 import { GlassPanel } from './glass-panel';
 import { GlassButton } from './glass-button';
 import { AdminSidebar } from './admin-sidebar';
+import { useWorkshopTheme } from './workshop-theme-provider';
 
 type Person = {
   _id: string;
@@ -230,7 +231,7 @@ export function AdminPortal({
   const [period, setPeriod] = useState('week');
   const [popover, setPopover] = useState('');
   const [editor, setEditor] = useState<Editor | null>(null);
-  const [shopLights, setShopLights] = useState(false);
+  const { isLight: shopLights, toggleTheme } = useWorkshopTheme();
   const dialog = useRef<HTMLDialogElement>(null);
   const load = useCallback(async () => {
     setLoading(true);
@@ -814,9 +815,7 @@ export function AdminPortal({
               aria-pressed={shopLights}
               onClick={() => {
                 triggerHaptic('medium');
-                // A functional update makes rapid dark → light → dark taps
-                // deterministic; the shell can only ever have one theme class.
-                return setShopLights((isLight) => !isLight);
+                return toggleTheme();
               }}
             >
               <Power size={15} />

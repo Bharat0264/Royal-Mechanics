@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from 'next';
+import { cookies } from 'next/headers';
 import './globals.css';
 import { InternalFeedback } from './components/internal-feedback';
+import { WorkshopThemeProvider } from './components/workshop-theme-provider';
 import { HapticsProvider } from '@/lib/haptics';
 
 export const metadata: Metadata = {
@@ -22,18 +24,22 @@ export const viewport: Viewport = {
   colorScheme: 'dark',
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const initialLight = cookieStore.get('royal-mechanics-theme')?.value === 'light';
   return (
     <html lang="en" data-scroll-behavior="smooth">
       <body>
-        <HapticsProvider>
-          <InternalFeedback />
-          {children}
-        </HapticsProvider>
+        <WorkshopThemeProvider initialLight={initialLight}>
+          <HapticsProvider>
+            <InternalFeedback />
+            {children}
+          </HapticsProvider>
+        </WorkshopThemeProvider>
         <script
           id="royal-mechanics-local-business"
           type="application/ld+json"
