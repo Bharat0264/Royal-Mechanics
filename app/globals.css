@@ -204,12 +204,18 @@ button {
   font-weight: 800;
   letter-spacing: 0.19em;
 }
+.premium-hero .kicker {
+  display: flex;
+  align-items: center;
+  margin: 0;
+}
 .kicker i {
-  display: inline-block;
+  display: block;
+  flex: 0 0 27px;
   width: 27px;
-  margin: 0 8px 3px 0;
-  border-top: 1px solid #ffad53;
-  vertical-align: middle;
+  height: 1px;
+  margin: 0 8px 0 0;
+  background: #ffad53;
 }
 .premium-hero h1,
 .page-intro h1,
@@ -938,7 +944,7 @@ button {
   }
   .premium-hero {
     min-height: auto;
-    padding: 65px 24px 35px;
+    padding: 32px 24px 28px;
   }
   .premium-hero h1 {
     font-size: 64px;
