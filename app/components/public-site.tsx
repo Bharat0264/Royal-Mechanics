@@ -187,7 +187,7 @@ export function HomePage() {
           </div>
         </section>
         <section className="quote-strip">
-          <Bike className="quote-bike" size={12} strokeWidth={1.6} aria-hidden="true" />
+          <Bike className="quote-bike" size={22} strokeWidth={1.6} aria-hidden="true" />
           <blockquote>
             “Precision service, explained in plain language, every time.”
           </blockquote>
