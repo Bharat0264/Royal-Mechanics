@@ -5,7 +5,7 @@ export function SiteFooterCredit() {
   return (
     <div className="site-footer-credit">
       <p>© {year} Royal Mechanics. All Rights Reserved.</p>
-      <p>Website designed &amp; developed by BR Web Studio.</p>
+      <p>Website designed &amp; developed by B&amp;M Works.</p>
     </div>
   );
 }
