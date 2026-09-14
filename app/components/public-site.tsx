@@ -127,16 +127,6 @@ function PageIntro({
     </section>
   );
 }
-function Stars() {
-  return (
-    <span className="stars" aria-label="5 out of 5 stars">
-      {Array.from({ length: 5 }, (_, i) => (
-        <Star key={i} size={14} fill="currentColor" />
-      ))}
-    </span>
-  );
-}
-
 export function HomePage() {
   const services = useServices();
   return (
@@ -197,11 +187,10 @@ export function HomePage() {
           </div>
         </section>
         <section className="quote-strip">
-          <Stars />
+          <Bike className="quote-bike" size={24} strokeWidth={1.6} aria-hidden="true" />
           <blockquote>
-            “The workshop experience every rider deserves.”
+            “Precision service, explained in plain language, every time.”
           </blockquote>
-          <span>— Dev, KTM Duke 390</span>
         </section>
       </main>
       <PublicFooter />

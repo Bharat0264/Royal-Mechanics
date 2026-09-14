@@ -386,6 +386,11 @@ button {
 .quote-strip .stars {
   justify-content: center;
 }
+.quote-bike {
+  display: block;
+  margin: 0 auto;
+  color: #ffad53;
+}
 .quote-strip blockquote {
   margin: 18px auto 12px;
   color: #fff5e8;
