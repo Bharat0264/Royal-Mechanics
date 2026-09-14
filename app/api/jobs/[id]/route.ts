@@ -1,17 +1,21 @@
 import { NextResponse } from 'next/server';
-import { getViewer, sameOrigin } from '@/lib/auth';
+import { getViewer, requestThrottle, sameOrigin } from '@/lib/auth';
 import { connectMongo } from '@/lib/mongodb';
 import { ServiceRequest } from '@/lib/models';
+import { isValidObjectId } from 'mongoose';
 
 const reply = (body: unknown, status = 200) =>
   NextResponse.json(body, { status });
-const image = (value: unknown) =>
-  typeof value === 'string' &&
-  (/^https?:\/\//i.test(value.trim()) ||
-    /^data:image\/(?:jpeg|png|webp);base64,/i.test(value.trim())) &&
-  value.length < 2_000_000
-    ? value.trim()
-    : '';
+const image = (value: unknown) => {
+  if (typeof value !== 'string') return '';
+  const source = value.trim();
+  if (/^https:\/\//i.test(source) && source.length <= 2_048) return source;
+  const match = /^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/]+={0,2})$/i.exec(source);
+  // Data URLs are the current capture transport, not arbitrary file uploads.
+  // Restrict their MIME type and decoded size to one megabyte per evidence image.
+  if (!match || match[2].length > 1_398_104) return '';
+  return source;
+};
 
 export async function PATCH(
   request: Request,
@@ -22,7 +26,10 @@ export async function PATCH(
   const viewer = await getViewer();
   if (!viewer || viewer.isGuest || !['ADMIN', 'MECHANIC'].includes(viewer.role))
     return reply({ error: 'Mechanic or admin access required.' }, 403);
+  if (!(await requestThrottle(request, 'job-update', 40, viewer.id)))
+    return reply({ error: 'Too many requests. Please try again later.' }, 429);
   const { id } = await context.params;
+  if (!isValidObjectId(id)) return reply({ error: 'Invalid job ID.' }, 400);
   const body = await request.json().catch(() => ({}));
   await connectMongo();
   const booking = await ServiceRequest.findById(id);

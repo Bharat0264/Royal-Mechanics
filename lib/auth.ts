@@ -6,8 +6,7 @@ import { connectMongo } from '@/lib/mongodb';
 import { AuthThrottle, Session, User } from '@/lib/models';
 import { roleHomePath } from '@/lib/role-redirect';
 
-export const ADMIN_EMAIL =
-  process.env.ADMIN_EMAIL || 'bharathsaipulipati@gmail.com';
+export const ADMIN_EMAIL = process.env.ADMIN_EMAIL?.trim().toLowerCase();
 export const SESSION_COOKIE = 'royal_mechanics_session';
 export const GUEST_COOKIE = 'royal_mechanics_guest';
 export type Viewer = {
@@ -49,7 +48,22 @@ export function validPassword(value: unknown): value is string {
 }
 export function sameOrigin(request: Request) {
   const origin = request.headers.get('origin');
-  return !origin || origin === new URL(request.url).origin;
+  if (origin) return origin === new URL(request.url).origin;
+  // Browsers attach Origin to JSON mutations. Permit the rare same-site
+  // navigation request without weakening cross-site CSRF protection.
+  const fetchSite = request.headers.get('sec-fetch-site');
+  return fetchSite === 'same-origin' || fetchSite === 'same-site';
+}
+export function clientAddress(request: Request) {
+  return request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+}
+export async function requestThrottle(
+  request: Request,
+  namespace: string,
+  max: number,
+  identity = '',
+) {
+  return throttle(`${namespace}:${clientAddress(request)}:${identity}`, max);
 }
 export async function throttle(key: string, max = 10) {
   await connectMongo();
@@ -119,7 +133,9 @@ export async function issueSession(
     });
   result.cookies.set(SESSION_COOKIE, raw, {
     httpOnly: true,
-    secure: new URL(request.url).protocol === 'https:',
+    secure:
+      process.env.NODE_ENV === 'production' ||
+      new URL(request.url).protocol === 'https:',
     sameSite: 'lax',
     path: '/',
     maxAge,
@@ -127,7 +143,9 @@ export async function issueSession(
   });
   result.cookies.set('royal_mechanics_role', String(user.role), {
     httpOnly: true,
-    secure: new URL(request.url).protocol === 'https:',
+    secure:
+      process.env.NODE_ENV === 'production' ||
+      new URL(request.url).protocol === 'https:',
     sameSite: 'lax',
     path: '/',
     maxAge,
@@ -140,7 +158,9 @@ export async function issueSession(
 /** A browser-session-only viewer. It deliberately creates no User or Session record. */
 export function issueGuestSession(request: Request) {
   const result = NextResponse.json({ ok: true, redirect: '/' });
-  const secure = new URL(request.url).protocol === 'https:';
+  const secure =
+    process.env.NODE_ENV === 'production' ||
+    new URL(request.url).protocol === 'https:';
   result.cookies.set(GUEST_COOKIE, '1', {
     httpOnly: true,
     secure,

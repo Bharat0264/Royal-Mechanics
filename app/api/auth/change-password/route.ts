@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getViewer, hashPassword, sameOrigin, validPassword } from '@/lib/auth';
+import { getViewer, hashPassword, requestThrottle, sameOrigin, validPassword } from '@/lib/auth';
 import { connectMongo } from '@/lib/mongodb';
 import { User } from '@/lib/models';
 
@@ -9,6 +9,8 @@ export async function POST(request: Request) {
   const viewer = await getViewer();
   if (!viewer || viewer.role !== 'MECHANIC')
     return NextResponse.json({ error: 'Mechanic access required.' }, { status: 403 });
+  if (!(await requestThrottle(request, 'change-password', 5, viewer.id)))
+    return NextResponse.json({ error: 'Too many attempts. Please try again later.' }, { status: 429 });
   const body = await request.json().catch(() => ({}));
   if (!validPassword(body.password))
     return NextResponse.json(

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import './globals.css';
 import { InternalFeedback } from './components/internal-feedback';
 import { WorkshopThemeProvider } from './components/workshop-theme-provider';
@@ -30,6 +30,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const cookieStore = await cookies();
+  const nonce = (await headers()).get('x-nonce') || undefined;
   const initialLight = cookieStore.get('royal-mechanics-theme')?.value === 'light';
   return (
     <html lang="en" data-scroll-behavior="smooth">
@@ -43,6 +44,7 @@ export default async function RootLayout({
         <script
           id="royal-mechanics-local-business"
           type="application/ld+json"
+          nonce={nonce}
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               '@context': 'https://schema.org',

@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import './loader.css';
 let fullStarted = 0;
 export function remainingFullLoaderTime() {
@@ -10,10 +10,10 @@ export function finishFullLoader() { fullStarted = 0; }
 
 export function useMinimumBusy(initial = false) {
   const [busy, update] = useState(initial);
-  const started = useRef(Date.now());
+  const started = useRef(0);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   useEffect(() => () => clearTimeout(timer.current), []);
-  function setBusy(value: boolean) {
+  const setBusy = useCallback((value: boolean) => {
     clearTimeout(timer.current);
     if (value) {
       started.current = Date.now();
@@ -23,7 +23,7 @@ export function useMinimumBusy(initial = false) {
         () => update(false),
         Math.max(0, 300 - (Date.now() - started.current)),
       );
-  }
+  }, []);
   return [busy, setBusy] as const;
 }
 export function Loader({
@@ -35,9 +35,8 @@ export function Loader({
 }) {
   useEffect(() => { if (size === 'full') remainingFullLoaderTime(); }, [size]);
   return (
-    <span
+    <output
       className={`rm-loader rm-loader-${size}`}
-      role="status"
       aria-label={label}
     >
       {size !== 'skeleton' && (
@@ -62,6 +61,6 @@ export function Loader({
         </svg>
       )}
       {size === 'full' && <span>ROYAL MECHANICS</span>}
-    </span>
+    </output>
   );
 }

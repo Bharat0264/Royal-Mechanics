@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { getViewer, sameOrigin } from '@/lib/auth';
 import { connectMongo } from '@/lib/mongodb';
 import { Invoice, ServiceRequest } from '@/lib/models';
+import { isValidObjectId } from 'mongoose';
+import { requestThrottle } from '@/lib/auth';
 
 const reply = (body: unknown, status = 200) => NextResponse.json(body, { status });
 const money = (value: unknown) => Math.round(Number(value || 0) * 100) / 100;
@@ -20,7 +22,11 @@ export async function POST(request: Request) {
   const viewer = await getViewer();
   if (viewer?.role !== 'ADMIN' || viewer.isGuest)
     return reply({ error: viewer?.isGuest ? 'Sign in to make changes.' : 'Admin access required.' }, 403);
+  if (!(await requestThrottle(request, 'billing', 30, viewer.id)))
+    return reply({ error: 'Too many requests. Please try again later.' }, 429);
   const body = await request.json().catch(() => ({}));
+  const id = body.action === 'collect' || body.action === 'send' ? body.invoiceId : body.bookingId;
+  if (!isValidObjectId(id)) return reply({ error: 'Invalid record ID.' }, 400);
   await connectMongo();
   if (body.action === 'collect') {
     const bill = await Invoice.findById(body.invoiceId);
@@ -44,11 +50,11 @@ export async function POST(request: Request) {
   const booking = await ServiceRequest.findById(body.bookingId).populate('customerId', 'displayName email');
   if (!booking) return reply({ error: 'Booking not found.' }, 404);
   if (await Invoice.exists({ bookingId: booking._id })) return reply({ error: 'This booking already has a bill.' }, 409);
-  const items = Array.isArray(body.items) ? body.items.map((item: { name?: string; quantity?: number; unitPrice?: number }) => {
-    const quantity = Math.max(1, Number(item.quantity || 1));
+  const items = Array.isArray(body.items) && body.items.length <= 50 ? body.items.map((item: { name?: string; quantity?: number; unitPrice?: number }) => {
+    const quantity = Math.min(1_000, Math.max(1, Number(item.quantity || 1)));
     const unitPrice = money(item.unitPrice);
-    return { name: String(item.name || '').trim(), quantity, unitPrice, amount: money(quantity * unitPrice) };
-  }).filter((item: { name: string }) => item.name) : [];
+    return { name: String(item.name || '').trim().slice(0, 120), quantity, unitPrice, amount: money(quantity * unitPrice) };
+  }).filter((item: { name: string; unitPrice: number }) => item.name && Number.isFinite(item.unitPrice) && item.unitPrice >= 0 && item.unitPrice <= 10_000_000) : [];
   if (!items.length) return reply({ error: 'Add at least one bill item.' }, 400);
   const subtotal = money(items.reduce((sum: number, item: { amount: number }) => sum + item.amount, 0));
   const taxRate = Math.min(28, Math.max(0, Number(body.taxRate || 0)));

@@ -158,7 +158,8 @@ export function PublicHeader() {
   } | null>(null);
   useEffect(() => {
     let active = true;
-    fetch('/api/auth/me')
+    const controller = new AbortController();
+    fetch('/api/auth/me', { signal: controller.signal })
       .then((r) => r.json())
       .then((data) => {
         if (active) setViewer(data.viewer || null);
@@ -166,6 +167,7 @@ export function PublicHeader() {
       .catch(() => {});
     return () => {
       active = false;
+      controller.abort();
     };
   }, [pathname]);
   const accountHref = viewer
@@ -285,7 +287,6 @@ export function PublicHeader() {
           src="/royal-mechanics-logo-alpha.png"
           width={74}
           height={74}
-          unoptimized
           sizes="74px"
           priority
           alt=""

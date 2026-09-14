@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getViewer } from '@/lib/auth';
+import { getViewer, requestThrottle, sameOrigin } from '@/lib/auth';
 import { connectMongo } from '@/lib/mongodb';
 import { ServiceRequest, User } from '@/lib/models';
 
@@ -7,9 +7,13 @@ const reply = (body: unknown, status = 200) =>
   NextResponse.json(body, { status });
 
 export async function POST(request: Request) {
+  if (!sameOrigin(request))
+    return reply({ error: 'Invalid request origin.' }, 403);
   const viewer = await getViewer();
   if (!viewer || viewer.isGuest)
     return reply({ error: 'Please sign in before confirming a booking.' }, 401);
+  if (!(await requestThrottle(request, 'booking', 8, viewer.id)))
+    return reply({ error: 'Too many booking attempts. Please try again later.' }, 429);
   const body = (await request.json().catch(() => null)) as Record<
     string,
     unknown
@@ -43,13 +47,20 @@ export async function POST(request: Request) {
     );
   const pickup = body?.pickupLocation as Record<string, unknown> | undefined;
   const latitude =
-    typeof pickup?.latitude === 'number' ? pickup.latitude : undefined;
+    typeof pickup?.latitude === 'number' && Number.isFinite(pickup.latitude) && Math.abs(pickup.latitude) <= 90 ? pickup.latitude : undefined;
   const longitude =
-    typeof pickup?.longitude === 'number' ? pickup.longitude : undefined;
+    typeof pickup?.longitude === 'number' && Number.isFinite(pickup.longitude) && Math.abs(pickup.longitude) <= 180 ? pickup.longitude : undefined;
   const address = pickup?.address as Record<string, unknown> | undefined;
+  const sanitizedAddress = address
+    ? Object.fromEntries(
+        Object.entries(address)
+          .filter(([key, value]) => ['line', 'area', 'city', 'state', 'pin'].includes(key) && typeof value === 'string')
+          .map(([key, value]) => [key, (value as string).trim().slice(0, 160)]),
+      )
+    : undefined;
   const hasAddress = Boolean(
-    address &&
-    Object.values(address).some(
+    sanitizedAddress &&
+    Object.values(sanitizedAddress).some(
       (value) => typeof value === 'string' && value.trim(),
     ),
   );
@@ -85,7 +96,7 @@ export async function POST(request: Request) {
             typeof pickup.capturedAt === 'string'
               ? new Date(pickup.capturedAt)
               : undefined,
-          address,
+          address: sanitizedAddress,
         }
       : {},
   });

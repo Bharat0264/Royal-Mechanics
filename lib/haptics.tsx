@@ -94,13 +94,18 @@ export function HapticsProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const media = window.matchMedia?.('(prefers-reduced-motion: reduce)');
     const updateReducedMotion = () => setReducedMotion(media?.matches === true);
-    const enabled = safelyReadPreference();
-    legacyHapticsEnabled = enabled;
-    setEnabled(enabled);
-    setSupported(supportsVibration());
-    updateReducedMotion();
+    const frame = requestAnimationFrame(() => {
+      const enabled = safelyReadPreference();
+      legacyHapticsEnabled = enabled;
+      setEnabled(enabled);
+      setSupported(supportsVibration());
+      updateReducedMotion();
+    });
     media?.addEventListener('change', updateReducedMotion);
-    return () => media?.removeEventListener('change', updateReducedMotion);
+    return () => {
+      cancelAnimationFrame(frame);
+      media?.removeEventListener('change', updateReducedMotion);
+    };
   }, []);
 
   const setHapticsEnabled = useCallback((enabled: boolean) => {

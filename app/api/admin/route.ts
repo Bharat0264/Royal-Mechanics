@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { isValidObjectId } from 'mongoose';
-import { getViewer, sameOrigin } from '@/lib/auth';
+import { getViewer, requestThrottle, sameOrigin } from '@/lib/auth';
 import { adminData, guestAdminData } from '@/lib/admin-data';
 import {
   ServiceCatalog,
@@ -47,6 +47,8 @@ export async function POST(request: Request) {
     const viewer = await getViewer();
     if (viewer?.role !== 'ADMIN' || viewer.isGuest)
       return fail(viewer?.isGuest ? 'Sign in to make changes.' : 'Admin access required.', 403);
+    if (!(await requestThrottle(request, 'admin-write', 60, viewer.id)))
+      return fail('Too many requests. Please try again later.', 429);
     const body = await request.json().catch(() => ({}));
     const { section, action, id } = body;
     const data = body.data || {};

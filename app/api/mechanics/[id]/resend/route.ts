@@ -1,6 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import { NextResponse } from 'next/server';
-import { getViewer, hashPassword, sameOrigin } from '@/lib/auth';
+import { getViewer, hashPassword, requestThrottle, sameOrigin } from '@/lib/auth';
+import { isValidObjectId } from 'mongoose';
 import { connectMongo } from '@/lib/mongodb';
 import { User } from '@/lib/models';
 
@@ -18,8 +19,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   if (!sameOrigin(request)) return NextResponse.json({ error: 'Invalid request origin.' }, { status: 403 });
   const viewer = await getViewer();
   if (viewer?.role !== 'ADMIN' || viewer.isGuest) return NextResponse.json({ error: viewer?.isGuest ? 'Sign in to make changes.' : 'Admin access required.' }, { status: 403 });
+  if (!(await requestThrottle(request, 'mechanic-resend', 10, viewer.id))) return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
   if (!process.env.RESEND_API_KEY || !process.env.EMAIL_FROM || !process.env.APP_URL) return NextResponse.json({ error: 'Email delivery is not configured.' }, { status: 503 });
   const { id } = await params;
+  if (!isValidObjectId(id)) return NextResponse.json({ error: 'Invalid mechanic ID.' }, { status: 400 });
   await connectMongo();
   const mechanic = await User.findOne({ _id: id, role: 'MECHANIC' });
   if (!mechanic) return NextResponse.json({ error: 'Mechanic account not found.' }, { status: 404 });

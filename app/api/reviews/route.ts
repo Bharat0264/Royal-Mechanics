@@ -1,4 +1,4 @@
-import { getViewer, sameOrigin, throttle } from '@/lib/auth';
+import { getViewer, requestThrottle, sameOrigin, throttle } from '@/lib/auth';
 import { Review } from '@/lib/models';
 export async function POST(request: Request) {
   if (!sameOrigin(request))
@@ -11,6 +11,11 @@ export async function POST(request: Request) {
         { status: 403 },
       );
     if (!(await throttle(`review:${viewer.id}`, 3)))
+      return Response.json(
+        { error: 'Please wait before submitting another review.' },
+        { status: 429 },
+      );
+    if (!(await requestThrottle(request, 'review', 10, viewer.id)))
       return Response.json(
         { error: 'Please wait before submitting another review.' },
         { status: 429 },

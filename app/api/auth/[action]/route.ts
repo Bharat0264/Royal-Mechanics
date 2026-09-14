@@ -6,6 +6,7 @@ import {
   issueGuestSession,
   sameOrigin,
   throttle,
+  requestThrottle,
   validPassword,
   verifyPassword,
 } from '@/lib/auth';
@@ -39,6 +40,8 @@ export async function POST(
         action === 'forgot-password' ? 3 : 10,
       ))
     )
+      return error('Too many attempts. Please try again in 15 minutes.', 429);
+    if (!(await requestThrottle(request, `auth:${action}`, action === 'forgot-password' ? 5 : 20)))
       return error('Too many attempts. Please try again in 15 minutes.', 429);
     if (action === 'signup') {
       if (

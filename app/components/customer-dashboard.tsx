@@ -64,14 +64,19 @@ export function CustomerDashboard({
       ]),
     ),
   );
+  const refreshController = useRef<AbortController | null>(null);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useMinimumBusy();
   useEffect(() => {
     let active = true;
     const refreshBookings = async () => {
+      refreshController.current?.abort();
+      const controller = new AbortController();
+      refreshController.current = controller;
       try {
         const response = await fetch('/api/customer/bookings', {
           cache: 'no-store',
+          signal: controller.signal,
         });
         const data = await response.json();
         if (!active || !response.ok || !Array.isArray(data.bookings)) return;
@@ -118,6 +123,7 @@ export function CustomerDashboard({
     document.addEventListener('visibilitychange', onVisible);
     return () => {
       active = false;
+      refreshController.current?.abort();
       window.clearInterval(interval);
       window.removeEventListener('focus', refreshBookings);
       document.removeEventListener('visibilitychange', onVisible);

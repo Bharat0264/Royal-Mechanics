@@ -1,13 +1,9 @@
 import { randomBytes } from 'node:crypto';
 import { NextResponse } from 'next/server';
-import { getViewer, hashPassword, sameOrigin } from '@/lib/auth';
+import { getViewer, hashPassword, requestThrottle, sameOrigin } from '@/lib/auth';
 import { connectMongo } from '@/lib/mongodb';
 import { User } from '@/lib/models';
 const reply = (body: unknown, status = 200) => NextResponse.json(body, { status });
-const admin = async () => {
-  const viewer = await getViewer();
-  return viewer?.role === 'ADMIN' && !viewer.isGuest;
-};
 const temporaryPassword = () => {
   const sets = ['ABCDEFGHJKLMNPQRSTUVWXYZ', 'abcdefghijkmnopqrstuvwxyz', '23456789', '!@#$%^&*_-+='];
   const chars = sets.map((set) => set[randomBytes(1)[0] % set.length]);
@@ -16,7 +12,10 @@ const temporaryPassword = () => {
 };
 export async function POST(request: Request) {
   if (!sameOrigin(request)) return reply({ error: 'Invalid request origin.' }, 403);
-  if (!(await admin())) return reply({ error: 'Admin access required.' }, 403);
+  const viewer = await getViewer();
+  if (viewer?.role !== 'ADMIN' || viewer.isGuest) return reply({ error: 'Admin access required.' }, 403);
+  if (!(await requestThrottle(request, 'mechanic-create', 10, viewer.id)))
+    return reply({ error: 'Too many requests. Please try again later.' }, 429);
   const body = await request.json().catch(() => ({}));
   const name = typeof body.name === 'string' ? body.name.trim().slice(0, 100) : '';
   const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';

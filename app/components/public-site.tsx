@@ -28,7 +28,8 @@ function useServices() {
   const [catalogue, setCatalogue] = useState(defaultServices);
   useEffect(() => {
     let active = true;
-    fetch('/api/services')
+    const controller = new AbortController();
+    fetch('/api/services', { signal: controller.signal })
       .then((r) => r.json())
       .then((d) => {
         if (active && Array.isArray(d.services)) setCatalogue(d.services);
@@ -36,6 +37,7 @@ function useServices() {
       .catch(() => {});
     return () => {
       active = false;
+      controller.abort();
     };
   }, []);
   return catalogue.map(
@@ -63,7 +65,8 @@ function useSite() {
   });
   useEffect(() => {
     let active = true;
-    fetch('/api/site')
+    const controller = new AbortController();
+    fetch('/api/site', { signal: controller.signal })
       .then((r) => r.json())
       .then((d) => {
         if (active) setSite(d);
@@ -74,8 +77,9 @@ function useSite() {
       });
     return () => {
       active = false;
+      controller.abort();
     };
-  }, []);
+  }, [setLoading]);
   return { ...site, loading };
 }
 
@@ -89,7 +93,6 @@ export function PublicFooter() {
             src="/royal-mechanics-logo-alpha.png"
             width={180}
             height={180}
-            unoptimized
             sizes="74px"
             alt="Royal Mechanics crest"
           />
@@ -157,7 +160,6 @@ export function HomePage() {
               src="/royal-mechanics-logo-alpha.png"
               width={620}
               height={620}
-              unoptimized
               sizes="(max-width: 700px) 280px, 410px"
               priority
               alt="Royal Mechanics crest"
@@ -273,7 +275,6 @@ export function WorkshopPage() {
                 src={src}
                 width={700}
                 height={450}
-                unoptimized
                 alt={`Royal Mechanics workshop ${i + 1}`}
                 style={{
                   width: '100%',
@@ -419,7 +420,11 @@ export function ContactPage() {
               e.preventDefault();
               triggerHaptic('medium');
               const form = new FormData(e.currentTarget);
-              const text = `Hello Royal Mechanics, I am ${form.get('name')}. Contact: ${form.get('phone')}. ${form.get('message')}`;
+              const value = (name: string) => {
+                const field = form.get(name);
+                return typeof field === 'string' ? field.trim() : '';
+              };
+              const text = `Hello Royal Mechanics, I am ${value('name')}. Contact: ${value('phone')}. ${value('message')}`;
               window.location.assign(
                 `https://wa.me/919182372075?text=${encodeURIComponent(text)}`,
               );
@@ -574,7 +579,6 @@ export function BookingPage() {
             src="/royal-mechanics-logo-alpha.png"
             width={320}
             height={320}
-            unoptimized
             sizes="(max-width: 700px) 105px, 280px"
             priority
             alt="Royal Mechanics crest"

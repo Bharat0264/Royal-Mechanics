@@ -247,7 +247,7 @@ export function AdminPortal({
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [setLoading]);
   useEffect(() => {
     const timer = setTimeout(() => void load(), 0);
     return () => clearTimeout(timer);
@@ -679,7 +679,7 @@ export function AdminPortal({
         <header ref={topbarRef} className={`admin-topbar ${mobileSearchOpen ? 'mobile-search-open' : ''}`}>
           <div className="admin-topbar-controls">
           <Link className="admin-mobile-brand" href="/admin" aria-label="Royal Mechanics admin dashboard">
-            <Image src="/royal-mechanics-logo-alpha.png" alt="" width={34} height={34} sizes="34px" unoptimized priority />
+            <Image src="/royal-mechanics-logo-alpha.png" alt="" width={34} height={34} sizes="34px" priority />
           </Link>
           <button
             className="admin-menu admin-icon"
@@ -1004,13 +1004,12 @@ export function AdminPortal({
           )}
           {loading && !data ? (
             <div className="admin-loading">
-              <div
+              <output
                 className="admin-speedometer-loader"
-                role="status"
                 aria-label="Loading workshop data"
               >
                 <i />
-              </div>
+              </output>
             </div>
           ) : (
             data && (

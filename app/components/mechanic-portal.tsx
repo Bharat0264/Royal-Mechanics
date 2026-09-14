@@ -398,9 +398,9 @@ export function MechanicJobEditor({ initial }: { initial: MechanicBooking }) {
       </section>
       <GlassPanel className="job-editor">
         {message && (
-          <p role="status" className="console-message">
+          <output className="console-message">
             {message}
-          </p>
+          </output>
         )}
         {busy && <Loader size="button" />}
         <h2>Four-side intake</h2>

@@ -82,7 +82,7 @@ try {
     .insertMany(
       ids.map((_id, i) => ({
         _id,
-        email: `portal-check-${_id}@example.test`,
+        email: `portal-check-${String(_id)}@example.test`,
         displayName: 'Same Test Name',
         role: ['CUSTOMER', 'MECHANIC', 'MECHANIC', 'ADMIN'][i],
         isAllowed: true,
@@ -101,7 +101,7 @@ try {
     .collection('servicerequests')
     .insertOne({
       _id: bookingId,
-      requestNumber: `TEST-${bookingId}`,
+      requestNumber: `TEST-${String(bookingId)}`,
       customerId: ids[0],
       mechanicId: ids[1],
       vehicleName: 'Portal verification bike',
@@ -137,7 +137,7 @@ try {
   const html = await queue.text();
   assert.ok(html.includes('Portal verification bike'));
   assert.ok(!html.includes('Book a service'));
-  const otherJob = await call(`/mechanic/jobs/${bookingId}`, 2);
+  const otherJob = await call(`/mechanic/jobs/${String(bookingId)}`, 2);
   const otherHtml = await otherJob.text();
   assert.ok(
     otherJob.status === 404 ||
@@ -145,7 +145,7 @@ try {
     'Same name must not share jobs',
   );
   assert.ok(!otherHtml.includes('Portal verification bike'));
-  const endpoint = `/api/jobs/${bookingId}`;
+  const endpoint = `/api/jobs/${String(bookingId)}`;
   assert.equal(
     (
       await call(endpoint, 0, {
