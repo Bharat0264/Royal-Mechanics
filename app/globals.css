@@ -373,7 +373,7 @@ button {
   font-size: 12px;
 }
 .quote-strip {
-  padding: 70px 24px;
+  padding: 42px 24px;
   border-block: 1px solid #ffffff12;
   background: linear-gradient(120deg, #f0742a18, #ffffff04, #f0742a12);
   text-align: center;
@@ -392,10 +392,10 @@ button {
   color: #ffad53;
 }
 .quote-strip blockquote {
-  margin: 18px auto 12px;
+  margin: 10px auto 0;
   color: #fff5e8;
   font:
-    400 clamp(24px, 3vw, 38px) Georgia,
+    400 clamp(17px, 2vw, 25px) Georgia,
     serif;
   letter-spacing: -0.04em;
 }
