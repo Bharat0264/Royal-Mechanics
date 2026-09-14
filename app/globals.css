@@ -61,6 +61,7 @@
 }
 html {
   scroll-behavior: smooth;
+  overflow-x: clip;
   -webkit-tap-highlight-color: transparent;
   tap-highlight-color: transparent;
 }
@@ -73,6 +74,7 @@ html {
 .route-error button, .route-error a { border: 1px solid #d8b36e; border-radius: 999px; padding: 10px 16px; background: transparent; color: #f8f3e8; font: inherit; text-decoration: none; cursor: pointer; }
 body {
   margin: 0;
+  overflow-x: hidden;
   background: var(--ink);
   color: var(--paper);
   font-family: Arial, sans-serif;
@@ -677,19 +679,28 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: 22px;
+  max-width: 100%;
+  min-width: 0;
   padding: 32px max(24px, 8vw);
   border-top: 1px solid #ffffff14;
   background: #090b10;
+  overflow-x: hidden;
 }
 .public-footer p {
   color: #9f968e;
   font-size: 11px;
 }
+.public-footer > * {
+  min-width: 0;
+  max-width: 100%;
+}
 .site-footer-credit {
+  max-width: 100%;
   color: #8d9699;
   font: 500 11px/1.55 Arial, sans-serif;
   letter-spacing: 0.01em;
   text-align: center;
+  overflow-wrap: anywhere;
 }
 .site-footer-credit p { margin: 0; }
 .mobile-book {
@@ -1000,12 +1011,25 @@ button {
     grid-template-columns: 26px 1fr;
   }
   .public-footer {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    padding: 25px 18px calc(82px + env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 18px;
+    width: 100%;
+    max-width: 100%;
+    padding: 28px 20px calc(68px + env(safe-area-inset-bottom));
+    overflow-x: hidden;
+    text-align: center;
   }
-  .public-footer p:last-child {
-    text-align: right;
+  .public-footer .footer-brand {
+    justify-content: center;
+    max-width: 100%;
+  }
+  .public-footer .site-footer-credit {
+    width: 100%;
+    max-width: 340px;
+    font-size: 12px;
+    line-height: 1.5;
   }
   .public-footer .brand-crest {
     width: 66px;
@@ -1022,7 +1046,7 @@ button {
     justify-content: center;
     gap: 8px;
     border-radius: 13px;
-    padding: 15px;
+    padding: 13px;
     background: linear-gradient(135deg, #ffb23d, #d95525);
     box-shadow: 0 10px 28px #0008;
     color: #26140c;

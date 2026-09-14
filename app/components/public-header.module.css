@@ -523,7 +523,7 @@
     bottom: calc(14px + env(safe-area-inset-bottom, 0px));
   }
   .header ~ :global(.public-footer) {
-    padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(78px + env(safe-area-inset-bottom, 0px));
   }
 }
 
