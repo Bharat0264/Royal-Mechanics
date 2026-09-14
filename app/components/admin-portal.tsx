@@ -35,7 +35,6 @@ import {
   Receipt,
   Search,
   Settings,
-  ShieldCheck,
   SlidersHorizontal,
   Sparkles,
   Star,
@@ -65,6 +64,7 @@ import { GlassPanel } from './glass-panel';
 import { GlassButton } from './glass-button';
 import { AdminSidebar } from './admin-sidebar';
 import { useWorkshopTheme } from './workshop-theme-provider';
+import { SiteFooterCredit } from './site-footer-credit';
 
 type Person = {
   _id: string;
@@ -1660,12 +1660,7 @@ export function AdminPortal({
             )
           )}
           <footer className="admin-footer">
-            <span>
-              ROYAL MECHANICS <i /> Made to endure.
-            </span>
-            <span>
-              <ShieldCheck size={12} /> Admin workspace
-            </span>
+            <SiteFooterCredit />
           </footer>
         </main>
       </div>

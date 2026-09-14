@@ -9,7 +9,6 @@ import { useRouter } from 'next/navigation';
 import {
   ArrowLeft,
   ArrowRight,
-  Check,
   CheckCircle2,
   Eye,
   EyeOff,
@@ -19,6 +18,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import './auth.css';
+import { SiteFooterCredit } from './site-footer-credit';
 
 type Mode = 'login' | 'signup' | 'forgot' | 'reset' | 'sent' | 'done';
 export function AuthExperience({
@@ -593,9 +593,7 @@ export function AuthExperience({
             Talk to us <ArrowRight size={12} />
           </Link>
         </p>
-        <p className="auth-copyright">
-          <Check size={11} /> ROYAL MECHANICS · CARE BEYOND THE WORKSHOP
-        </p>
+        <footer className="auth-copyright"><SiteFooterCredit /></footer>
       </section>
     </main>
   );

@@ -625,9 +625,7 @@
 }
 .admin-footer {
   display: flex;
-  justify-content: space-between;
-  color: #53604f;
-  font-size: 8px;
+  justify-content: center;
   padding: 26px 0 4px;
   letter-spacing: 0.06em;
 }

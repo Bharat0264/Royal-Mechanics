@@ -2,6 +2,7 @@
 import { triggerHaptic } from '@/lib/haptics';
 import { requestWithMinimum as fetch } from '@/lib/minimum-request';
 import { Loader, useMinimumBusy } from './loader';
+import { SiteFooterCredit } from './site-footer-credit';
 
 import Link from 'next/link';
 import Image from 'next/image';
@@ -100,8 +101,7 @@ export function PublicFooter() {
             ROYAL<small>MECHANICS</small>
           </b>
         </Link>
-        <p>Two-wheeler care, made clear.</p>
-        <p>© 2026 Royal Mechanics</p>
+        <SiteFooterCredit />
       </footer>
       <Link className="mobile-book" href="/book-service">
         Book service <ArrowRight size={15} />

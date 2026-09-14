@@ -29,6 +29,12 @@
   max-width: 1000px;
   margin-inline: auto;
 }
+.portal-credit-footer {
+  display: flex;
+  justify-content: center;
+  max-width: 1000px;
+  margin: 28px auto 4px;
+}
 .mechanic-console header {
   display: flex;
   align-items: center;

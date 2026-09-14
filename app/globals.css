@@ -685,6 +685,13 @@ button {
   color: #9f968e;
   font-size: 11px;
 }
+.site-footer-credit {
+  color: #8d9699;
+  font: 500 11px/1.55 Arial, sans-serif;
+  letter-spacing: 0.01em;
+  text-align: center;
+}
+.site-footer-credit p { margin: 0; }
 .mobile-book {
   display: none;
 }

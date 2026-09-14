@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { getViewer } from '@/lib/auth';
 import { roleHomePath } from '@/lib/role-redirect';
 import { MechanicSignout } from '../components/mechanic-portal';
+import { SiteFooterCredit } from '../components/site-footer-credit';
 
 export default async function MechanicLayout({
   children,
@@ -36,6 +37,7 @@ export default async function MechanicLayout({
         </div>
       </header>
       <main>{children}</main>
+      <footer className="portal-credit-footer"><SiteFooterCredit /></footer>
     </div>
   );
 }
