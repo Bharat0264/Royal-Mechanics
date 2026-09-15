@@ -39,7 +39,13 @@ type Invoice = {
     amount: number;
   }[];
   total: number;
+  subtotal?: number;
   tax?: number;
+  feeSnapshot?: {
+    platform?: { absorbed?: boolean; amount?: number };
+    gateway?: { absorbed?: boolean; amount?: number };
+  };
+  pdfUrl?: string;
   paymentStatus: 'UNPAID' | 'PAID';
   deliveredAt?: string;
   bookingId?: string;
@@ -450,6 +456,17 @@ export function CustomerDashboard({
                     ))}
                     {invoice.tax ? (
                       <p>Tax — ₹{invoice.tax.toLocaleString('en-IN')}</p>
+                    ) : null}
+                    {!invoice.feeSnapshot?.platform?.absorbed && invoice.feeSnapshot?.platform?.amount ? (
+                      <p>Platform fee — ₹{invoice.feeSnapshot.platform.amount.toLocaleString('en-IN')}</p>
+                    ) : null}
+                    {!invoice.feeSnapshot?.gateway?.absorbed && invoice.feeSnapshot?.gateway?.amount ? (
+                      <p>Payment gateway fee — ₹{invoice.feeSnapshot.gateway.amount.toLocaleString('en-IN')}</p>
+                    ) : null}
+                    {invoice.pdfUrl ? (
+                      <a className="admin-record" href={`/api/bills/${invoice._id}/pdf`}>
+                        Download PDF invoice
+                      </a>
                     ) : null}
                   </div>
                   {invoice.paymentStatus === 'UNPAID' ? (

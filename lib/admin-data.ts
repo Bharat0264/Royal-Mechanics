@@ -43,8 +43,14 @@ export async function adminData() {
       invoices,
       workshop:
         content.find((x) => x.key === 'workshop')?.value || defaultWorkshop,
-      settings:
-        content.find((x) => x.key === 'settings')?.value || defaultSettings,
+      settings: {
+        ...defaultSettings,
+        ...content.find((x) => x.key === 'settings')?.value,
+        fees: {
+          ...defaultSettings.fees,
+          ...(content.find((x) => x.key === 'settings')?.value as { fees?: object } | undefined)?.fees,
+        },
+      },
     }),
   );
 }

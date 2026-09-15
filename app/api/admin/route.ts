@@ -186,6 +186,8 @@ export async function POST(request: Request) {
         { upsert: true },
       );
     } else if (section === 'settings') {
+      const feeMode = (value: unknown) => value === 'PERCENTAGE' ? 'PERCENTAGE' : 'FLAT';
+      const feeValue = (value: unknown) => Math.min(100_000, Math.max(0, Number(value || 0)));
       await SiteContent.updateOne(
         { key: 'settings' },
         {
@@ -194,9 +196,15 @@ export async function POST(request: Request) {
               hours: text(data.hours),
               phone: text(data.phone, 30),
               email: text(data.email, 254),
+              gstin: text(data.gstin, 30).toUpperCase(),
               address: text(data.address),
               notifyBookings: data.notifyBookings === true,
               notifyReviews: data.notifyReviews === true,
+              fees: {
+                platform: { mode: feeMode(data.platformFeeMode), value: feeValue(data.platformFeeValue), absorbed: data.platformFeeAbsorbed !== false },
+                gateway: { mode: feeMode(data.gatewayFeeMode), value: feeValue(data.gatewayFeeValue), absorbed: data.gatewayFeeAbsorbed !== false },
+                taxRate: Math.min(28, Math.max(0, Number(data.taxRate || 0))),
+              },
             },
           },
         },

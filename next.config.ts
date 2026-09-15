@@ -15,6 +15,9 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // PDFKit runs only in Node route handlers. Keeping it external avoids adding
+  // the renderer and its font assets to browser/server bundles unnecessarily.
+  serverExternalPackages: ['pdfkit'],
   images: {
     formats: ['image/avif', 'image/webp'],
   },

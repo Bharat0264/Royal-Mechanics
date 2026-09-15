@@ -1,12 +1,36 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { isValidObjectId } from 'mongoose';
-import { Invoice, ServiceRequest } from '@/lib/models';
+import { Invoice, ServiceRequest, SiteContent } from '@/lib/models';
 import { connectMongo } from '@/lib/mongodb';
 import { getViewer, requestThrottle, sameOrigin } from '@/lib/auth';
+import { defaultSettings } from '@/lib/site-defaults';
+import { createInvoicePdf, storeInvoicePdf, type InvoicePdfData } from '@/lib/invoice-pdf';
+import { sendInvoiceEmail } from '@/lib/invoice-email';
 
 const reply = (body: unknown, status = 200) => Response.json(body, { status });
 const razorpayId = (value: unknown) =>
   typeof value === 'string' && /^pay_[A-Za-z0-9]+$/.test(value) && value.length <= 100;
+
+async function receiptData(invoice: Record<string, unknown>) {
+  const [booking, settingsRecord] = await Promise.all([
+    invoice.bookingId ? ServiceRequest.findById(invoice.bookingId).populate(['customerId', 'mechanicId']).lean() : null,
+    SiteContent.findOne({ key: 'settings' }).lean(),
+  ]);
+  const stored = (settingsRecord as { value?: Partial<typeof defaultSettings> } | null)?.value || {};
+  const settings = { ...defaultSettings, ...stored };
+  const customer = booking?.customerId as { email?: string } | undefined;
+  const mechanic = booking?.mechanicId as { displayName?: string } | undefined;
+  const pdfData: InvoicePdfData = {
+    invoiceNumber: String(invoice.invoiceNumber), bookingNumber: booking?.requestNumber,
+    createdAt: invoice.createdAt as Date, customerName: typeof invoice.customerName === 'string' ? invoice.customerName : 'Royal Mechanics customer',
+    vehicleName: String(invoice.vehicleName || booking?.vehicleName || ''), mechanicName: mechanic?.displayName || 'Royal Mechanics workshop',
+    workshopAddress: settings.address, workshopPhone: settings.phone, workshopEmail: settings.email, workshopGstin: settings.gstin,
+    subtotal: Number(invoice.subtotal || 0), tax: Number(invoice.tax || 0), taxRate: Number(invoice.taxRate || 0), total: Number(invoice.total || 0),
+    items: (invoice.items as InvoicePdfData['items']) || [], feeSnapshot: invoice.feeSnapshot as InvoicePdfData['feeSnapshot'],
+    paymentStatus: 'PAID', paymentMethod: 'RAZORPAY', razorpayPaymentId: invoice.razorpayPaymentId as string | undefined,
+  };
+  return { pdfData, customerEmail: customer?.email };
+}
 
 export async function POST(request: Request) {
   if (!sameOrigin(request)) return reply({ error: 'Invalid request origin.' }, 403);
@@ -32,6 +56,19 @@ export async function POST(request: Request) {
   invoice.razorpayPaymentId = razorpay_payment_id;
   invoice.paymentMethod = 'RAZORPAY';
   invoice.paymentConfirmedAt = new Date();
+  try {
+    const data = invoice.toObject() as Record<string, unknown>;
+    const { pdfData, customerEmail } = await receiptData({ ...data, paymentStatus: 'PAID', paymentMethod: 'RAZORPAY', razorpayPaymentId: razorpay_payment_id });
+    const pdf = await createInvoicePdf(pdfData);
+    invoice.pdfUrl = await storeInvoicePdf(invoice.invoiceNumber, pdf, true);
+    invoice.pdfGeneratedAt = new Date();
+    if (customerEmail && !customerEmail.endsWith('@royal-mechanics.local')) {
+      try { await sendInvoiceEmail({ to: customerEmail, invoice: pdfData, pdf, paid: true }); invoice.receiptEmailedAt = new Date(); } catch { /* Receipt remains available through the dashboard. */ }
+    }
+  } catch {
+    // Payment is authoritative after Razorpay signature validation. A later admin
+    // email action can retry delivery if PDF storage is temporarily unavailable.
+  }
   await invoice.save();
   if (invoice.bookingId)
     await ServiceRequest.findByIdAndUpdate(invoice.bookingId, { status: 'COMPLETED', completedAt: new Date() });

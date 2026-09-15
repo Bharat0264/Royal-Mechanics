@@ -133,12 +133,33 @@ const invoiceSchema = new Schema(
         amount: { type: Number, required: true, min: 0 },
       },
     ],
+    // Monetary fields are snapshots. They deliberately do not point back to
+    // live settings, so an old invoice can never be repriced retroactively.
+    subtotal: { type: Number, required: true, min: 0, default: 0 },
     total: { type: Number, required: true, min: 0 },
     tax: { type: Number, default: 0 },
     taxRate: { type: Number, default: 0 },
     platformFee: { type: Number, default: 0 },
     paymentHandlingFee: { type: Number, default: 0 },
+    feeSnapshot: {
+      platform: {
+        mode: { type: String, enum: ['FLAT', 'PERCENTAGE'], default: 'FLAT' },
+        value: { type: Number, default: 0 },
+        absorbed: { type: Boolean, default: true },
+        amount: { type: Number, default: 0 },
+      },
+      gateway: {
+        mode: { type: String, enum: ['FLAT', 'PERCENTAGE'], default: 'FLAT' },
+        value: { type: Number, default: 0 },
+        absorbed: { type: Boolean, default: true },
+        amount: { type: Number, default: 0 },
+      },
+    },
     payableTotal: { type: Number, default: 0 },
+    pdfUrl: String,
+    pdfGeneratedAt: Date,
+    invoiceEmailedAt: Date,
+    receiptEmailedAt: Date,
     paymentStatus: {
       type: String,
       enum: ['UNPAID', 'PAID'],

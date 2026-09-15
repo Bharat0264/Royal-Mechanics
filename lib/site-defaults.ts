@@ -41,10 +41,16 @@ export const defaultSettings = {
   hours: 'Mon–Thu & Sat–Sun · 10:00 AM–7:00 PM',
   phone: '+91 91823 72075',
   email: '',
+  gstin: '',
   address:
     'Shop No. 07, Plot No. 05, Sai Raj Building, opposite Gurudwara, Gurudwara Road, New Panvel, Navi Mumbai 410206',
   notifyBookings: true,
   notifyReviews: true,
+  fees: {
+    platform: { mode: 'FLAT', value: 0, absorbed: true },
+    gateway: { mode: 'FLAT', value: 0, absorbed: true },
+    taxRate: 0,
+  },
 };
 export const bookingStatuses = [
   'BOOKED',

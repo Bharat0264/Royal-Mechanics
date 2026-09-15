@@ -20,7 +20,7 @@ export default async function GaragePage() {
       .sort({ createdAt: -1 })
       .lean(),
     Invoice.find({ customerId: viewer.id })
-      .select('bookingId invoiceNumber vehicleName items total tax paymentStatus deliveredAt createdAt')
+      .select('bookingId invoiceNumber vehicleName items subtotal total tax platformFee paymentHandlingFee feeSnapshot pdfUrl paymentStatus deliveredAt createdAt')
       .sort({ createdAt: -1 })
       .lean(),
   ]);

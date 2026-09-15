@@ -130,6 +130,8 @@ type Data = {
     paymentStatus?: string;
     paymentMethod?: string;
     customerName?: string;
+    pdfUrl?: string;
+    invoiceEmailedAt?: string;
   }[];
   workshop: typeof defaultWorkshop;
   settings: typeof defaultSettings;
@@ -1494,6 +1496,7 @@ export function AdminPortal({
                               <th>Amount</th>
                               <th>Payment</th>
                               <th>Updated</th>
+                              <th><span className="sr-only">Invoice actions</span></th>
                             </tr>
                           </thead>
                           <tbody>
@@ -1517,6 +1520,11 @@ export function AdminPortal({
                                   </span>
                                 </td>
                                 <td>{date(bill.updatedAt)}</td>
+                                <td>
+                                  <a className="admin-record" href={`/api/bills/${bill._id}/pdf`}>
+                                    PDF <ArrowRight size={12} />
+                                  </a>
+                                </td>
                               </tr>
                             ))}
                           </tbody>
@@ -1592,7 +1600,22 @@ export function AdminPortal({
                       </div>
                       <ManagementForm
                         section="settings"
-                        initial={data.settings}
+                        initial={{
+                          hours: data.settings.hours,
+                          phone: data.settings.phone,
+                          email: data.settings.email,
+                          gstin: data.settings.gstin,
+                          address: data.settings.address,
+                          notifyBookings: data.settings.notifyBookings,
+                          notifyReviews: data.settings.notifyReviews,
+                          platformFeeMode: data.settings.fees.platform.mode,
+                          platformFeeValue: data.settings.fees.platform.value,
+                          platformFeeAbsorbed: data.settings.fees.platform.absorbed,
+                          gatewayFeeMode: data.settings.fees.gateway.mode,
+                          gatewayFeeValue: data.settings.fees.gateway.value,
+                          gatewayFeeAbsorbed: data.settings.fees.gateway.absorbed,
+                          taxRate: data.settings.fees.taxRate,
+                        }}
                         busy={busy}
                         onSave={(v) => void save('settings', v)}
                       />
@@ -1729,7 +1752,7 @@ export function AdminPortal({
                             partsPrice: 0,
                             laborPrice: 0,
                             extraPrice: 0,
-                            taxRate: 0,
+                            taxRate: data?.settings.fees.taxRate || 0,
                           },
                         });
                       }}
@@ -2162,6 +2185,7 @@ function ManagementForm({
             {input('hours', 'Business hours')}
             {input('phone', 'Contact phone', 'tel')}
             {input('email', 'Contact email', 'email')}
+            {input('gstin', 'GSTIN / registration number', 'text', false)}
             {textarea('address', 'Workshop address')}
             {checkbox(
               'notifyBookings',
@@ -2171,6 +2195,29 @@ function ManagementForm({
               'notifyReviews',
               'Show review notifications in the admin portal',
             )}
+            <div className="admin-fee-settings">
+              <p className="admin-eyebrow">BILLING FEES</p>
+              <p className="admin-muted">Passed fees appear on new customer invoices. Absorbed fees are retained only in the bill snapshot.</p>
+              <label>
+                Platform fee type
+                <select value={String(v.platformFeeMode)} onChange={(e) => setV({ ...v, platformFeeMode: e.target.value })}>
+                  <option value="FLAT">Flat amount (₹)</option>
+                  <option value="PERCENTAGE">Percentage (%)</option>
+                </select>
+              </label>
+              {input('platformFeeValue', 'Platform fee value', 'number', false)}
+              {checkbox('platformFeeAbsorbed', 'Platform fee absorbed by business')}
+              <label>
+                Payment gateway fee type
+                <select value={String(v.gatewayFeeMode)} onChange={(e) => setV({ ...v, gatewayFeeMode: e.target.value })}>
+                  <option value="FLAT">Flat amount (₹)</option>
+                  <option value="PERCENTAGE">Percentage (%)</option>
+                </select>
+              </label>
+              {input('gatewayFeeValue', 'Payment gateway fee value', 'number', false)}
+              {checkbox('gatewayFeeAbsorbed', 'Payment gateway fee absorbed by business')}
+              {input('taxRate', 'Default tax rate (%)', 'number', false)}
+            </div>
           </>
         )}
         <button
