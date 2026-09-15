@@ -186,6 +186,7 @@ const resetSchema = new Schema({
 const reviewSchema = new Schema(
   {
     customerId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    bookingId: { type: Schema.Types.ObjectId, ref: 'ServiceRequest', index: true },
     name: String,
     vehicle: String,
     rating: { type: Number, min: 1, max: 5, required: true },
@@ -194,6 +195,7 @@ const reviewSchema = new Schema(
   },
   { timestamps: true },
 );
+reviewSchema.index({ customerId: 1, bookingId: 1 }, { unique: true, sparse: true });
 const contentSchema = new Schema(
   {
     key: { type: String, unique: true, required: true },

@@ -508,13 +508,13 @@ export function CustomerDashboard({
             <form className="admin-form" onSubmit={review}>
               <fieldset disabled={busy}>
                 <label>
-                  Vehicle
-                  <input
-                    name="vehicle"
-                    required
-                    maxLength={100}
-                    placeholder="Your bike or scooter"
-                  />
+                  Completed service
+                  <select name="bookingId" required defaultValue="">
+                    <option value="" disabled>Choose a completed service</option>
+                    {bookings.filter((booking) => booking.status === 'COMPLETED').map((booking) => (
+                      <option key={booking._id} value={booking._id}>{booking.vehicleName} · {booking.serviceCategory}</option>
+                    ))}
+                  </select>
                 </label>
                 <label>
                   Your rating

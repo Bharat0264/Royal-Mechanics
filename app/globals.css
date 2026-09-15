@@ -555,6 +555,24 @@ button {
   color: #bcb1a8;
   font-size: 11px;
 }
+.review-submit-card {
+  display: grid;
+  gap: 18px;
+  width: min(640px, calc(100% - 48px));
+  margin: 0 auto 96px;
+  padding: 28px;
+}
+.review-submit-card form { display: grid; gap: 18px; }
+.review-submit-card label { display: grid; gap: 8px; color: #e7ddd1; font-size: 13px; }
+.review-submit-card :is(select, textarea) { width: 100%; border: 1px solid #ffffff24; border-radius: 10px; padding: 12px; color: #fff5e8; background: #090b0f; font: inherit; }
+.review-stars { border: 0; padding: 0; margin: 0; }
+.review-stars legend { margin-bottom: 8px; color: #e7ddd1; font-size: 13px; }
+.review-stars button { border: 0; padding: 5px; color: #ffad53; background: transparent; cursor: pointer; }
+.review-stars button[aria-pressed='true'] { filter: drop-shadow(0 0 6px #ffad5380); }
+.review-no-history { display: grid; justify-items: center; gap: 12px; padding: 30px 10px; text-align: center; color: #c7bcb3; }
+.review-no-history h2, .review-no-history p { margin: 0; }
+.review-no-history > svg { color: #ffad53; }
+.review-success { color: #a8dfbd; }.review-error { color: #f2aaa0; }
 .contact-layout {
   display: grid;
   grid-template-columns: 1fr 0.9fr;

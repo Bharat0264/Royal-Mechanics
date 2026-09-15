@@ -345,7 +345,7 @@ export function ReviewsPage() {
                 Be the first to share yours. Reviews appear after workshop
                 approval.
               </p>
-              <Link href="/login" style={{ color: '#ffad53' }}>
+              <Link href="/reviews/share" style={{ color: '#ffad53' }}>
                 Share your experience <ArrowRight size={14} />
               </Link>
             </article>
