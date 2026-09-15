@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import {
   ArrowLeft,
   ArrowRight,
+  CalendarDays,
   Camera,
   Check,
   Images,
@@ -187,12 +188,16 @@ export function MechanicQueue({ jobs }: { jobs: MechanicBooking[] }) {
             </Link>
           </GlassPanel>
         ))}
+        {!active.length && (
+          <GlassPanel className="job-empty-state">
+            <Wrench size={30} aria-hidden="true" />
+            <div>
+              <h2>No jobs assigned right now</h2>
+              <p><CalendarDays size={15} aria-hidden="true" /> Assigned vehicles will appear here as soon as they are scheduled.</p>
+            </div>
+          </GlassPanel>
+        )}
       </div>
-      {!active.length && (
-        <GlassPanel className="job-card">
-          No active assignments. Assigned vehicles will appear here.
-        </GlassPanel>
-      )}
     </>
   );
 }

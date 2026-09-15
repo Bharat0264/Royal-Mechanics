@@ -127,7 +127,11 @@ function PageIntro({
     </section>
   );
 }
-export function HomePage() {
+export function HomePage({
+  trustStats,
+}: {
+  trustStats: { completedJobs: number; averageRating: number | null };
+}) {
   const services = useServices();
   return (
     <>
@@ -158,13 +162,13 @@ export function HomePage() {
         </section>
         <section className="trust-strip">
           <span>
-            <Bike /> <b>500+</b> Bikes serviced
+            <Bike /> <b>{trustStats.completedJobs.toLocaleString('en-IN')}</b> Bikes serviced
           </span>
           <span>
-            <Star /> <b>4.8</b> Rated
+            <Star /> <b>{trustStats.averageRating === null ? 'New' : trustStats.averageRating.toFixed(1)}</b> Rated
           </span>
           <span>
-            <Clock3 /> <b>Same-day</b> Service
+            <Clock3 /> <b>Fast</b> service
           </span>
         </section>
         <section className="home-services">

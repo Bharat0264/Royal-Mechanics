@@ -13,6 +13,8 @@
   -webkit-backdrop-filter: blur(20px) saturate(145%);
 }
 .mechanic-console {
+  display: flex;
+  flex-direction: column;
   min-height: 100dvh;
   padding: 20px;
   color: #e7e9e5;
@@ -29,10 +31,15 @@
   max-width: 1000px;
   margin-inline: auto;
 }
+.mechanic-console > main {
+  flex: 1 0 auto;
+  width: 100%;
+}
 .portal-credit-footer {
   display: flex;
   justify-content: center;
   max-width: 1000px;
+  width: 100%;
   margin: 28px auto 4px;
 }
 .mechanic-console header {
@@ -241,6 +248,20 @@ body:has(.mechanic-console) { background: #090b0f !important; }
     box-shadow 0.2s ease,
     background 0.2s ease;
 }
+.job-empty-state {
+  display: grid;
+  min-height: 250px;
+  place-items: center;
+  align-content: center;
+  gap: 14px;
+  padding: 32px;
+  color: #c8d0ca;
+  text-align: center;
+}
+.job-empty-state > svg { color: #e9ba69; }
+.job-empty-state h2 { margin-bottom: 7px; }
+.job-empty-state p { display: inline-flex; align-items: center; justify-content: center; gap: 7px; margin: 0; color: #a9b1ab; }
+.job-empty-state p svg { color: #e9ba69; }
 .job-card:hover {
   transform: translateY(-3px);
   border-color: #e9bd6d5c;
