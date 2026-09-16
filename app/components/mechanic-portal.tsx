@@ -201,26 +201,54 @@ export function MechanicQueue({ jobs }: { jobs: MechanicBooking[] }) {
     </>
   );
 }
-async function preparePhoto(file: File) {
-  if (!file.type.startsWith('image/') || file.size > 20_000_000)
-    throw new Error('Choose an image smaller than 20 MB.');
+type ImageFormat = 'jpeg' | 'png' | 'webp' | 'gif' | 'heic' | 'unknown';
+const signature = (bytes: Uint8Array): ImageFormat => {
+  if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return 'jpeg';
+  if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) return 'png';
+  if (String.fromCharCode(...bytes.slice(0, 4)) === 'RIFF' && String.fromCharCode(...bytes.slice(8, 12)) === 'WEBP') return 'webp';
+  if (String.fromCharCode(...bytes.slice(0, 3)) === 'GIF') return 'gif';
+  const brand = String.fromCharCode(...bytes.slice(8, 12)).toLowerCase();
+  if (String.fromCharCode(...bytes.slice(4, 8)) === 'ftyp' && ['heic', 'heix', 'hevc', 'hevx', 'mif1', 'msf1'].includes(brand)) return 'heic';
+  return 'unknown';
+};
+
+async function preparePhoto(original: File) {
+  let file = original;
+  try {
+    if (file.size === 0 || file.size > 30_000_000) throw new Error('Choose an image smaller than 30 MB.');
+    const format = signature(new Uint8Array(await file.slice(0, 32).arrayBuffer()));
+    if (format === 'unknown') throw new Error('This file is not a readable image. Choose a photo from your camera or library.');
+    if (format === 'heic') {
+      const { default: heic2any } = await import('heic2any');
+      const converted = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.82 });
+      const jpeg = Array.isArray(converted) ? converted[0] : converted;
+      if (!jpeg) throw new Error('The HEIC photo could not be converted. Please try another photo.');
+      file = new File([jpeg], `${file.name.replace(/\.[^.]+$/, '') || 'camera-photo'}.jpg`, { type: 'image/jpeg' });
+    }
+  } catch (error) {
+    console.error('mechanic-photo-validation-failed', { name: original.name, type: original.type, size: original.size, error });
+    throw error;
+  }
   const url = URL.createObjectURL(file);
   try {
     const image = new window.Image();
     await new Promise<void>((resolve, reject) => {
       image.onload = () => resolve();
-      image.onerror = () =>
-        reject(new Error('Unable to read image. Try JPEG or PNG.'));
+      image.onerror = () => reject(new Error('The image could not be decoded after validation. Please choose another photo.'));
       image.src = url;
     });
-    const scale = Math.min(1, 1000 / Math.max(image.width, image.height));
+    if (!image.naturalWidth || !image.naturalHeight) throw new Error('The image has no readable dimensions.');
+    const scale = Math.min(1, 1600 / Math.max(image.naturalWidth, image.naturalHeight));
     const canvas = document.createElement('canvas');
-    canvas.width = Math.round(image.width * scale);
-    canvas.height = Math.round(image.height * scale);
-    canvas
-      .getContext('2d')!
-      .drawImage(image, 0, 0, canvas.width, canvas.height);
+    canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+    canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+    const context = canvas.getContext('2d');
+    if (!context) throw new Error('Your browser could not prepare this image.');
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
     return canvas.toDataURL('image/jpeg', 0.65);
+  } catch (error) {
+    console.error('mechanic-photo-decode-failed', { name: original.name, type: original.type, size: original.size, error });
+    throw error;
   } finally {
     URL.revokeObjectURL(url);
   }
