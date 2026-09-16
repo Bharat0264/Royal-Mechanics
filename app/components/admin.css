@@ -2389,6 +2389,30 @@ body:has(.admin-shell) {
   }
 }
 
+/* Keep booking controls readable and let dense record tables scroll locally. */
+.admin-shell { overflow-x: hidden; }
+.admin-shell .admin-table-wrap {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.admin-shell .admin-table-wrap > table { width: max-content; min-width: 760px; }
+.admin-shell .admin-toolbar .admin-gold {
+  width: auto;
+  min-width: max-content;
+  flex: 0 0 auto;
+  padding-inline: 14px;
+  white-space: nowrap;
+}
+@media (max-width: 640px) {
+  .admin-shell .admin-toolbar { flex-wrap: wrap; align-items: center; }
+  .admin-shell .admin-toolbar h2 { flex: 1 1 88px; }
+  .admin-shell .admin-toolbar select { flex: 1 1 100%; }
+}
+
 /* Mobile portal shell: a true off-canvas navigation drawer and independent controls. */
 @media (max-width: 768px) {
   .admin-shell .admin-sidebar {

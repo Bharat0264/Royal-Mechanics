@@ -783,3 +783,111 @@ body:has(.mechanic-console) { background: #090b0f !important; }
   .mechanic-app-shell .mechanic-sidebar,
   .mechanic-app-shell .mechanic-topbar { margin: 0 0 12px; border-radius: 20px; }
 }
+
+/* Match the administration rail's proportions and active-navigation finish. */
+@media (min-width: 761px) {
+  .mechanic-app-shell { grid-template-columns: 316px minmax(0, 1fr); }
+  .mechanic-app-shell .mechanic-sidebar {
+    width: auto;
+    margin: 0 18px;
+    padding: 24px 14px 18px;
+    border-radius: 26px;
+  }
+  .mechanic-app-shell .mechanic-brand {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr);
+    gap: 12px;
+    align-items: center;
+    padding: 0 10px;
+  }
+  .mechanic-app-shell .mechanic-brand img { width: 52px; height: 52px; }
+  .mechanic-app-shell .mechanic-brand > span {
+    display: grid;
+    gap: 5px;
+    color: #edf1f5 !important;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .12em;
+    line-height: 1.1;
+  }
+  .mechanic-app-shell .mechanic-brand small {
+    margin: 0;
+    color: #e8b84b;
+    font-size: 7px;
+    font-weight: 800;
+    letter-spacing: .18em;
+  }
+  .mechanic-app-shell .mechanic-role-badge {
+    margin: 28px 10px 14px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    color: #788797;
+    background: transparent;
+    box-shadow: none;
+    font-size: 8px;
+    letter-spacing: .15em;
+  }
+  .mechanic-app-shell .mechanic-role-badge svg { width: 12px; height: 12px; color: #e8b84b; }
+  .mechanic-app-shell .mechanic-nav { gap: 10px; padding-inline: 2px; }
+  .mechanic-app-shell .mechanic-nav a {
+    min-height: 52px;
+    padding: 12px 16px;
+    border-color: rgb(232 184 75 / 52%);
+    border-radius: 14px;
+    color: #f3cb73;
+    background: rgb(232 184 75 / 14%);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 16%), 0 0 0 5px rgb(232 184 75 / 7%), 0 9px 22px rgb(232 184 75 / 18%);
+  }
+  .mechanic-app-shell .mechanic-nav a svg { color: #f0bd67; }
+  .mechanic-app-shell .mechanic-sidebar-footer { padding: 18px 12px 8px; }
+}
+
+/* Queue surfaces use the same focused glass cards as the dashboard KPIs. */
+.mechanic-app-shell .queue-total {
+  min-width: 136px;
+  padding: 14px 18px;
+  border-radius: 18px;
+  border-left: 1px solid var(--mechanic-glass-edge);
+  border-top-color: var(--mechanic-glass-rim);
+  background: linear-gradient(145deg, rgb(255 255 255 / 9%), rgb(255 255 255 / 5%));
+}
+.mechanic-app-shell .job-filter-tabs {
+  width: fit-content;
+  max-width: 100%;
+  padding: 6px;
+  gap: 7px;
+  border-radius: 18px;
+}
+.mechanic-app-shell .job-filter-tabs button {
+  min-height: 38px;
+  padding: 8px 13px;
+  border-radius: 999px;
+  color: #bdc6d0;
+}
+.mechanic-app-shell .job-filter-tabs button.is-active {
+  color: #f7d487;
+  background: rgb(217 164 65 / 16%) !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 14%), 0 5px 14px rgb(217 164 65 / 16%);
+}
+.mechanic-app-shell .job-card {
+  min-height: 0;
+  padding: 26px;
+  gap: 16px;
+  border-top-color: var(--mechanic-glass-rim);
+  background: linear-gradient(145deg, rgb(255 255 255 / 9%), rgb(255 255 255 / 5%));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 8%), 0 20px 46px var(--mechanic-glass-shadow);
+  backdrop-filter: blur(20px) saturate(130%);
+  -webkit-backdrop-filter: blur(20px) saturate(130%);
+}
+.mechanic-app-shell .job-card:hover {
+  background: linear-gradient(145deg, rgb(255 255 255 / 11%), rgb(255 255 255 / 6%));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 12%), 0 24px 54px rgb(0 0 0 / 38%);
+}
+.mechanic-app-shell .mechanic-queue-heading { margin-bottom: 18px; }
+.mechanic-app-shell .mechanic-queue-heading h1 { margin: 5px 0 7px; }
+.mechanic-app-shell .job-filter-tabs { margin-bottom: 14px; }
+@media (max-width: 760px) {
+  .mechanic-app-shell .job-filter-tabs { width: 100%; overflow-x: auto; }
+  .mechanic-app-shell .queue-total { min-width: 112px; }
+}
