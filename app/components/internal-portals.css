@@ -16,6 +16,7 @@
   display: flex;
   flex-direction: column;
   min-height: 100dvh;
+  overflow-x: hidden;
   padding: 20px;
   color: #e7e9e5;
   background:
@@ -34,6 +35,8 @@
 .mechanic-console > main {
   flex: 1 0 auto;
   width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 .portal-credit-footer {
   display: flex;
@@ -615,6 +618,21 @@ body:has(.mechanic-console) { background: #090b0f !important; }
 @media (max-width: 650px) {
   .mechanic-console {
     padding: 14px;
+  }
+  .mechanic-console > main {
+    padding-inline: 2px;
+  }
+  .mechanic-console .job-summary {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .mechanic-console .job-summary::-webkit-scrollbar { display: none; }
+  .mechanic-console .job-summary span {
+    flex: 0 0 auto;
+    white-space: nowrap;
   }
   .mechanic-console header {
     align-items: flex-start;
