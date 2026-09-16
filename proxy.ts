@@ -23,16 +23,12 @@ export function proxy(request: NextRequest) {
     : undefined;
   const destination = roleHomePath(appRole);
 
-  // Cookie hints make the redirect immediate. The route layouts re-check the
-  // database session before rendering, so a forged or expired hint grants nothing.
-  // An absent hint must not be treated as a customer. It can be stale or be
-  // unavailable on a freshly restored session; letting the protected layout
-  // resolve the database-backed session avoids bouncing through the public
-  // homepage before the portal is rendered.
-  if (isPath(pathname, '/admin') && appRole && appRole !== 'ADMIN')
-    return NextResponse.redirect(new URL('/', request.url));
-  if (isPath(pathname, '/mechanic') && appRole && appRole !== 'MECHANIC')
-    return NextResponse.redirect(new URL(destination, request.url));
+  // Do not route a portal request using the role hint. It can be stale (for
+  // example after an account role change), and redirecting it to `/` mounts
+  // the public layout before the database-backed portal check redirects back.
+  // The protected route's server components are the routing boundary for
+  // `/admin` and `/mechanic`; their loading boundaries cover the session
+  // lookup without exposing another route's UI.
   if (isPath(pathname, '/dashboard') || isPath(pathname, '/home'))
     return NextResponse.redirect(new URL(destination, request.url));
   if (pathname === '/login' && appRole)

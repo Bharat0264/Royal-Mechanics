@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers';
+import { cache } from 'react';
 import { randomBytes, scrypt, timingSafeEqual } from 'node:crypto';
 import { promisify } from 'node:util';
 import { NextResponse } from 'next/server';
@@ -78,7 +79,7 @@ export async function throttle(key: string, max = 10) {
   );
   return record.count <= max;
 }
-export async function getViewer(): Promise<Viewer | null> {
+export const getViewer = cache(async (): Promise<Viewer | null> => {
   const jar = await cookies();
   const token = jar.get(SESSION_COOKIE)?.value;
   if (!token) {
@@ -109,7 +110,7 @@ export async function getViewer(): Promise<Viewer | null> {
     mustChangePassword: user.mustChangePassword === true,
     isGuest: false,
   };
-}
+});
 export async function issueSession(
   user: { _id: unknown; role: string; mustChangePassword?: boolean },
   request: Request,
