@@ -888,7 +888,16 @@ body:has(.mechanic-console) { background: #090b0f !important; }
   }
   .mechanic-app-shell .mechanic-queue-heading { flex-wrap: wrap; gap: 14px; }
   .mechanic-app-shell .queue-total { min-width: 112px; }
-  .mechanic-app-shell .job-filter-tabs { width: 100%; overflow-x: auto; }
+  .mechanic-app-shell .job-filter-tabs {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    /* Keep the first and last tabs equally clear of the viewport edge. */
+    padding-inline: 6px;
+    scroll-padding-inline: 6px;
+    scroll-snap-type: x proximity;
+  }
+  .mechanic-app-shell .job-filter-tabs button { scroll-snap-align: start; }
   .mechanic-app-shell .job-queue { grid-template-columns: minmax(0, 1fr); }
   .mechanic-app-shell .portal-credit-footer {
     width: 100%;

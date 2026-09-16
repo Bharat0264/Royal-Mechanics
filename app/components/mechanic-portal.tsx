@@ -160,9 +160,9 @@ export function MechanicQueue({ jobs }: { jobs: MechanicBooking[] }) {
           </div>
           <div className="queue-total"><strong>{active.length}</strong><span>active vehicles</span></div>
         </section>
-        <div className="job-filter-tabs" aria-label="Filter jobs by status">
+        <div className="job-filter-tabs" role="tablist" aria-label="Filter jobs by status">
           {statuses.map(([status, label]) => (
-            <button key={status} type="button" className={filter === status ? 'is-active' : ''} onClick={() => setFilter(status)}>
+            <button key={status} type="button" role="tab" aria-selected={filter === status} className={filter === status ? 'is-active' : ''} onClick={() => setFilter(status)}>
               {label} <b>{status === 'ALL' ? active.length : statusCount(status)}</b>
             </button>
           ))}

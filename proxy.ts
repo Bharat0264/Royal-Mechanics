@@ -25,9 +25,13 @@ export function proxy(request: NextRequest) {
 
   // Cookie hints make the redirect immediate. The route layouts re-check the
   // database session before rendering, so a forged or expired hint grants nothing.
-  if (isPath(pathname, '/admin') && appRole !== 'ADMIN')
+  // An absent hint must not be treated as a customer. It can be stale or be
+  // unavailable on a freshly restored session; letting the protected layout
+  // resolve the database-backed session avoids bouncing through the public
+  // homepage before the portal is rendered.
+  if (isPath(pathname, '/admin') && appRole && appRole !== 'ADMIN')
     return NextResponse.redirect(new URL('/', request.url));
-  if (isPath(pathname, '/mechanic') && appRole !== 'MECHANIC')
+  if (isPath(pathname, '/mechanic') && appRole && appRole !== 'MECHANIC')
     return NextResponse.redirect(new URL(destination, request.url));
   if (isPath(pathname, '/dashboard') || isPath(pathname, '/home'))
     return NextResponse.redirect(new URL(destination, request.url));
