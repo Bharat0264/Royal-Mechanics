@@ -2811,3 +2811,84 @@ body:has(.admin-shell) {
   .admin-shell .admin-date { max-width: 100%; }
   .admin-shell .admin-period-tabs { flex-wrap: wrap; }
 }
+
+/* Final portal material: the hierarchy remains unchanged, while every surface
+   shares the same translucent, rim-lit glass treatment. */
+.admin-shell {
+  --admin-glass-fill: rgb(255 255 255 / 7%);
+  --admin-glass-edge: rgb(255 255 255 / 8%);
+  --admin-glass-rim: rgb(255 255 255 / 14%);
+  --admin-glass-shadow: rgb(0 0 0 / 32%);
+}
+
+.admin-shell :is(.admin-widget, .internal-admin .glass-panel, .admin-dialog, .admin-popover, .admin-credentials) {
+  border: 1px solid var(--admin-glass-edge);
+  border-top-color: var(--admin-glass-rim);
+  background: var(--admin-glass-fill);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 5%), 0 18px 44px var(--admin-glass-shadow);
+  backdrop-filter: blur(20px) saturate(130%);
+  -webkit-backdrop-filter: blur(20px) saturate(130%);
+}
+
+.admin-shell :is(.admin-dialog .admin-widget-heading, .admin-dialog-footer) {
+  border-color: var(--admin-glass-edge);
+  background: rgb(255 255 255 / 6%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 6%);
+  backdrop-filter: blur(20px) saturate(130%);
+  -webkit-backdrop-filter: blur(20px) saturate(130%);
+}
+
+.admin-shell .admin-kpi {
+  background: var(--admin-glass-fill);
+  border-top-color: var(--admin-glass-rim);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 6%), 0 16px 38px var(--admin-glass-shadow);
+  backdrop-filter: blur(20px) saturate(130%);
+  -webkit-backdrop-filter: blur(20px) saturate(130%);
+}
+
+.admin-shell .admin-gauge {
+  background: rgb(255 255 255 / 7%);
+  border-color: rgb(255 255 255 / 12%);
+  border-top-color: rgb(255 255 255 / 18%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 9%), 0 8px 20px rgb(0 0 0 / 18%);
+  backdrop-filter: blur(20px) saturate(130%);
+  -webkit-backdrop-filter: blur(20px) saturate(130%);
+}
+
+.admin-shell :is(.admin-secondary, .admin-icon, .admin-global-search, .admin-date, .admin-period-tabs) {
+  border-color: var(--admin-glass-edge);
+  border-top-color: var(--admin-glass-rim);
+  background: rgb(255 255 255 / 6%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 6%), 0 8px 20px rgb(0 0 0 / 18%);
+  backdrop-filter: blur(20px) saturate(130%);
+  -webkit-backdrop-filter: blur(20px) saturate(130%);
+}
+
+@media (min-width: 769px) {
+  .admin-shell .admin-sidebar {
+    inset: 18px auto 18px 18px;
+    width: 240px;
+    height: calc(100dvh - 36px);
+    padding: 92px 14px 18px;
+    border: 1px solid var(--admin-glass-edge);
+    border-top-color: var(--admin-glass-rim);
+    border-radius: 24px;
+    background: var(--admin-glass-fill);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 6%), 0 20px 50px var(--admin-glass-shadow);
+    backdrop-filter: blur(20px) saturate(130%);
+    -webkit-backdrop-filter: blur(20px) saturate(130%);
+  }
+  .admin-shell .admin-workspace { width: calc(100% - 276px); margin-left: 276px; }
+  .admin-shell .admin-topbar {
+    top: 18px !important;
+    width: auto !important;
+    margin: 18px 18px 0 0 !important;
+    border: 1px solid var(--admin-glass-edge);
+    border-top-color: var(--admin-glass-rim);
+    border-radius: 24px !important;
+    background: var(--admin-glass-fill);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 6%), 0 18px 44px var(--admin-glass-shadow);
+    backdrop-filter: blur(20px) saturate(130%);
+    -webkit-backdrop-filter: blur(20px) saturate(130%);
+  }
+}
