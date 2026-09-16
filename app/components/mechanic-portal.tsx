@@ -151,20 +151,22 @@ export function MechanicQueue({ jobs }: { jobs: MechanicBooking[] }) {
   ] as const;
   return (
     <>
-      <section className="mechanic-queue-heading">
-        <div>
-          <p className="console-kicker">TODAY’S WORKLOAD</p>
-          <h1>Job queue</h1>
-          <p>Track each vehicle from intake to final inspection.</p>
+      <div className="mechanic-queue-controls">
+        <section className="mechanic-queue-heading">
+          <div>
+            <p className="console-kicker">TODAY’S WORKLOAD</p>
+            <h1>Job queue</h1>
+            <p>Track each vehicle from intake to final inspection.</p>
+          </div>
+          <div className="queue-total"><strong>{active.length}</strong><span>active vehicles</span></div>
+        </section>
+        <div className="job-filter-tabs" aria-label="Filter jobs by status">
+          {statuses.map(([status, label]) => (
+            <button key={status} type="button" className={filter === status ? 'is-active' : ''} onClick={() => setFilter(status)}>
+              {label} <b>{status === 'ALL' ? active.length : statusCount(status)}</b>
+            </button>
+          ))}
         </div>
-        <div className="queue-total"><strong>{active.length}</strong><span>active vehicles</span></div>
-      </section>
-      <div className="job-filter-tabs" aria-label="Filter jobs by status">
-        {statuses.map(([status, label]) => (
-          <button key={status} type="button" className={filter === status ? 'is-active' : ''} onClick={() => setFilter(status)}>
-            {label} <b>{status === 'ALL' ? active.length : statusCount(status)}</b>
-          </button>
-        ))}
       </div>
       <div className="job-queue">
         {visible.map((job, index) => (

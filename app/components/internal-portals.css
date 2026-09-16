@@ -803,16 +803,32 @@ body:has(.mechanic-console) { background: #090b0f !important; }
   .mechanic-app-shell > .mechanic-workspace > main {
     width: 100%;
     max-width: none;
-    padding: 24px 14px 16px;
+    /* Matches the top bar's 12px shell inset + 16px content inset. */
+    padding: 24px 16px 16px;
+  }
+  .mechanic-app-shell .mechanic-queue-controls {
+    width: 100%;
+    min-width: 0;
   }
   .mechanic-app-shell .mechanic-queue-heading { flex-wrap: wrap; gap: 14px; }
   .mechanic-app-shell .queue-total { min-width: 112px; }
-  .mechanic-app-shell .job-filter-tabs { width: 100%; overflow-x: auto; }
-  .mechanic-app-shell .job-queue { grid-template-columns: minmax(0, 1fr); }
+  .mechanic-app-shell .job-filter-tabs {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    padding-inline-start: 6px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-padding-inline-start: 6px;
+    overscroll-behavior-x: contain;
+  }
+  .mechanic-app-shell .job-filter-tabs button:first-child { scroll-margin-inline-start: 6px; }
+  .mechanic-app-shell .job-queue { width: 100%; min-width: 0; grid-template-columns: minmax(0, 1fr); }
   .mechanic-app-shell .portal-credit-footer {
     width: 100%;
     margin: 16px 0 4px;
-    padding-inline: 14px;
+    padding-inline: 16px;
   }
 }
 
