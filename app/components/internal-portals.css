@@ -778,6 +778,109 @@ body:has(.mechanic-console) { background: #090b0f !important; }
   }
 }
 
+/* Keep 768px inside the compact composition after the desktop rules above. */
+@media (max-width: 850px) {
+  .mechanic-app-shell { display: block; padding: 12px; }
+  .mechanic-app-shell .mechanic-sidebar {
+    position: relative;
+    top: auto;
+    width: auto;
+    height: auto;
+    min-height: auto;
+    margin: 0 0 12px;
+    padding: 14px 16px;
+    border-radius: 20px;
+  }
+  .mechanic-app-shell .mechanic-sidebar .mechanic-brand { padding: 0; }
+  .mechanic-app-shell :is(.mechanic-role-badge, .mechanic-nav, .mechanic-sidebar-footer) { display: none; }
+  .mechanic-app-shell .mechanic-topbar {
+    top: auto;
+    width: 100%;
+    max-width: none;
+    margin: 0 0 12px;
+    padding: 12px 16px;
+  }
+  .mechanic-app-shell > .mechanic-workspace > main {
+    width: 100%;
+    max-width: none;
+    padding: 24px 14px 16px;
+  }
+  .mechanic-app-shell .mechanic-queue-heading { flex-wrap: wrap; gap: 14px; }
+  .mechanic-app-shell .queue-total { min-width: 112px; }
+  .mechanic-app-shell .job-filter-tabs { width: 100%; overflow-x: auto; }
+  .mechanic-app-shell .job-queue { grid-template-columns: minmax(0, 1fr); }
+  .mechanic-app-shell .portal-credit-footer {
+    width: 100%;
+    margin: 16px 0 4px;
+    padding-inline: 14px;
+  }
+}
+
+/* All mechanic routes share a true header → main → footer page shell. */
+.mechanic-app-shell,
+.mechanic-workspace {
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+.mechanic-workspace > main {
+  flex: 1 0 auto;
+  min-width: 0;
+}
+.mechanic-workspace > .portal-credit-footer { flex: 0 0 auto; }
+@media (max-width: 760px) {
+  .mechanic-app-shell > .mechanic-workspace > main {
+    width: 100%;
+    padding: 22px 14px 16px;
+  }
+  .mechanic-app-shell .mechanic-queue-heading {
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  .mechanic-app-shell .queue-total { min-width: 0; }
+  .mechanic-app-shell .job-queue { grid-template-columns: minmax(0, 1fr); }
+  .mechanic-app-shell .job-card { width: 100%; padding: 22px; }
+  .mechanic-app-shell .portal-credit-footer {
+    width: 100%;
+    margin: 16px 0 4px;
+    padding-inline: 14px;
+  }
+}
+
+/* Tablet uses the compact workspace before the desktop rail can crowd content. */
+@media (max-width: 850px) {
+  .mechanic-app-shell { display: block; padding: 12px; }
+  .mechanic-app-shell .mechanic-sidebar {
+    position: relative;
+    top: auto;
+    height: auto;
+    min-height: auto;
+    margin: 0 0 12px;
+    padding: 14px 16px;
+    border-radius: 20px;
+  }
+  .mechanic-app-shell .mechanic-sidebar .mechanic-brand { padding: 0; }
+  .mechanic-app-shell :is(.mechanic-role-badge, .mechanic-nav, .mechanic-sidebar-footer) { display: none; }
+  .mechanic-app-shell .mechanic-topbar {
+    width: 100%;
+    margin: 0 0 12px;
+    padding: 12px 16px;
+  }
+  .mechanic-app-shell > .mechanic-workspace > main {
+    width: 100%;
+    max-width: none;
+    padding: 24px 14px 16px;
+  }
+  .mechanic-app-shell .mechanic-queue-heading { flex-wrap: wrap; gap: 14px; }
+  .mechanic-app-shell .queue-total { min-width: 112px; }
+  .mechanic-app-shell .job-filter-tabs { width: 100%; overflow-x: auto; }
+  .mechanic-app-shell .job-queue { grid-template-columns: minmax(0, 1fr); }
+  .mechanic-app-shell .portal-credit-footer {
+    width: 100%;
+    margin: 16px 0 4px;
+    padding-inline: 14px;
+  }
+}
+
 @media (max-width: 760px) {
   .mechanic-app-shell { padding: 12px; }
   .mechanic-app-shell .mechanic-sidebar,
@@ -914,5 +1017,43 @@ body:has(.mechanic-console) { background: #090b0f !important; }
     grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
     width: 100%;
     gap: 20px;
+  }
+}
+
+/* This must follow the wide-screen rule so tablets retain the compact shell. */
+@media (max-width: 850px) {
+  .mechanic-app-shell { display: block; padding: 12px; }
+  .mechanic-app-shell .mechanic-sidebar {
+    position: relative;
+    top: auto;
+    width: auto;
+    height: auto;
+    min-height: auto;
+    margin: 0 0 12px;
+    padding: 14px 16px;
+    border-radius: 20px;
+  }
+  .mechanic-app-shell .mechanic-sidebar .mechanic-brand { padding: 0; }
+  .mechanic-app-shell :is(.mechanic-role-badge, .mechanic-nav, .mechanic-sidebar-footer) { display: none; }
+  .mechanic-app-shell .mechanic-topbar {
+    top: auto;
+    width: 100%;
+    max-width: none;
+    margin: 0 0 12px;
+    padding: 12px 16px;
+  }
+  .mechanic-app-shell > .mechanic-workspace > main {
+    width: 100%;
+    max-width: none;
+    padding: 24px 14px 16px;
+  }
+  .mechanic-app-shell .mechanic-queue-heading { flex-wrap: wrap; gap: 14px; }
+  .mechanic-app-shell .queue-total { min-width: 112px; }
+  .mechanic-app-shell .job-filter-tabs { width: 100%; overflow-x: auto; }
+  .mechanic-app-shell .job-queue { grid-template-columns: minmax(0, 1fr); }
+  .mechanic-app-shell .portal-credit-footer {
+    width: 100%;
+    margin: 16px 0 4px;
+    padding-inline: 14px;
   }
 }

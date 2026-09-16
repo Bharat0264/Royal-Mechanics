@@ -197,7 +197,6 @@ export function HomePage({
           </blockquote>
         </section>
       </main>
-      <PublicFooter />
     </>
   );
 }
@@ -233,7 +232,6 @@ export function ServicesPage() {
           ))}
         </section>
       </main>
-      <PublicFooter />
     </>
   );
 }
@@ -304,7 +302,6 @@ export function WorkshopPage() {
           ))}
         </section>
       </main>
-      <PublicFooter />
     </>
   );
 }
@@ -352,7 +349,6 @@ export function ReviewsPage() {
           )}
         </section>
       </main>
-      <PublicFooter />
     </>
   );
 }
@@ -500,7 +496,6 @@ export function ContactPage() {
           </a>
         </section>
       </main>
-      <PublicFooter />
     </>
   );
 }
@@ -695,7 +690,6 @@ export function BookingPage() {
           </form>
         </section>
       </main>
-      <PublicFooter />
     </>
   );
 }

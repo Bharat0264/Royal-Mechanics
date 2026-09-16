@@ -74,12 +74,32 @@ html {
 .route-error button, .route-error a { border: 1px solid #d8b36e; border-radius: 999px; padding: 10px 16px; background: transparent; color: #f8f3e8; font: inherit; text-decoration: none; cursor: pointer; }
 body {
   margin: 0;
+  min-height: 100dvh;
   overflow-x: hidden;
   background: var(--ink);
   color: var(--paper);
   font-family: Arial, sans-serif;
   -webkit-tap-highlight-color: transparent;
   tap-highlight-color: transparent;
+}
+
+/* Shared page shell: one flex-column contract keeps footers below content. */
+.customer-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+.customer-shell-main {
+  display: flex;
+  flex: 1 0 auto;
+  min-width: 0;
+  flex-direction: column;
+}
+.customer-shell-main > .public-main {
+  width: min(1400px, 100%);
+  flex: 1 0 auto;
+  margin-inline: auto;
 }
 button,
 input,

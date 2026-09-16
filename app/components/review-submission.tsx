@@ -6,7 +6,8 @@ import { ArrowRight, CheckCircle2, Star } from 'lucide-react';
 import { requestWithMinimum as fetch } from '@/lib/minimum-request';
 import { triggerHaptic } from '@/lib/haptics';
 import { Loader, useMinimumBusy } from './loader';
-import { PublicFooter } from './public-site';
+// The customer layout owns the single shared footer for every public route.
+const PublicFooter = () => null;
 
 type Job = { _id: string; vehicleName: string; serviceCategory: string; requestNumber: string };
 export function ReviewSubmissionPage({ jobs }: { jobs: Job[] }) {

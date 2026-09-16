@@ -2413,6 +2413,18 @@ body:has(.admin-shell) {
   .admin-shell .admin-toolbar select { flex: 1 1 100%; }
 }
 
+/* The admin shell follows the same header → growing content → footer rhythm. */
+.admin-shell,
+.admin-workspace { min-height: 100dvh; overflow-x: hidden; }
+.admin-workspace { display: flex; flex-direction: column; }
+.admin-main {
+  display: flex;
+  flex: 1 0 auto;
+  min-width: 0;
+  flex-direction: column;
+}
+.admin-main > .admin-footer { margin-top: auto; }
+
 /* Mobile portal shell: a true off-canvas navigation drawer and independent controls. */
 @media (max-width: 768px) {
   .admin-shell .admin-sidebar {
