@@ -891,3 +891,28 @@ body:has(.mechanic-console) { background: #090b0f !important; }
   .mechanic-app-shell .job-filter-tabs { width: 100%; overflow-x: auto; }
   .mechanic-app-shell .queue-total { min-width: 112px; }
 }
+
+/* A single centered workspace scale prevents wide screens from becoming voids. */
+@media (min-width: 761px) {
+  .mechanic-app-shell .mechanic-topbar {
+    width: min(1200px, calc(100% - 36px));
+    max-width: 1200px;
+    margin: 18px auto 0;
+  }
+  .mechanic-app-shell > .mechanic-workspace > main {
+    width: min(1200px, calc(100% - 36px));
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 34px 0 12px;
+  }
+  .mechanic-app-shell .portal-credit-footer {
+    width: min(1200px, calc(100% - 36px));
+    max-width: 1200px;
+    margin: 18px auto;
+  }
+  .mechanic-app-shell .job-queue {
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    width: 100%;
+    gap: 20px;
+  }
+}
