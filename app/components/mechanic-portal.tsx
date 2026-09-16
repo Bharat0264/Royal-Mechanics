@@ -166,15 +166,6 @@ export function MechanicQueue({ jobs }: { jobs: MechanicBooking[] }) {
           </button>
         ))}
       </div>
-      <div className="job-summary" aria-label="Job status summary">
-        <span data-status="ASSIGNED">Assigned · {statusCount('ASSIGNED')}</span>
-        <span data-status="IN_PROGRESS">
-          In progress · {statusCount('IN_PROGRESS')}
-        </span>
-        <span data-status="QUALITY_CHECK">
-          Quality check · {statusCount('QUALITY_CHECK')}
-        </span>
-      </div>
       <div className="job-queue">
         {visible.map((job, index) => (
           <GlassPanel
