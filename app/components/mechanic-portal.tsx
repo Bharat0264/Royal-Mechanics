@@ -34,8 +34,9 @@ export function MechanicSignout() {
   const [busy, setBusy] = useMinimumBusy();
   const [error, setError] = useState('');
   return (
-    <div>
+    <div className="mechanic-signout">
       <button
+        className="mechanic-signout-button"
         disabled={busy}
         onClick={async () => {
           triggerHaptic('light');
@@ -134,16 +135,37 @@ export function MechanicSetPassword() {
 }
 
 export function MechanicQueue({ jobs }: { jobs: MechanicBooking[] }) {
+  const [filter, setFilter] = useState('ALL');
   const active = jobs.filter(
     (job) => !['COMPLETED', 'CANCELLED'].includes(job.status),
   );
   const statusCount = (status: string) =>
     active.filter((job) => job.status === status).length;
   const statusName = (status: string) => status.replaceAll('_', ' ');
+  const visible = filter === 'ALL' ? active : active.filter((job) => job.status === filter);
+  const statuses = [
+    ['ALL', 'All work'],
+    ['ASSIGNED', 'Assigned'],
+    ['IN_PROGRESS', 'In progress'],
+    ['QUALITY_CHECK', 'Quality check'],
+  ] as const;
   return (
     <>
-      <h1>Job queue</h1>
-      <p>{active.length} active vehicles</p>
+      <section className="mechanic-queue-heading">
+        <div>
+          <p className="console-kicker">TODAY’S WORKLOAD</p>
+          <h1>Job queue</h1>
+          <p>Track each vehicle from intake to final inspection.</p>
+        </div>
+        <div className="queue-total"><strong>{active.length}</strong><span>active vehicles</span></div>
+      </section>
+      <div className="job-filter-tabs" aria-label="Filter jobs by status">
+        {statuses.map(([status, label]) => (
+          <button key={status} type="button" className={filter === status ? 'is-active' : ''} onClick={() => setFilter(status)}>
+            {label} <b>{status === 'ALL' ? active.length : statusCount(status)}</b>
+          </button>
+        ))}
+      </div>
       <div className="job-summary" aria-label="Job status summary">
         <span data-status="ASSIGNED">Assigned · {statusCount('ASSIGNED')}</span>
         <span data-status="IN_PROGRESS">
@@ -154,7 +176,7 @@ export function MechanicQueue({ jobs }: { jobs: MechanicBooking[] }) {
         </span>
       </div>
       <div className="job-queue">
-        {active.map((job, index) => (
+        {visible.map((job, index) => (
           <GlassPanel
             className="job-card mechanic-enter"
             key={job._id}
@@ -171,7 +193,7 @@ export function MechanicQueue({ jobs }: { jobs: MechanicBooking[] }) {
                 {statusName(job.status)}
               </span>
             </div>
-            <span>{job.customerId?.displayName || 'Walk-in customer'}</span>
+            <span className="job-customer">{job.customerId?.displayName || 'Walk-in customer'}</span>
             <div className="job-progress" aria-label="Repairs completed">
               <i
                 style={{
@@ -188,7 +210,7 @@ export function MechanicQueue({ jobs }: { jobs: MechanicBooking[] }) {
             </Link>
           </GlassPanel>
         ))}
-        {!active.length && (
+        {!visible.length && (
           <GlassPanel className="job-empty-state">
             <Wrench size={30} aria-hidden="true" />
             <div>
@@ -201,7 +223,7 @@ export function MechanicQueue({ jobs }: { jobs: MechanicBooking[] }) {
     </>
   );
 }
-type ImageFormat = 'jpeg' | 'png' | 'webp' | 'gif' | 'heic' | 'unknown';
+type ImageFormat = 'jpeg' | 'png' | 'webp' | 'gif' | 'heic' | 'avif' | 'unknown';
 const signature = (bytes: Uint8Array): ImageFormat => {
   if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return 'jpeg';
   if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) return 'png';
@@ -209,13 +231,16 @@ const signature = (bytes: Uint8Array): ImageFormat => {
   if (String.fromCharCode(...bytes.slice(0, 3)) === 'GIF') return 'gif';
   const brand = String.fromCharCode(...bytes.slice(8, 12)).toLowerCase();
   if (String.fromCharCode(...bytes.slice(4, 8)) === 'ftyp' && ['heic', 'heix', 'hevc', 'hevx', 'mif1', 'msf1'].includes(brand)) return 'heic';
+  if (String.fromCharCode(...bytes.slice(4, 8)) === 'ftyp' && brand === 'avif') return 'avif';
   return 'unknown';
 };
 
 async function preparePhoto(original: File) {
   let file = original;
   try {
-    if (file.size === 0 || file.size > 30_000_000) throw new Error('Choose an image smaller than 30 MB.');
+    if (!file.size) throw new Error('This photo is empty. Please take or select it again.');
+    // A safety ceiling for device memory. Normal large camera photos are resized below.
+    if (file.size > 100_000_000) throw new Error('This photo is over 100 MB. Please choose a smaller photo.');
     const format = signature(new Uint8Array(await file.slice(0, 32).arrayBuffer()));
     if (format === 'unknown') throw new Error('This file is not a readable image. Choose a photo from your camera or library.');
     if (format === 'heic') {
@@ -229,28 +254,21 @@ async function preparePhoto(original: File) {
     console.error('mechanic-photo-validation-failed', { name: original.name, type: original.type, size: original.size, error });
     throw error;
   }
-  const url = URL.createObjectURL(file);
   try {
-    const image = new window.Image();
-    await new Promise<void>((resolve, reject) => {
-      image.onload = () => resolve();
-      image.onerror = () => reject(new Error('The image could not be decoded after validation. Please choose another photo.'));
-      image.src = url;
-    });
-    if (!image.naturalWidth || !image.naturalHeight) throw new Error('The image has no readable dimensions.');
-    const scale = Math.min(1, 1600 / Math.max(image.naturalWidth, image.naturalHeight));
+    const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
+    if (!bitmap.width || !bitmap.height) throw new Error('This photo has no readable dimensions. Please choose another photo.');
+    const scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height));
     const canvas = document.createElement('canvas');
-    canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
-    canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+    canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+    canvas.height = Math.max(1, Math.round(bitmap.height * scale));
     const context = canvas.getContext('2d');
     if (!context) throw new Error('Your browser could not prepare this image.');
-    context.drawImage(image, 0, 0, canvas.width, canvas.height);
-    return canvas.toDataURL('image/jpeg', 0.65);
+    context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    bitmap.close();
+    return canvas.toDataURL('image/jpeg', 0.72);
   } catch (error) {
     console.error('mechanic-photo-decode-failed', { name: original.name, type: original.type, size: original.size, error });
-    throw error;
-  } finally {
-    URL.revokeObjectURL(url);
+    throw new Error('This photo could not be read by your device. Try a JPEG, PNG, or WebP photo from the camera or gallery.');
   }
 }
 function Capture({
@@ -277,12 +295,7 @@ function Capture({
     if (!file) return;
     setBusy(true);
     try {
-      const results = await Promise.allSettled([
-        preparePhoto(file),
-        new Promise((resolve) => setTimeout(resolve, 300)),
-      ]);
-      if (results[0].status === 'rejected') throw results[0].reason;
-      const photo = results[0].value;
+      const photo = await preparePhoto(file);
       triggerHaptic('capture');
       onSave(photo);
       close();

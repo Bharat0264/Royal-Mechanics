@@ -2356,6 +2356,20 @@ body:has(.admin-shell) {
 .admin-sidebar nav a > span,
 .admin-drawer-close,
 .admin-mobile-brand { display: none; }
+.admin-sidebar-brand, .admin-sidebar-role { display: none; }
+
+/* Administration uses a persistent command rail and an app bar, not a public-site capsule. */
+@media (min-width: 769px) {
+  .admin-shell .admin-sidebar { width: 258px; padding: 96px 15px 18px; background: linear-gradient(180deg, #111822, #0b1017 72%); }
+  .admin-shell .admin-workspace { margin-left: 258px; width: calc(100% - 258px); }
+  .admin-sidebar-crest { top: 25px; left: 22px; }
+  .admin-sidebar-brand { display: grid; position: absolute; top: 31px; left: 86px; gap: 5px; color: #edf1f5; font-size: 10px; letter-spacing: .12em; }
+  .admin-sidebar-brand span { color: #e8b84b; font-size: 7px; font-weight: 800; letter-spacing: .18em; }
+  .admin-sidebar-role { display: block; margin: 0 10px 15px; color: #788797; font-size: 8px; font-weight: 800; letter-spacing: .15em; }
+  .admin-sidebar nav a > span { display: block; }
+  .admin-sidebar nav a { min-height: 44px; border-radius: 9px; font-size: 11px; }
+  .admin-shell .admin-topbar { top: 0 !important; min-height: 70px; margin: 0 !important; padding: 12px 28px; border: 0; border-bottom: 1px solid rgb(255 255 255 / 9%); border-radius: 0 !important; background: rgb(12 18 26 / 92%); box-shadow: none; }
+}
 
 @media (min-width: 769px) {
   .admin-shell .admin-topbar {
