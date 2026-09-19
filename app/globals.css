@@ -55,6 +55,8 @@
   --paper: #fff5e8;
   --muted: #c7bcb3;
   --orange: #ff9d49;
+  --page-content-width: 1120px;
+  --page-gutter: 24px;
 }
 * {
   box-sizing: border-box;
@@ -328,7 +330,7 @@ button {
 .contact-layout,
 .workshop-visual,
 .visit-card {
-  width: min(1120px, calc(100% - 48px));
+  width: min(var(--page-content-width), calc(100% - (var(--page-gutter) * 2)));
   margin-inline: auto;
 }
 .home-services {
@@ -404,6 +406,7 @@ button {
   padding: 42px 0;
   border-block: 1px solid #ffffff12;
   background: linear-gradient(120deg, #f0742a18, #ffffff04, #f0742a12);
+  overflow-x: hidden;
   text-align: center;
 }
 .stars {
@@ -706,7 +709,7 @@ button {
 }
 .map-card {
   position: relative;
-  width: min(1120px, calc(100% - 48px));
+  width: min(var(--page-content-width), calc(100% - (var(--page-gutter) * 2)));
   overflow: hidden;
   margin: 0 auto 100px;
   border: 1px solid #ffffff18;
@@ -726,22 +729,23 @@ button {
   bottom: 18px;
 }
 .public-footer {
+  border-top: 1px solid #ffffff14;
+  background: #090b10;
+  overflow-x: hidden;
+}
+.public-footer-content {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 22px;
-  max-width: 100%;
   min-width: 0;
-  padding: 32px max(24px, 8vw);
-  border-top: 1px solid #ffffff14;
-  background: #090b10;
-  overflow-x: hidden;
+  padding: 32px 0;
 }
 .public-footer p {
   color: #9f968e;
   font-size: 11px;
 }
-.public-footer > * {
+.public-footer-content > * {
   min-width: 0;
   max-width: 100%;
 }
@@ -1061,14 +1065,12 @@ button {
   .visit-card > div {
     grid-template-columns: 26px 1fr;
   }
-  .public-footer {
+  .public-footer-content {
     display: flex;
     flex-direction: column;
     justify-content: center;
     gap: 18px;
-    width: 100%;
-    max-width: 100%;
-    padding: 28px 20px calc(68px + env(safe-area-inset-bottom));
+    padding: 28px 0 calc(68px + env(safe-area-inset-bottom));
     overflow-x: hidden;
     text-align: center;
   }

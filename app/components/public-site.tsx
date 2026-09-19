@@ -88,20 +88,22 @@ export function PublicFooter() {
   return (
     <>
       <footer className="public-footer">
-        <Link className="public-brand footer-brand" href="/">
-          <Image
-            className="brand-crest"
-            src="/royal-mechanics-logo-alpha.png"
-            width={180}
-            height={180}
-            sizes="74px"
-            alt="Royal Mechanics crest"
-          />
-          <b>
-            ROYAL<small>MECHANICS</small>
-          </b>
-        </Link>
-        <SiteFooterCredit />
+        <div className="public-footer-content page-content-container">
+          <Link className="public-brand footer-brand" href="/">
+            <Image
+              className="brand-crest"
+              src="/royal-mechanics-logo-alpha.png"
+              width={180}
+              height={180}
+              sizes="74px"
+              alt="Royal Mechanics crest"
+            />
+            <b>
+              ROYAL<small>MECHANICS</small>
+            </b>
+          </Link>
+          <SiteFooterCredit />
+        </div>
       </footer>
       <Link className="mobile-book" href="/book-service">
         Book service <ArrowRight size={15} />
@@ -190,13 +192,11 @@ export function HomePage({
             ))}
           </div>
         </section>
-        <section className="quote-strip">
-          <div className="quote-strip-content page-content-container">
+        <section className="quote-strip page-content-container">
             <Bike className="quote-bike" size={22} strokeWidth={1.6} aria-hidden="true" />
             <blockquote>
             “Precision service, explained in plain language, every time.”
             </blockquote>
-          </div>
         </section>
       </main>
     </>
