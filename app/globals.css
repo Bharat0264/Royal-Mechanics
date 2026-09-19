@@ -321,7 +321,7 @@ button {
   color: #fff6ec;
   font-size: 14px;
 }
-.home-services,
+.page-content-container,
 .service-full-grid,
 .review-grid,
 .badge-grid,
@@ -405,10 +405,6 @@ button {
   border-block: 1px solid #ffffff12;
   background: linear-gradient(120deg, #f0742a18, #ffffff04, #f0742a12);
   text-align: center;
-}
-.quote-strip-content {
-  width: min(1120px, calc(100% - 48px));
-  margin-inline: auto;
 }
 .stars {
   display: flex;

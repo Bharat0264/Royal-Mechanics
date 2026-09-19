@@ -171,7 +171,7 @@ export function HomePage({
             <Clock3 /> <b>Fast</b> service
           </span>
         </section>
-        <section className="home-services">
+        <section className="home-services page-content-container">
           <div className="section-label">
             <p>ESSENTIAL CARE</p>
             <h2>Made for the road.</h2>
@@ -191,7 +191,7 @@ export function HomePage({
           </div>
         </section>
         <section className="quote-strip">
-          <div className="quote-strip-content">
+          <div className="quote-strip-content page-content-container">
             <Bike className="quote-bike" size={22} strokeWidth={1.6} aria-hidden="true" />
             <blockquote>
             “Precision service, explained in plain language, every time.”
