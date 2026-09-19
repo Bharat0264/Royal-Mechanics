@@ -48,7 +48,12 @@ export default async function MechanicLayout({
             <p className="mechanic-topbar-kicker">LIVE WORKBOARD</p>
             <span>Workshop floor · {viewer.displayName}</span>
           </div>
-          <div className="mechanic-online"><i /> On shift</div>
+          <div className="mechanic-topbar-actions">
+            <div className="mechanic-online"><i /> On shift</div>
+            <div className="mechanic-mobile-signout">
+              <MechanicSignout compact />
+            </div>
+          </div>
         </header>
         <main>{children}</main>
         <footer className="portal-credit-footer"><SiteFooterCredit /></footer>

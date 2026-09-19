@@ -209,7 +209,9 @@ button {
   grid-template-columns: 1fr 1fr;
   align-items: center;
   min-height: 530px;
-  overflow: hidden;
+  /* Decorative layers (such as the crest glow) must never escape the hero. */
+  overflow-x: hidden;
+  overflow-y: hidden;
   padding: 50px max(24px, 10vw);
 }
 .premium-hero > div:first-child {

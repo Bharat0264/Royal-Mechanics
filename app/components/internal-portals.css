@@ -671,8 +671,10 @@ body:has(.mechanic-console) { background: #090b0f !important; }
 .mechanic-app-shell .mechanic-topbar { position: sticky; top: 0; z-index: 10; display: flex; max-width: none; min-height: 70px; margin: 0; padding: 14px 34px; border: 0; border-bottom: 1px solid #ffffff0e; border-radius: 0; background: #0d131be8; box-shadow: none; backdrop-filter: blur(18px); }
 .mechanic-topbar-kicker { margin: 0 0 4px; color: #e8b84b; font-size: 8px; font-weight: 800; letter-spacing: .16em; }
 .mechanic-topbar > div:first-child > span { color: #a4b0ba; font-size: 11px; }
+.mechanic-topbar-actions { display: flex; align-items: center; gap: 12px; }
 .mechanic-online { display: flex; align-items: center; gap: 7px; color: #a9bcb7; font-size: 11px; font-weight: 700; }
 .mechanic-online i { width: 7px; height: 7px; border-radius: 50%; background: #65c99a; box-shadow: 0 0 0 4px #65c99a18; }
+.mechanic-mobile-signout { display: none; }
 .mechanic-app-shell > .mechanic-workspace > main, .mechanic-app-shell .portal-credit-footer { max-width: 1160px; }
 .mechanic-app-shell > .mechanic-workspace > main { padding: 42px 34px; }
 .mechanic-queue-heading { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 22px; }
@@ -793,6 +795,16 @@ body:has(.mechanic-console) { background: #090b0f !important; }
   }
   .mechanic-app-shell .mechanic-sidebar .mechanic-brand { padding: 0; }
   .mechanic-app-shell :is(.mechanic-role-badge, .mechanic-nav, .mechanic-sidebar-footer) { display: none; }
+  .mechanic-app-shell .mechanic-mobile-signout { display: block; }
+  .mechanic-app-shell .mechanic-mobile-signout .mechanic-signout { margin: 0; }
+  .mechanic-app-shell .mechanic-mobile-signout .mechanic-signout-button {
+    display: grid;
+    width: 36px;
+    min-width: 36px;
+    min-height: 36px !important;
+    place-items: center;
+    padding: 0;
+  }
   .mechanic-app-shell .mechanic-topbar {
     top: auto;
     width: 100%;

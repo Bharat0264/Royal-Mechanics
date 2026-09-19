@@ -9,6 +9,7 @@ import {
   Camera,
   Check,
   Images,
+  LogOut,
   Tag,
   Wrench,
 } from 'lucide-react';
@@ -30,13 +31,14 @@ export type MechanicBooking = {
     completed: boolean;
   }[];
 };
-export function MechanicSignout() {
+export function MechanicSignout({ compact = false }: { compact?: boolean }) {
   const [busy, setBusy] = useMinimumBusy();
   const [error, setError] = useState('');
   return (
     <div className="mechanic-signout">
       <button
         className="mechanic-signout-button"
+        aria-label={compact ? 'Sign out' : undefined}
         disabled={busy}
         onClick={async () => {
           triggerHaptic('light');
@@ -53,7 +55,7 @@ export function MechanicSignout() {
           }
         }}
       >
-        {busy ? <Loader size="button" /> : 'Sign out'}
+        {busy ? <Loader size="button" /> : compact ? <LogOut size={16} aria-hidden="true" /> : 'Sign out'}
       </button>
       {error && <p role="alert">{error}</p>}
     </div>
@@ -135,19 +137,16 @@ export function MechanicSetPassword() {
 }
 
 export function MechanicQueue({ jobs }: { jobs: MechanicBooking[] }) {
-  const [filter, setFilter] = useState('ALL');
-  const active = jobs.filter(
-    (job) => !['COMPLETED', 'CANCELLED'].includes(job.status),
-  );
+  const [filter, setFilter] = useState('ASSIGNED');
+  const queueJobs = jobs.filter((job) => job.status !== 'CANCELLED');
   const statusCount = (status: string) =>
-    active.filter((job) => job.status === status).length;
+    queueJobs.filter((job) => job.status === status).length;
   const statusName = (status: string) => status.replaceAll('_', ' ');
-  const visible = filter === 'ALL' ? active : active.filter((job) => job.status === filter);
+  const visible = queueJobs.filter((job) => job.status === filter);
   const statuses = [
-    ['ALL', 'All work'],
     ['ASSIGNED', 'Assigned'],
-    ['IN_PROGRESS', 'In progress'],
-    ['QUALITY_CHECK', 'Quality check'],
+    ['IN_PROGRESS', 'In Progress'],
+    ['COMPLETED', 'Completed'],
   ] as const;
   return (
     <>
@@ -158,12 +157,11 @@ export function MechanicQueue({ jobs }: { jobs: MechanicBooking[] }) {
             <h1>Job queue</h1>
             <p>Track each vehicle from intake to final inspection.</p>
           </div>
-          <div className="queue-total"><strong>{active.length}</strong><span>active vehicles</span></div>
         </section>
         <div className="job-filter-tabs" role="tablist" aria-label="Filter jobs by status">
           {statuses.map(([status, label]) => (
             <button key={status} type="button" role="tab" aria-selected={filter === status} className={filter === status ? 'is-active' : ''} onClick={() => setFilter(status)}>
-              {label} <b>{status === 'ALL' ? active.length : statusCount(status)}</b>
+              {label} <b>{statusCount(status)}</b>
             </button>
           ))}
         </div>
