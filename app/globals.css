@@ -99,9 +99,10 @@ body {
   flex-direction: column;
 }
 .customer-shell-main > .public-main {
-  width: min(1400px, 100%);
+  width: 100%;
+  max-width: 1400px;
   flex: 1 0 auto;
-  margin-inline: auto;
+  margin: 0 auto;
 }
 button,
 input,
@@ -208,8 +209,9 @@ button {
 }
 .page-container,
 .page-content-container {
-  width: min(var(--page-content-width), calc(100% - (var(--page-gutter) * 2)));
-  margin-inline: auto;
+  width: calc(100% - (var(--page-gutter) * 2));
+  max-width: var(--page-content-width);
+  margin: 0 auto;
 }
 .premium-hero {
   min-height: 530px;
