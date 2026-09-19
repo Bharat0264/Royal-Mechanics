@@ -3,6 +3,7 @@ import { triggerHaptic } from '@/lib/haptics';
 import { requestWithMinimum as fetch } from '@/lib/minimum-request';
 import { Loader, useMinimumBusy } from './loader';
 import { SiteFooterCredit } from './site-footer-credit';
+import { PageContainer } from './page-container';
 
 import Link from 'next/link';
 import Image from 'next/image';
@@ -88,7 +89,7 @@ export function PublicFooter() {
   return (
     <>
       <footer className="public-footer">
-        <div className="public-footer-content page-content-container">
+        <PageContainer className="public-footer-content">
           <Link className="public-brand footer-brand" href="/">
             <Image
               className="brand-crest"
@@ -103,7 +104,7 @@ export function PublicFooter() {
             </b>
           </Link>
           <SiteFooterCredit />
-        </div>
+        </PageContainer>
       </footer>
       <Link className="mobile-book" href="/book-service">
         Book service <ArrowRight size={15} />
@@ -139,7 +140,8 @@ export function HomePage({
     <>
       <main className="public-main">
         <section className="premium-hero">
-          <div>
+          <PageContainer className="premium-hero-content">
+            <div>
             <p className="kicker">
               <i /> TWO-WHEELER SERVICE
             </p>
@@ -149,7 +151,7 @@ export function HomePage({
               Book service <ArrowRight size={17} />
             </Link>
           </div>
-          <div className="hero-machine" aria-label="Royal Mechanics crest">
+            <div className="hero-machine" aria-label="Royal Mechanics crest">
             <div className="machine-glow" />
             <Image
               className="hero-crest"
@@ -160,20 +162,24 @@ export function HomePage({
               priority
               alt="Royal Mechanics crest"
             />
-          </div>
+            </div>
+          </PageContainer>
         </section>
         <section className="trust-strip">
-          <span>
+          <PageContainer className="trust-strip-content">
+            <span>
             <Bike /> <b>{trustStats.completedJobs.toLocaleString('en-IN')}</b> Bikes serviced
           </span>
-          <span>
+            <span>
             <Star /> <b>{trustStats.averageRating === null ? 'New' : trustStats.averageRating.toFixed(1)}</b> Rated
           </span>
-          <span>
+            <span>
             <Clock3 /> <b>Fast</b> service
-          </span>
+            </span>
+          </PageContainer>
         </section>
-        <section className="home-services page-content-container">
+        <section className="home-services">
+          <PageContainer>
           <div className="section-label">
             <p>ESSENTIAL CARE</p>
             <h2>Made for the road.</h2>
@@ -191,12 +197,15 @@ export function HomePage({
               </Link>
             ))}
           </div>
+          </PageContainer>
         </section>
-        <section className="quote-strip page-content-container">
+        <section className="quote-strip">
+          <PageContainer>
             <Bike className="quote-bike" size={22} strokeWidth={1.6} aria-hidden="true" />
             <blockquote>
             “Precision service, explained in plain language, every time.”
             </blockquote>
+          </PageContainer>
         </section>
       </main>
     </>

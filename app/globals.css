@@ -206,17 +206,25 @@ button {
 .gloss-button:hover:before {
   transform: translateX(140%);
 }
+.page-container,
+.page-content-container {
+  width: min(var(--page-content-width), calc(100% - (var(--page-gutter) * 2)));
+  margin-inline: auto;
+}
 .premium-hero {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  align-items: center;
   min-height: 530px;
   /* Decorative layers (such as the crest glow) must never escape the hero. */
   overflow-x: hidden;
   overflow-y: hidden;
-  padding: 50px max(24px, 10vw);
 }
-.premium-hero > div:first-child {
+.premium-hero-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  min-height: inherit;
+  padding-block: 50px;
+}
+.premium-hero-content > div:first-child {
   position: relative;
   z-index: 2;
 }
@@ -298,12 +306,15 @@ button {
   filter: drop-shadow(0 25px 30px #0009) drop-shadow(0 0 24px #ed8f4455);
 }
 .trust-strip {
-  display: flex;
-  justify-content: center;
-  gap: clamp(22px, 7vw, 100px);
-  padding: 22px;
   border-block: 1px solid #ffffff12;
   background: #ffffff08;
+  overflow-x: hidden;
+}
+.trust-strip-content {
+  display: flex;
+  justify-content: space-between;
+  gap: clamp(22px, 7vw, 100px);
+  padding: 22px;
 }
 .trust-strip span {
   display: flex;
@@ -323,7 +334,6 @@ button {
   color: #fff6ec;
   font-size: 14px;
 }
-.page-content-container,
 .service-full-grid,
 .review-grid,
 .badge-grid,
@@ -982,13 +992,15 @@ button {
   grid-column: 1/-1;
 }
 @media (max-width: 700px) {
-  .premium-hero,
+  .premium-hero-content,
   .utility-layout {
     grid-template-columns: 1fr;
   }
   .premium-hero {
     min-height: auto;
-    padding: 32px 24px 28px;
+  }
+  .premium-hero-content {
+    padding-block: 32px 28px;
   }
   .premium-hero h1 {
     font-size: 64px;
@@ -1003,13 +1015,13 @@ button {
   .hero-crest {
     width: 280px;
   }
-  .trust-strip {
+  .trust-strip-content {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     justify-content: stretch;
     gap: 7px;
     overflow: hidden;
-    padding: 16px 13px;
+    padding: 16px 0;
   }
   .trust-strip span {
     justify-content: center;
