@@ -401,10 +401,14 @@ button {
   font-size: 12px;
 }
 .quote-strip {
-  padding: 42px 24px;
+  padding: 42px 0;
   border-block: 1px solid #ffffff12;
   background: linear-gradient(120deg, #f0742a18, #ffffff04, #f0742a12);
   text-align: center;
+}
+.quote-strip-content {
+  width: min(1120px, calc(100% - 48px));
+  margin-inline: auto;
 }
 .stars {
   display: flex;

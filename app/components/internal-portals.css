@@ -993,15 +993,21 @@ body:has(.mechanic-console) { background: #090b0f !important; }
   background: linear-gradient(145deg, rgb(255 255 255 / 9%), rgb(255 255 255 / 5%));
 }
 .mechanic-app-shell .job-filter-tabs {
-  width: fit-content;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: 100%;
   max-width: 100%;
+  min-width: 0;
   padding: 6px;
   gap: 7px;
   border-radius: 18px;
+  overflow: hidden;
 }
 .mechanic-app-shell .job-filter-tabs button {
+  justify-content: center;
+  min-width: 0;
   min-height: 38px;
-  padding: 8px 13px;
+  padding: 8px 6px;
   border-radius: 999px;
   color: #bdc6d0;
 }
@@ -1028,7 +1034,7 @@ body:has(.mechanic-console) { background: #090b0f !important; }
 .mechanic-app-shell .mechanic-queue-heading h1 { margin: 5px 0 7px; }
 .mechanic-app-shell .job-filter-tabs { margin-bottom: 14px; }
 @media (max-width: 760px) {
-  .mechanic-app-shell .job-filter-tabs { width: 100%; overflow-x: auto; }
+  .mechanic-app-shell .job-filter-tabs { overflow: hidden; }
   .mechanic-app-shell .queue-total { min-width: 112px; }
 }
 
@@ -1086,7 +1092,7 @@ body:has(.mechanic-console) { background: #090b0f !important; }
   }
   .mechanic-app-shell .mechanic-queue-heading { flex-wrap: wrap; gap: 14px; }
   .mechanic-app-shell .queue-total { min-width: 112px; }
-  .mechanic-app-shell .job-filter-tabs { width: 100%; overflow-x: auto; }
+  .mechanic-app-shell .job-filter-tabs { overflow: hidden; }
   .mechanic-app-shell .job-queue { grid-template-columns: minmax(0, 1fr); }
   .mechanic-app-shell .portal-credit-footer {
     width: 100%;

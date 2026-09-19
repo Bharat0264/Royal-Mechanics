@@ -191,10 +191,12 @@ export function HomePage({
           </div>
         </section>
         <section className="quote-strip">
-          <Bike className="quote-bike" size={22} strokeWidth={1.6} aria-hidden="true" />
-          <blockquote>
+          <div className="quote-strip-content">
+            <Bike className="quote-bike" size={22} strokeWidth={1.6} aria-hidden="true" />
+            <blockquote>
             “Precision service, explained in plain language, every time.”
-          </blockquote>
+            </blockquote>
+          </div>
         </section>
       </main>
     </>
