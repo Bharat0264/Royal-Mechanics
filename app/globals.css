@@ -883,11 +883,16 @@ button {
   min-width: 0;
   max-width: 100%;
 }
+.public-footer .footer-brand {
+  flex: 0 0 auto;
+}
 .footer-meta {
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  flex: 0 0 auto;
   gap: 18px;
+  margin-left: auto;
   min-width: 0;
 }
 .footer-legal a:hover {
@@ -1239,6 +1244,7 @@ button {
     flex-wrap: wrap;
     justify-content: flex-start;
     gap: 10px 16px;
+    margin-left: 0;
   }
   .public-footer .brand-crest {
     width: 66px;
