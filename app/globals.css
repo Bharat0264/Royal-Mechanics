@@ -1235,22 +1235,23 @@ button {
     grid-template-columns: 26px 1fr;
   }
   .public-footer-content {
-    align-items: flex-start;
+    align-items: center;
     flex-direction: column;
-    gap: 16px;
+    gap: 14px;
     padding: 28px 0 calc(68px + env(safe-area-inset-bottom));
     overflow-x: hidden;
+    text-align: center;
   }
   .footer-meta {
-    align-items: flex-start;
-    justify-items: start;
-    justify-content: flex-start;
-    gap: 10px 16px;
+    align-items: center;
+    justify-items: center;
+    justify-content: center;
+    gap: 8px;
     margin-left: 0;
-    text-align: left;
+    text-align: center;
   }
   .footer-legal {
-    justify-content: flex-start;
+    justify-content: center;
   }
   .public-footer .brand-crest {
     width: 66px;
