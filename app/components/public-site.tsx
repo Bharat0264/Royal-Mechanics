@@ -21,7 +21,6 @@ import {
   Clock3,
   MapPin,
   MessageCircle,
-  Phone,
   ShieldCheck,
   Star,
   Wrench,
@@ -91,63 +90,26 @@ export function PublicFooter() {
     <>
       <footer className="public-footer">
         <PageContainer className="public-footer-content">
-          <div className="footer-brand-column">
-            <Link className="public-brand footer-brand" href="/">
-              <Image
-                className="brand-crest"
-                src="/royal-mechanics-logo-alpha.png"
-                width={180}
-                height={180}
-                sizes="74px"
-                alt="Royal Mechanics crest"
-              />
-              <b>
-                ROYAL<small>MECHANICS</small>
-              </b>
-            </Link>
-            <a
-              className="footer-social-link"
-              href="https://wa.me/919182372075"
-              target="_blank"
-              rel="noreferrer"
-              aria-label="Chat with Royal Mechanics on WhatsApp"
-            >
-              <MessageCircle size={16} /> WhatsApp
-            </a>
+          <Link className="public-brand footer-brand" href="/">
+            <Image
+              className="brand-crest"
+              src="/royal-mechanics-logo-alpha.png"
+              width={180}
+              height={180}
+              sizes="74px"
+              alt="Royal Mechanics crest"
+            />
+            <b>
+              ROYAL<small>MECHANICS</small>
+            </b>
+          </Link>
+          <div className="footer-meta">
+            <SiteFooterCredit />
+            <nav className="footer-legal" aria-label="Legal information">
+              <Link href="/privacy">Privacy Policy</Link>
+              <Link href="/terms">Terms</Link>
+            </nav>
           </div>
-          <nav className="footer-column" aria-label="Footer navigation">
-            <h2>Quick links</h2>
-            <Link href="/">Home</Link>
-            <Link href="/services">Services</Link>
-            <Link href="/our-workshop">Workshop</Link>
-            <Link href="/reviews">Reviews</Link>
-            <Link href="/contact">FAQ &amp; Contact</Link>
-          </nav>
-          <nav className="footer-column" aria-label="Footer services">
-            <h2>Services</h2>
-            <Link href="/services">General Service</Link>
-            <Link href="/services">Brakes &amp; Safety</Link>
-            <Link href="/services">Tyres &amp; Battery</Link>
-          </nav>
-          <address className="footer-column footer-contact">
-            <h2>Contact</h2>
-            <a href="tel:+919182372075">
-              <Phone size={14} /> +91 91823 72075
-            </a>
-            <a href="https://wa.me/919182372075" target="_blank" rel="noreferrer">
-              <MessageCircle size={14} /> WhatsApp us
-            </a>
-            <a href="https://share.google/yQlVV3cGUfRQSWn2G" target="_blank" rel="noreferrer">
-              <MapPin size={14} /> New Panvel, Navi Mumbai
-            </a>
-          </address>
-        </PageContainer>
-        <PageContainer className="public-footer-bottom">
-          <SiteFooterCredit />
-          <nav className="footer-legal" aria-label="Legal information">
-            <Link href="/privacy">Privacy Policy</Link>
-            <Link href="/terms">Terms</Link>
-          </nav>
         </PageContainer>
       </footer>
       <Link className="mobile-book" href="/book-service">
