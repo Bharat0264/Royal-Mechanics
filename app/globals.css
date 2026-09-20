@@ -77,12 +77,46 @@ html {
   tap-highlight-color: transparent;
 }
 
-.global-error-body { margin: 0; background: #090b0f; }
-.route-error { min-height: 60vh; display: grid; place-content: center; gap: 16px; max-width: 680px; margin: auto; padding: 48px 24px; color: #f8f3e8; text-align: center; }
-.route-error h1, .route-error p { margin: 0; }
-.route-error p { color: #c7bcb3; line-height: 1.6; }
-.route-error-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
-.route-error button, .route-error a { border: 1px solid #d8b36e; border-radius: 999px; padding: 10px 16px; background: transparent; color: #f8f3e8; font: inherit; text-decoration: none; cursor: pointer; }
+.global-error-body {
+  margin: 0;
+  background: #090b0f;
+}
+.route-error {
+  min-height: 60vh;
+  display: grid;
+  place-content: center;
+  gap: 16px;
+  max-width: 680px;
+  margin: auto;
+  padding: 48px 24px;
+  color: #f8f3e8;
+  text-align: center;
+}
+.route-error h1,
+.route-error p {
+  margin: 0;
+}
+.route-error p {
+  color: #c7bcb3;
+  line-height: 1.6;
+}
+.route-error-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+.route-error button,
+.route-error a {
+  border: 1px solid #d8b36e;
+  border-radius: 999px;
+  padding: 10px 16px;
+  background: transparent;
+  color: #f8f3e8;
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
 body {
   min-height: 100dvh;
   overflow-x: hidden;
@@ -126,18 +160,46 @@ button {
 }
 /* Native mobile highlights fight the liquid feedback below. Keep a clear,
    intentional keyboard focus treatment while suppressing browser tap flashes. */
-:is(button, a, [role='button'], [role='switch'], summary, input[type='checkbox']) {
+:is(
+  button,
+  a,
+  [role='button'],
+  [role='switch'],
+  summary,
+  input[type='checkbox']
+) {
   -webkit-tap-highlight-color: transparent;
   tap-highlight-color: transparent;
   -webkit-touch-callout: none;
 }
-:is(button, a, [role='button'], [role='switch'], summary, input[type='checkbox']):focus {
+:is(
+  button,
+  a,
+  [role='button'],
+  [role='switch'],
+  summary,
+  input[type='checkbox']
+):focus {
   outline: none;
 }
-:is(button, a, [role='button'], [role='switch'], summary, input[type='checkbox']):active {
+:is(
+  button,
+  a,
+  [role='button'],
+  [role='switch'],
+  summary,
+  input[type='checkbox']
+):active {
   outline: none;
 }
-:is(button, a, [role='button'], [role='switch'], summary, input[type='checkbox']):focus-visible {
+:is(
+  button,
+  a,
+  [role='button'],
+  [role='switch'],
+  summary,
+  input[type='checkbox']
+):focus-visible {
   outline: 2px solid #ffd47b;
   outline-offset: 3px;
 }
@@ -614,17 +676,66 @@ button {
   margin: 0 auto 96px;
   padding: 28px;
 }
-.review-submit-card form { display: grid; gap: 18px; }
-.review-submit-card label { display: grid; gap: 8px; color: #e7ddd1; font-size: 13px; }
-.review-submit-card :is(select, textarea) { width: 100%; border: 1px solid #ffffff24; border-radius: 10px; padding: 12px; color: #fff5e8; background: #090b0f; font: inherit; }
-.review-stars { border: 0; padding: 0; margin: 0; }
-.review-stars legend { margin-bottom: 8px; color: #e7ddd1; font-size: 13px; }
-.review-stars button { border: 0; padding: 5px; color: #ffad53; background: transparent; cursor: pointer; }
-.review-stars button[aria-pressed='true'] { filter: drop-shadow(0 0 6px #ffad5380); }
-.review-no-history { display: grid; justify-items: center; gap: 12px; padding: 30px 10px; text-align: center; color: #c7bcb3; }
-.review-no-history h2, .review-no-history p { margin: 0; }
-.review-no-history > svg { color: #ffad53; }
-.review-success { color: #a8dfbd; }.review-error { color: #f2aaa0; }
+.review-submit-card form {
+  display: grid;
+  gap: 18px;
+}
+.review-submit-card label {
+  display: grid;
+  gap: 8px;
+  color: #e7ddd1;
+  font-size: 13px;
+}
+.review-submit-card :is(select, textarea) {
+  width: 100%;
+  border: 1px solid #ffffff24;
+  border-radius: 10px;
+  padding: 12px;
+  color: #fff5e8;
+  background: #090b0f;
+  font: inherit;
+}
+.review-stars {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+.review-stars legend {
+  margin-bottom: 8px;
+  color: #e7ddd1;
+  font-size: 13px;
+}
+.review-stars button {
+  border: 0;
+  padding: 5px;
+  color: #ffad53;
+  background: transparent;
+  cursor: pointer;
+}
+.review-stars button[aria-pressed='true'] {
+  filter: drop-shadow(0 0 6px #ffad5380);
+}
+.review-no-history {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 30px 10px;
+  text-align: center;
+  color: #c7bcb3;
+}
+.review-no-history h2,
+.review-no-history p {
+  margin: 0;
+}
+.review-no-history > svg {
+  color: #ffad53;
+}
+.review-success {
+  color: #a8dfbd;
+}
+.review-error {
+  color: #f2aaa0;
+}
 .contact-layout {
   display: grid;
   grid-template-columns: 1fr 0.9fr;
@@ -762,9 +873,10 @@ button {
 }
 .public-footer-content {
   display: grid;
-  grid-template-columns: minmax(190px, 1.35fr) repeat(3, minmax(135px, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   align-items: start;
-  gap: clamp(28px, 5vw, 76px);
+  justify-content: space-between;
+  gap: 0;
   min-width: 0;
   padding: 46px 0 30px;
 }
@@ -821,6 +933,10 @@ button {
   margin-top: 1px;
   color: #ff9d49;
 }
+.footer-contact {
+  justify-items: end;
+  text-align: right;
+}
 .public-footer-bottom {
   display: flex;
   align-items: center;
@@ -832,11 +948,15 @@ button {
 .site-footer-credit {
   max-width: 100%;
   color: #8d9699;
-  font: 500 11px/1.55 Arial, sans-serif;
+  font:
+    500 11px/1.55 Arial,
+    sans-serif;
   letter-spacing: 0.01em;
   overflow-wrap: anywhere;
 }
-.site-footer-credit p { margin: 0; }
+.site-footer-credit p {
+  margin: 0;
+}
 .footer-legal {
   display: flex;
   flex-wrap: wrap;
@@ -1133,7 +1253,9 @@ button {
     grid-template-columns: 38px 1fr auto;
     gap: 13px;
   }
-  .service-card .service-card-arrow { display: none; }
+  .service-card .service-card-arrow {
+    display: none;
+  }
   .service-card > b {
     grid-column: 2;
   }
@@ -1165,6 +1287,10 @@ button {
   }
   .public-footer .footer-brand-column {
     grid-column: 1 / -1;
+  }
+  .public-footer .footer-contact {
+    justify-items: start;
+    text-align: left;
   }
   .public-footer-bottom {
     align-items: flex-start;
